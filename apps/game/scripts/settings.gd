@@ -10,6 +10,7 @@ var music_volume := 0.6
 var font_scale := 1.0
 var zoom_level := 1.0
 var day_night_enabled := true
+var theme_name := "dark"
 
 func _ready() -> void:
 	# HUD text is sized for a 1600x900 desktop canvas — bump the default on
@@ -18,6 +19,7 @@ func _ready() -> void:
 	if DisplayServer.is_touchscreen_available():
 		font_scale = 1.3
 	_load()
+	PixlTheme.boot()
 
 func _load() -> void:
 	if not FileAccess.file_exists(PATH):
@@ -34,6 +36,7 @@ func _load() -> void:
 	font_scale = clampf(float(data.get("font_scale", font_scale)), 1.0, 1.6)
 	zoom_level = clampf(float(data.get("zoom_level", zoom_level)), 0.6, 1.4)
 	day_night_enabled = bool(data.get("day_night_enabled", day_night_enabled))
+	theme_name = String(data.get("theme_name", theme_name))
 
 func save() -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
@@ -45,6 +48,7 @@ func save() -> void:
 		"font_scale": font_scale,
 		"zoom_level": zoom_level,
 		"day_night_enabled": day_night_enabled,
+		"theme_name": theme_name,
 	}))
 	f.close()
 
@@ -111,6 +115,10 @@ func touch_menu_theme(base: Theme) -> Theme:
 
 func set_day_night_enabled(on: bool) -> void:
 	day_night_enabled = on
+	save()
+
+func set_theme_name(name: String) -> void:
+	theme_name = name
 	save()
 
 func set_zoom_level(v: float) -> void:

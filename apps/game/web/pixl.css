@@ -24,18 +24,19 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
   /* DUSK — a warm-wood outpost under a golden dawn sky. Dark chocolate-brown
      surfaces, all-gold: a white+yellow palette, no blue/teal/purple anywhere.
      (Token names --gold/--teal are kept for compatibility; --teal now carries
-     a paler straw-gold so Restoration Energy still reads slightly distinct.) */
-  /* warm cream text on wood */
-  --ink:#efe7da;--dim:#b4a691;--faint:#897b67;--muted:#665a49;
-  /* dark warm-brown surfaces */
-  --panel:#241a12;--panel-2:#30241a;--panel-deep:#150f0a;
-  /* PIXELS — gold/amber, "coins you spend" */
-  --gold:#f4b942;--gold-soft:#ffd270;
-  /* second accent — pale straw/white-gold, keeping the palette white + yellow */
-  --teal:#fff3c9;--teal-hover:#ffe9a3;
-  /* states */
-  --good:#54c06a;--bad:#e0555f;--stroke:#3a2c1d;
-  --btn-ink:#1a1206;
+     a paler straw-gold so Restoration Energy still reads slightly distinct.)
+
+     Token groups, darkest/deepest first: --ink/--dim/--faint/--muted are text
+     on wood. --panel/--panel-2/--panel-deep are the dark warm-brown surfaces.
+     --gold/--gold-soft are PIXELS, "coins you spend". --teal/--teal-hover are
+     RESTORATION ENERGY, the community currency. --good/--bad/--stroke are
+     state colors. --btn-ink is the ink used on top of a lit gold button.
+
+     Values come from packages/theme/palette.json (`bun run theme:sync`) —
+     the marked block below is generated, do not hand-edit it. */
+  /* <pixl-theme:dark> */
+  --ink:#efe7da;--dim:#b4a691;--faint:#897b67;--muted:#665a49;--panel:#241a12;--panel-2:#30241a;--panel-deep:#150f0a;--gold:#f4b942;--gold-soft:#ffd270;--teal:#fff3c9;--teal-hover:#ffe9a3;--good:#54c06a;--bad:#e0555f;--stroke:#3a2c1d;--btn-ink:#1a1206;
+  /* <pixl-theme:dark:end> */
   /* Fixed (never redefined per-theme) light backing for product images/icons —
      a lot of shop art is a dark/black silhouette on a transparent PNG, which
      disappears against --panel-deep in dark mode. Product photos read the
@@ -46,11 +47,14 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
      --pixel stays the var name for the display face (used everywhere). */
   --sans:'Rubik',system-ui,-apple-system,sans-serif;
   --pixel:'Pixelify Sans',ui-monospace,system-ui,sans-serif;
-  /* neo-brutalist hard offset shadows (no blur) — the block "pop" */
-  --drop:2px 2px 0 rgba(0,0,0,.4);--drop-lg:4px 4px 0 rgba(0,0,0,.45);
+  /* neo-brutalist hard offset shadows (no blur, the block "pop") plus the
+     dithered-scanline texture layered onto panels. Generated from
+     palette.json's per-theme "effects" — hand-tuned rgba values, not a
+     formula off --ink, see packages/theme/README.md for why. */
+  /* <pixl-theme:dark:effects> */
+  --drop:2px 2px 0 rgba(0,0,0,.4);--drop-lg:4px 4px 0 rgba(0,0,0,.45);--dither:repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px);
+  /* <pixl-theme:dark:effects:end> */
   --radius:4px;--radius-sm:3px;
-  /* dithered-scanline texture layered onto panels — cheap, no image assets */
-  --dither:repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px);
   /* the pixel-stepped corner (8-bit notch). --notch is tuned per component. */
   --notch:7px;
   --np:polygon(
@@ -64,13 +68,12 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
 /* Light mode — warm parchment in daylight. Cream/paper surfaces, darker gold
    so the accent reads as text. White + yellow throughout, not a cool flip. */
 :root[data-theme="light"]{
-  --ink:#2a1f16;--dim:#5c4d3d;--faint:#8a7962;--muted:#b0a08c;
-  --panel:#fffaf2;--panel-2:#f4ebdd;--panel-deep:#faf4ea;
-  --gold:#b5791a;--gold-soft:#cf8f22;--teal:#8a6a1a;--teal-hover:#6f5514;
-  --good:#2f9e57;--bad:#cc3a48;--stroke:#e9ddca;
-  --btn-ink:#fff7ea;
-  --drop:2px 2px 0 rgba(70,45,20,.16);--drop-lg:4px 4px 0 rgba(70,45,20,.2);
-  --dither:repeating-linear-gradient(0deg,rgba(80,50,20,.02) 0 1px,transparent 1px 3px);
+  /* <pixl-theme:light> */
+  --ink:#2a1f16;--dim:#5c4d3d;--faint:#8a7962;--muted:#b0a08c;--panel:#fffaf2;--panel-2:#f4ebdd;--panel-deep:#faf4ea;--gold:#b5791a;--gold-soft:#cf8f22;--teal:#8a6a1a;--teal-hover:#6f5514;--good:#2f9e57;--bad:#cc3a48;--stroke:#e9ddca;--btn-ink:#fff7ea;
+  /* <pixl-theme:light:end> */
+  /* <pixl-theme:light:effects> */
+  --drop:2px 2px 0 rgba(70,45,20,.16);--drop-lg:4px 4px 0 rgba(70,45,20,.2);--dither:repeating-linear-gradient(0deg,rgba(80,50,20,.02) 0 1px,transparent 1px 3px);
+  /* <pixl-theme:light:effects:end> */
 }
 
 /* Kenney pixel cursor pack (CC0) — the arrow replaces the OS pointer everywhere

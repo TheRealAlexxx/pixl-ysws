@@ -5,8 +5,6 @@ const THEME := preload("res://themes/main_theme.tres")
 # the game moved to Pixelify Sans — everything else stays on the theme default.
 const HUD_FONT := preload("res://assets/fonts/Monocraft.ttf")
 const GAMEPLAY_SCENES := ["village", "open_world", "house_interior", "shop_interior"]
-const COLOR_ONLINE := Color(0.290196, 0.870588, 0.501961)
-const COLOR_ACCENT := Color(1, 0.819608, 0.4)
 
 var _root: Control
 var _name_label: Label
@@ -121,7 +119,7 @@ func _build_ui() -> void:
 	event_margin.add_theme_constant_override("margin_bottom", 5)
 	_event_card.add_child(event_margin)
 	_event_label = Label.new()
-	_event_label.add_theme_color_override("font_color", COLOR_ACCENT)
+	_event_label.add_theme_color_override("font_color", PixlTheme.color("gold"))
 	_ssize(_event_label, 15)
 	event_margin.add_child(_event_label)
 
@@ -164,7 +162,7 @@ func _build_ui() -> void:
 
 	_pixels_label = Label.new()
 	_ssize(_pixels_label, 26)
-	_pixels_label.add_theme_color_override("font_color", COLOR_ACCENT)
+	_pixels_label.add_theme_color_override("font_color", PixlTheme.color("gold"))
 	_pixels_label.text = "— pixels"
 	pixels_row.add_child(_pixels_label)
 
@@ -212,7 +210,7 @@ func _build_ui() -> void:
 	chip.add_child(row)
 
 	var dot := ColorRect.new()
-	dot.color = COLOR_ONLINE
+	dot.color = PixlTheme.color("good")
 	dot.custom_minimum_size = Vector2(8, 8)
 	dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -243,7 +241,7 @@ func _build_ui() -> void:
 	friends_chip.add_child(friends_row)
 
 	var friends_dot := ColorRect.new()
-	friends_dot.color = COLOR_ACCENT
+	friends_dot.color = PixlTheme.color("gold")
 	friends_dot.custom_minimum_size = Vector2(8, 8)
 	friends_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	friends_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -272,7 +270,7 @@ func _build_ui() -> void:
 	shop_chip.add_child(shop_row)
 
 	var shop_dot := ColorRect.new()
-	shop_dot.color = Color(1, 0.419608, 0.419608)
+	shop_dot.color = PixlTheme.color("bad")
 	shop_dot.custom_minimum_size = Vector2(8, 8)
 	shop_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	shop_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -301,7 +299,7 @@ func _build_ui() -> void:
 	quest_chip.add_child(quest_row)
 
 	var quest_dot := ColorRect.new()
-	quest_dot.color = COLOR_ACCENT
+	quest_dot.color = PixlTheme.color("gold")
 	quest_dot.custom_minimum_size = Vector2(8, 8)
 	quest_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	quest_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -375,9 +373,9 @@ func _build_ui() -> void:
 
 func _update_inbox(unread: int) -> void:
 	if unread > 0:
-		_inbox_dot.color = COLOR_ACCENT
+		_inbox_dot.color = PixlTheme.color("gold")
 		_inbox_label.text = "Inbox  [N]  •  %d new" % unread
-		_inbox_label.add_theme_color_override("font_color", COLOR_ACCENT)
+		_inbox_label.add_theme_color_override("font_color", PixlTheme.color("gold"))
 	else:
 		_inbox_dot.color = Color(0.62, 0.58, 0.5)
 		_inbox_label.text = "Inbox  [N]"
@@ -446,7 +444,7 @@ func _tx_row(t: Dictionary) -> Control:
 	var amt := Label.new()
 	amt.text = ("+%d" % amount) if amount >= 0 else str(amount)
 	amt.custom_minimum_size = Vector2(70, 0)
-	amt.add_theme_color_override("font_color", COLOR_ONLINE if amount >= 0 else Color(1, 0.419608, 0.419608))
+	amt.add_theme_color_override("font_color", PixlTheme.color("good") if amount >= 0 else PixlTheme.color("bad"))
 	row.add_child(amt)
 	var what := Label.new()
 	var reason := _tx_reason(String(t.get("reason", "")))
@@ -670,14 +668,14 @@ func _refresh_list() -> void:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		var dot := ColorRect.new()
-		dot.color = COLOR_ONLINE
+		dot.color = PixlTheme.color("good")
 		dot.custom_minimum_size = Vector2(8, 8)
 		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(dot)
 		var label := Label.new()
 		label.text = "%s  (you)" % entry[0] if entry[1] else String(entry[0])
 		if entry[1]:
-			label.add_theme_color_override("font_color", COLOR_ACCENT)
+			label.add_theme_color_override("font_color", PixlTheme.color("gold"))
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(label)

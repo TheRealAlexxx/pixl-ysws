@@ -428,7 +428,7 @@ func _on_pixfy_toggled(on: bool) -> void:
 
 func _card_note(text: String, ok: bool) -> void:
 	_card_status.text = text
-	_card_status.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5) if ok else Color(1, 0.42, 0.42))
+	_card_status.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5) if ok else PixlTheme.color("bad"))
 	_card_status.visible = true
 
 func _card_api(method: int, path: String, body: String, cb: Callable) -> void:
@@ -470,7 +470,7 @@ func _on_name_result(ok: bool, text: String) -> void:
 		_name_status.add_theme_color_override("font_color", ACCENT_GOLD)
 		_name_status.text = "Name updated!"
 	else:
-		_name_status.add_theme_color_override("font_color", Color(1, 0.419608, 0.419608))
+		_name_status.add_theme_color_override("font_color", PixlTheme.color("bad"))
 		_name_status.text = text
 
 func _unhandled_input(event: InputEvent) -> void:

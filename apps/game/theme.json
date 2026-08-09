@@ -1,0 +1,13 @@
+{
+  "_generated": "GENERATED from packages/theme/palette.json by `bun run theme:sync` - do not edit",
+  "dark": {
+    "gold": "#ffd166",
+    "gold-soft": "#ffdf8a",
+    "ink": "#f3e3c2",
+    "panel": "#2b1d12",
+    "panel-deep": "#1c1209",
+    "btn-ink": "#3a2410",
+    "good": "#4ade80",
+    "bad": "#ff6b6b"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "_note": "web.* feeds apps/game/web/pixl.css. godot.* feeds apps/game/theme.json. Both share the same token names on purpose, but not (yet) the same literal values: main_theme.tres and pixl.css were designed independently and were never pixel-identical, so forcing them onto one literal value per token would be a visual change, not plumbing. Unifying the actual hues is a deliberate future design pass, not this one. godot.light does not exist: the game has no light-mode design yet, so PixlTheme falls back to godot.dark whenever a synced 'light' choice reaches the game.",
+  "web": {
+    "dark": {
+      "ink": "#efe7da",
+      "dim": "#b4a691",
+      "faint": "#897b67",
+      "muted": "#665a49",
+      "panel": "#241a12",
+      "panel-2": "#30241a",
+      "panel-deep": "#150f0a",
+      "gold": "#f4b942",
+      "gold-soft": "#ffd270",
+      "teal": "#fff3c9",
+      "teal-hover": "#ffe9a3",
+      "good": "#54c06a",
+      "bad": "#e0555f",
+      "stroke": "#3a2c1d",
+      "btn-ink": "#1a1206",
+      "effects": {
+        "drop": "2px 2px 0 rgba(0,0,0,.4)",
+        "dropLg": "4px 4px 0 rgba(0,0,0,.45)",
+        "dither": "repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px)"
+      }
+    },
+    "light": {
+      "ink": "#2a1f16",
+      "dim": "#5c4d3d",
+      "faint": "#8a7962",
+      "muted": "#b0a08c",
+      "panel": "#fffaf2",
+      "panel-2": "#f4ebdd",
+      "panel-deep": "#faf4ea",
+      "gold": "#b5791a",
+      "gold-soft": "#cf8f22",
+      "teal": "#8a6a1a",
+      "teal-hover": "#6f5514",
+      "good": "#2f9e57",
+      "bad": "#cc3a48",
+      "stroke": "#e9ddca",
+      "btn-ink": "#fff7ea",
+      "effects": {
+        "drop": "2px 2px 0 rgba(70,45,20,.16)",
+        "dropLg": "4px 4px 0 rgba(70,45,20,.2)",
+        "dither": "repeating-linear-gradient(0deg,rgba(80,50,20,.02) 0 1px,transparent 1px 3px)"
+      }
+    }
+  },
+  "godot": {
+    "dark": {
+      "gold": "#ffd166",
+      "gold-soft": "#ffdf8a",
+      "ink": "#f3e3c2",
+      "panel": "#2b1d12",
+      "panel-deep": "#1c1209",
+      "btn-ink": "#3a2410",
+      "good": "#4ade80",
+      "bad": "#ff6b6b"
+    }
+  }
+}
