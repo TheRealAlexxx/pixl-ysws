@@ -242,13 +242,21 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
   processedHelpMsgs.add(event.ts);
   setTimeout(() => processedHelpMsgs.delete(event.ts), 10 * 60 * 1000);
 
+  // Timed so a slow ticket reply can actually be diagnosed from the logs
+  // next time — is it our own code, or Slack's API round-trip?
+  const startedAt = Date.now();
+
   // The reply people are actually watching for goes out first, before any
   // DB/reaction round-trips that have nothing to do with what they're
-  // waiting on.
+  // waiting on. unfurl_links/unfurl_media off since the FAQ link doesn't
+  // need a preview and unfurling is extra work on Slack's end before it
+  // renders the message back to the channel.
   await client.chat.postMessage({
     channel: event.channel,
     thread_ts: event.ts,
     text: "Someone will be here to help you soon!",
+    unfurl_links: false,
+    unfurl_media: false,
     blocks: [
       {
         type: "section",
@@ -271,6 +279,7 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
       },
     ],
   });
+  console.log(`[handleNewQuestion] reply posted in ${Date.now() - startedAt}ms`);
 
   // Fire-and-forget from here — nothing downstream needs these to have
   // landed before we move on. createTicket() already falls back to
