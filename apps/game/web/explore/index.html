@@ -100,7 +100,8 @@
   .board-row.top3 .rank { color: #b5763a; }
   .board-row.you { border-color: var(--gold); }
   .board-row .bname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .board-row .bpx { color: var(--teal); display: flex; align-items: center; gap: 6px; }
+  .board-row .bpx { color: var(--ink); display: flex; align-items: center; gap: 6px; }
+  .board-row .bpx.px { color: var(--gold); }
   .board-row .bpx img { width: 15px; height: 15px; }
   .you-card { margin-top: 16px; padding: 14px 18px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 15px; }
   .sprint-panel { margin-top: 26px; padding: 18px 20px; border-color: var(--stroke); }
@@ -285,7 +286,7 @@ function boardRow(p, unit) {
     <div class="board-row ${p.rank <= 3 ? "top" + p.rank : ""} ${p.you ? "you" : ""}">
       <span class="rank">${p.rank <= 3 ? ["#1", "#2", "#3"][p.rank - 1] : "#" + p.rank}</span>
       <span class="bname">${Pixl.esc(p.display_name)}${p.you ? ' <span class="gold">← YOU</span>' : ""}</span>
-      <span class="bpx">${unit === "PX" ? `<img src="/img/pixel.png" alt="">` : ""}${p.value.toLocaleString()} ${unit}</span>
+      <span class="bpx${unit === "PX" ? " px" : ""}">${unit === "PX" ? `<img src="/img/pixel.png" alt="">` : ""}${p.value.toLocaleString()} ${unit}</span>
     </div>`;
 }
 
@@ -309,7 +310,7 @@ async function showLeaderboard(sub) {
           <div class="board-row ${p.you ? "you" : ""}">
             <span class="rank">#${p.rank}</span>
             <span class="bname">${Pixl.esc(p.display_name)}${p.you ? ' <span class="gold">← YOU</span>' : ""}</span>
-            <span class="bpx">${p.pixels.toLocaleString()} PX</span>
+            <span class="bpx px">${p.pixels.toLocaleString()} PX</span>
           </div>`).join("") || '<div class="faint">No sprint pixels yet — be first!</div>'}
         </div>
         <div class="muted" style="font-size:13px;margin-top:10px">Your sprint total: ${Number(data.sprint.your_pixels || 0).toLocaleString()} PX</div>
@@ -319,7 +320,7 @@ async function showLeaderboard(sub) {
       <div class="you-card panel">
         <span class="gold">YOUR STANDING</span>
         <span>${data.yourRank ? "#" + data.yourRank : "UNRANKED"}</span>
-        <span class="teal">${Number(data.yourPixels > 0 ? data.yourPixels : 0).toLocaleString()} PX</span>
+        <span class="gold">${Number(data.yourPixels > 0 ? data.yourPixels : 0).toLocaleString()} PX</span>
         <span class="faint" style="font-size:12px">ship projects to climb</span>
       </div>
       ${sprint}`;
@@ -337,7 +338,7 @@ async function showLeaderboard(sub) {
     <div class="you-card panel">
       <span class="gold">YOUR STANDING</span>
       <span>${data.yourRank ? "#" + data.yourRank : "UNRANKED"}</span>
-      <span class="teal">${Number(data.yourValue > 0 ? data.yourValue : 0).toLocaleString()} ${unit}</span>
+      <span class="${unit === "PX" ? "gold" : "teal"}">${Number(data.yourValue > 0 ? data.yourValue : 0).toLocaleString()} ${unit}</span>
       <span class="faint" style="font-size:12px">${climbMsg}</span>
     </div>`;
 }
