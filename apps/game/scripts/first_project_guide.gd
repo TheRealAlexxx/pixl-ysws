@@ -256,10 +256,13 @@ func _build_ui() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 
-	# Manual re-check, so the player is never stuck waiting on the poll.
+	# Manual re-check, so the player is never stuck waiting on the poll. Drawn
+	# as a tiny bitmap rather than a "↻" glyph - Monocraft has no glyph for
+	# U+21BB, so the text version rendered as a broken tofu box.
 	var refresh_btn := Button.new()
 	refresh_btn.theme_type_variation = &"GreyButton"
-	refresh_btn.text = "↻"
+	refresh_btn.icon = _refresh_icon_texture()
+	refresh_btn.expand_icon = false
 	refresh_btn.custom_minimum_size = Vector2(30, 0)
 	refresh_btn.tooltip_text = "Check progress now"
 	refresh_btn.pressed.connect(_poll)
@@ -297,6 +300,24 @@ func _build_ui() -> void:
 	_action_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_action_btn.pressed.connect(_on_action)
 	_body.add_child(_action_btn)
+
+# 12x12 pixel-art reload glyph (an open ring with an arrowhead), baked as an
+# ImageTexture at build time instead of relying on a font glyph that may not
+# exist in Monocraft/Pixelify Sans.
+const REFRESH_ICON_PIXELS: Array[Vector2i] = [
+	Vector2i(2,3), Vector2i(2,4), Vector2i(2,5), Vector2i(2,6), Vector2i(2,7), Vector2i(2,8),
+	Vector2i(3,2), Vector2i(3,3), Vector2i(3,8), Vector2i(3,9),
+	Vector2i(4,2), Vector2i(4,9), Vector2i(5,2), Vector2i(5,9),
+	Vector2i(6,2), Vector2i(6,9), Vector2i(7,2), Vector2i(7,9),
+	Vector2i(8,2), Vector2i(8,3), Vector2i(8,8), Vector2i(8,9),
+	Vector2i(9,3), Vector2i(9,4), Vector2i(9,5), Vector2i(10,4),
+]
+
+func _refresh_icon_texture() -> ImageTexture:
+	var img := Image.create(12, 12, false, Image.FORMAT_RGBA8)
+	for p in REFRESH_ICON_PIXELS:
+		img.set_pixel(p.x, p.y, PixlTheme.color("ink"))
+	return ImageTexture.create_from_image(img)
 
 func _render() -> void:
 	_collapse_btn.text = "+" if _collapsed else "–"  # + when hidden, en-dash when open
