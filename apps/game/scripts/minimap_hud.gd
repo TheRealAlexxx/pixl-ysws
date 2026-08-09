@@ -13,7 +13,7 @@ const SHADOW_COLOR := Color(0, 0, 0, 0.4)
 const COLOR_SELF := Color(1, 0.819608, 0.4)
 const COLOR_OTHER := Color(0.290196, 0.870588, 0.501961)
 const COLOR_NPC := Color(0.62, 0.58, 0.5)
-const COLOR_BG := Color(0.039216, 0.031373, 0.019608, 0.72)
+const COLOR_BG := Color(0.039216, 0.031373, 0.019608, 1.0)
 const COLOR_BORDER := Color(1, 1, 1, 0.14)
 
 var _root: Control
