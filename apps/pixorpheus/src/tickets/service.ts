@@ -242,33 +242,9 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
   processedHelpMsgs.add(event.ts);
   setTimeout(() => processedHelpMsgs.delete(event.ts), 10 * 60 * 1000);
 
-  // Create the ticket in DB immediately so mark_resolved always finds it
-  try {
-    await db()
-      .from("tickets")
-      .insert({
-        msg_ts: event.ts,
-        description: event.text || "[no text]",
-        status: "open",
-        opened_by_slack_id: event.user,
-      });
-  } catch (e: any) {
-    // Unique violation = already exists from a previous call, that's fine
-    if (!e.message?.includes("unique") && !e.message?.includes("duplicate")) {
-      console.error("[handleNewQuestion] ticket insert error:", e.message);
-    }
-  }
-
-  checkFAQAndSimilar(event, client).catch(() => {});
-
-  try {
-    await client.reactions.add({
-      channel: event.channel,
-      name: "thinking_face",
-      timestamp: event.ts,
-    });
-  } catch (e) {}
-
+  // The reply people are actually watching for goes out first, before any
+  // DB/reaction round-trips that have nothing to do with what they're
+  // waiting on.
   await client.chat.postMessage({
     channel: event.channel,
     thread_ts: event.ts,
@@ -295,6 +271,37 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
       },
     ],
   });
+
+  // Fire-and-forget from here — nothing downstream needs these to have
+  // landed before we move on. createTicket() already falls back to
+  // inserting the ticket row itself if this hasn't finished yet.
+  db()
+    .from("tickets")
+    .insert({
+      msg_ts: event.ts,
+      description: event.text || "[no text]",
+      status: "open",
+      opened_by_slack_id: event.user,
+    })
+    .then(
+      () => {},
+      (e: any) => {
+        // Unique violation = already exists from a previous call, that's fine
+        if (!e.message?.includes("unique") && !e.message?.includes("duplicate")) {
+          console.error("[handleNewQuestion] ticket insert error:", e.message);
+        }
+      },
+    );
+
+  checkFAQAndSimilar(event, client).catch(() => {});
+
+  client.reactions
+    .add({
+      channel: event.channel,
+      name: "thinking_face",
+      timestamp: event.ts,
+    })
+    .catch(() => {});
 
   // Posted as a real thread message (not ephemeral) so it can be deleted later —
   // Slack offers no API to delete an ephemeral after the fact (e.g. on resolve).
