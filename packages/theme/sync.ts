@@ -54,7 +54,7 @@ await write(
 const CSS_TARGET = `${ROOT}apps/game/web/pixl.css`;
 let css = await readFile(CSS_TARGET, "utf8");
 
-for (const theme of ["dark", "light"] as const) {
+for (const theme of Object.keys(palette.web)) {
   const { effects, ...tokens } = palette.web[theme];
   css = replaceBetween(
     css,

@@ -97,26 +97,28 @@ body { overflow-y: auto; }
   code { background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 6px; padding: 1px 6px; font-size: 13px; color: var(--gold-soft); }
   :root[data-theme="light"] code { color: var(--gold); }
 
-  /* Code block theme — follows the site's light/dark toggle, retinted to the
-     DUSK white+yellow wood palette instead of GitHub's blue/purple. */
+  /* Code block theme — follows the site's light/dark toggle, retinted to
+     LEDGER's charcoal + amber-gold instead of GitHub's blue/purple. Code
+     blocks stay dark in both page themes (a terminal reads better that way),
+     just a shade lighter/warmer under Ledger (light) than under Ledger Dark. */
   :root {
-    --code-bg: #150f0a; --code-border: var(--stroke); --code-fg: #efe7da;
-    --code-keyword: #ffb454; --code-title: #ffd88a; --code-attr: #f0dba0;
-    --code-string: #d8c48a; --code-built_in: #ffa657; --code-comment: #8f7f68;
-    --code-tag: #e8c98a; --code-section: #ffcf70; --code-bullet: #f2cc60;
-    --code-addition-fg: #d8e8a0; --code-addition-bg: #2a3316;
-    --code-deletion-fg: #ffdcd7; --code-deletion-bg: #3a1616;
-    --copy-btn-fg: #efe7da; --copy-btn-bg: rgba(255,255,255,.06); --copy-btn-border: rgba(255,255,255,.14);
+    --code-bg: #171615; --code-border: var(--stroke); --code-fg: #ece8e2;
+    --code-keyword: #e8ac35; --code-title: #f0c15a; --code-attr: #d9c9a8;
+    --code-string: #c9b98e; --code-built_in: #d99a1f; --code-comment: #77726a;
+    --code-tag: #d9be86; --code-section: #e8ac35; --code-bullet: #d99a1f;
+    --code-addition-fg: #a8d98c; --code-addition-bg: #253116;
+    --code-deletion-fg: #f0a8a0; --code-deletion-bg: #3a1e1a;
+    --copy-btn-fg: #ece8e2; --copy-btn-bg: rgba(255,255,255,.06); --copy-btn-border: rgba(255,255,255,.14);
     --copy-btn-bg-hover: rgba(255,255,255,.14); --copy-btn-border-hover: rgba(255,255,255,.26);
   }
   :root[data-theme="light"] {
-    --code-bg: #2a2015; --code-border: #453522; --code-fg: #f4ebdd;
-    --code-keyword: #ffb454; --code-title: #f0c674; --code-attr: #e8d5a0;
-    --code-string: #cbb789; --code-built_in: #e8a05c; --code-comment: #a08f76;
-    --code-tag: #d8bd7c; --code-section: #f0c674; --code-bullet: #d8a94a;
-    --code-addition-fg: #c5d98c; --code-addition-bg: #2a3316;
+    --code-bg: #2a2419; --code-border: #453a22; --code-fg: #f0e8d4;
+    --code-keyword: #e8ac35; --code-title: #f0c15a; --code-attr: #ddc9a0;
+    --code-string: #c9b989; --code-built_in: #d99a1f; --code-comment: #a89880;
+    --code-tag: #d9be86; --code-section: #f0c15a; --code-bullet: #d99a1f;
+    --code-addition-fg: #b8d98c; --code-addition-bg: #2a3316;
     --code-deletion-fg: #f0b0a8; --code-deletion-bg: #3a1e1a;
-    --copy-btn-fg: #f4ebdd; --copy-btn-bg: rgba(255,255,255,.06); --copy-btn-border: rgba(255,255,255,.14);
+    --copy-btn-fg: #f0e8d4; --copy-btn-bg: rgba(255,255,255,.06); --copy-btn-border: rgba(255,255,255,.14);
     --copy-btn-bg-hover: rgba(255,255,255,.14); --copy-btn-border-hover: rgba(255,255,255,.26);
   }
 

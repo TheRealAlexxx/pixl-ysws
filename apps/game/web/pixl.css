@@ -4,13 +4,17 @@
 
    The look: a restored fragment of Pixl. A HUD/menu screen that could plausibly
    ship *inside* the game — a pixel-art outpost UI floating over the Void, not a
-   dark SaaS panel. Deep-indigo night-sky surfaces, chunky Pixelify Sans display
-   type for labels/headings (never for paragraphs), a clean Rubik for body copy,
-   pixel-notch corners on the hero HUD panels, and a faint starfield behind it all.
+   dark SaaS panel. Chunky Pixelify Sans display type for labels/headings
+   (never for paragraphs), a clean Rubik for body copy, pixel-notch corners on
+   the hero HUD panels.
 
-   Two currencies, two accents, kept deliberately distinct:
-     • --gold  = amber, the PIXELS you personally earn + spend (money)
-     • --teal  = the RESTORATION ENERGY the community pours into the Core (energy)
+   Palette: LEDGER, dark and light, practical and warm rather than
+   game-neon — see packages/theme/README.md for the full reasoning. Two
+   currencies, two accents, kept deliberately distinct:
+     • --gold  = amber, tuned to the actual currency icon's hue — the PIXELS
+       you personally earn + spend (money)
+     • --teal  = a muted sage, the RESTORATION ENERGY the community pours
+       into the Core (energy)
 
    Token NAMES are frozen — every page (and the JS-injected tour/dialog) reads
    --gold/--teal/--panel/--pixel/etc. directly, so only their values change here.
@@ -21,21 +25,21 @@
 html{font-size:15px;-webkit-text-size-adjust:100%}
 
 :root{
-  /* DUSK — a warm-wood outpost under a golden dawn sky. Dark chocolate-brown
-     surfaces, all-gold: a white+yellow palette, no blue/teal/purple anywhere.
-     (Token names --gold/--teal are kept for compatibility; --teal now carries
-     a paler straw-gold so Restoration Energy still reads slightly distinct.)
+  /* LEDGER DARK — neutral charcoal surfaces (deliberately not wood-brown)
+     so the gold accent pops as contrast instead of blending into the panel.
 
-     Token groups, darkest/deepest first: --ink/--dim/--faint/--muted are text
-     on wood. --panel/--panel-2/--panel-deep are the dark warm-brown surfaces.
-     --gold/--gold-soft are PIXELS, "coins you spend". --teal/--teal-hover are
-     RESTORATION ENERGY, the community currency. --good/--bad/--stroke are
-     state colors. --btn-ink is the ink used on top of a lit gold button.
+     Token groups, darkest/deepest first: --ink/--dim/--faint/--muted are
+     text on graphite. --panel/--panel-2/--panel-deep are the charcoal
+     surfaces. --gold/--gold-soft are PIXELS, "coins you spend" — the same
+     value as Ledger Light, so it's one gold identity across both themes and
+     across the game. --teal/--teal-hover are RESTORATION ENERGY, a muted
+     sage. --good/--bad/--stroke are state colors. --btn-ink is the ink used
+     on top of a lit gold button.
 
      Values come from packages/theme/palette.json (`bun run theme:sync`) —
      the marked block below is generated, do not hand-edit it. */
   /* <pixl-theme:dark> */
-  --ink:#efe7da;--dim:#b4a691;--faint:#897b67;--muted:#665a49;--panel:#241a12;--panel-2:#30241a;--panel-deep:#150f0a;--gold:#f4b942;--gold-soft:#ffd270;--teal:#fff3c9;--teal-hover:#ffe9a3;--good:#54c06a;--bad:#e0555f;--stroke:#3a2c1d;--btn-ink:#1a1206;
+  --ink:#ece8e2;--dim:#a49e93;--faint:#77726a;--muted:#4f4b45;--panel:#211f1e;--panel-2:#2b2927;--panel-deep:#171615;--gold:#d99a1f;--gold-soft:#e8ac35;--teal:#4f8f7a;--teal-hover:#62a68d;--good:#4f9f62;--bad:#d1584f;--stroke:#38352f;--btn-ink:#241204;
   /* <pixl-theme:dark:end> */
   /* Fixed (never redefined per-theme) light backing for product images/icons —
      a lot of shop art is a dark/black silhouette on a transparent PNG, which
@@ -52,7 +56,7 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
      palette.json's per-theme "effects" — hand-tuned rgba values, not a
      formula off --ink, see packages/theme/README.md for why. */
   /* <pixl-theme:dark:effects> */
-  --drop:2px 2px 0 rgba(0,0,0,.4);--drop-lg:4px 4px 0 rgba(0,0,0,.45);--dither:repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px);
+  --drop:2px 2px 0 rgba(0,0,0,.4);--drop-lg:4px 4px 0 rgba(0,0,0,.45);--dither:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);
   /* <pixl-theme:dark:effects:end> */
   --radius:4px;--radius-sm:3px;
   /* the pixel-stepped corner (8-bit notch). --notch is tuned per component. */
@@ -65,14 +69,14 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
   --sidebar:260px;--toprail:54px;
 }
 
-/* Light mode — warm parchment in daylight. Cream/paper surfaces, darker gold
-   so the accent reads as text. White + yellow throughout, not a cool flip. */
+/* LEDGER LIGHT — warm paper surfaces, practical and readable. Same gold and
+   teal as the dark variant, one identity across both themes. */
 :root[data-theme="light"]{
   /* <pixl-theme:light> */
-  --ink:#2a1f16;--dim:#5c4d3d;--faint:#8a7962;--muted:#b0a08c;--panel:#fffaf2;--panel-2:#f4ebdd;--panel-deep:#faf4ea;--gold:#b5791a;--gold-soft:#cf8f22;--teal:#8a6a1a;--teal-hover:#6f5514;--good:#2f9e57;--bad:#cc3a48;--stroke:#e9ddca;--btn-ink:#fff7ea;
+  --ink:#2b2116;--dim:#6b5c46;--faint:#93826a;--muted:#b7aa8f;--panel:#fbf5e8;--panel-2:#f0e6cc;--panel-deep:#f6efdd;--gold:#d99a1f;--gold-soft:#e8ac35;--teal:#3f7a68;--teal-hover:#4f8f7a;--good:#3f8f52;--bad:#c1483f;--stroke:#e6d9b8;--btn-ink:#2b1a06;
   /* <pixl-theme:light:end> */
   /* <pixl-theme:light:effects> */
-  --drop:2px 2px 0 rgba(70,45,20,.16);--drop-lg:4px 4px 0 rgba(70,45,20,.2);--dither:repeating-linear-gradient(0deg,rgba(80,50,20,.02) 0 1px,transparent 1px 3px);
+  --drop:2px 2px 0 rgba(43,33,22,.15);--drop-lg:4px 4px 0 rgba(43,33,22,.19);--dither:repeating-linear-gradient(0deg,rgba(43,33,22,.02) 0 1px,transparent 1px 3px);
   /* <pixl-theme:light:effects:end> */
 }
 
@@ -278,6 +282,24 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 }
 .theme-toggle:hover,.rail-btn:hover{color:var(--gold);border-color:var(--gold)}
 .theme-toggle svg,.rail-btn svg{width:16px;height:16px;image-rendering:pixelated}
+
+/* ── theme picker menu ── */
+.theme-picker{position:relative}
+.theme-menu{
+  position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:150px;
+  display:flex;flex-direction:column;gap:2px;padding:6px;
+  background:var(--panel);border:1px solid var(--stroke);border-radius:var(--radius-sm);
+  box-shadow:var(--drop-lg);
+}
+.theme-menu[hidden]{display:none}
+.theme-opt{
+  display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;
+  border:none;border-radius:var(--radius-sm);background:transparent;color:var(--dim);
+  font-family:var(--pixel);font-size:12px;letter-spacing:.3px;text-align:left;cursor:pointer;
+}
+.theme-opt:hover{background:var(--panel-2);color:var(--ink)}
+.theme-opt.active{background:var(--panel-2);color:var(--ink)}
+.theme-opt .swatch{width:14px;height:14px;border-radius:2px;flex-shrink:0}
 
 /* ══════════════════════════ components ══════════════════════════ */
 .btn{

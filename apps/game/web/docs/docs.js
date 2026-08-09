@@ -26,23 +26,60 @@
     head.addEventListener("click", () => head.parentElement.classList.toggle("collapsed"));
   });
 
-  const SUN = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="6" y="6" width="4" height="4"/><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/></svg>';
-  const MOON = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="5" y="2" width="2" height="1"/><rect x="4" y="3" width="3" height="1"/><rect x="3" y="4" width="3" height="1"/><rect x="2" y="5" width="4" height="1"/><rect x="2" y="6" width="5" height="1"/><rect x="2" y="7" width="5" height="1"/><rect x="2" y="8" width="5" height="1"/><rect x="2" y="9" width="6" height="1"/><rect x="2" y="10" width="8" height="1"/><rect x="3" y="11" width="10" height="1"/><rect x="4" y="12" width="8" height="1"/><rect x="5" y="13" width="6" height="1"/></svg>';
+  // Same paint-palette icon and swatch table as pixl.js's picker - two
+  // independent copies (docs pages don't load pixl.js), kept in sync by eye
+  // with packages/theme/palette.json.
+  const PALETTE_ICON = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="2" width="8" height="2"/><rect x="2" y="4" width="2" height="7"/><rect x="12" y="4" width="2" height="6"/><rect x="4" y="11" width="7" height="2"/><rect x="10" y="10" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="8" width="2" height="2"/></svg>';
+  const THEMES = [
+    { id: "dark", label: "Ledger Dark", panel: "#211f1e", gold: "#d99a1f" },
+    { id: "light", label: "Ledger", panel: "#fbf5e8", gold: "#d99a1f" },
+  ];
   const themeBtn = document.getElementById("docs-theme-btn");
-  function syncTheme() {
-    if (!themeBtn) return;
-    const light = document.documentElement.dataset.theme === "light";
-    themeBtn.innerHTML = light ? MOON : SUN;
-    themeBtn.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
+  const themeMenu = document.getElementById("docs-theme-menu");
+  function setTheme(id) {
+    document.documentElement.dataset.theme = id;
+    try {
+      localStorage.setItem("pixl_theme", id);
+    } catch (e) {}
+    syncTheme();
   }
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-      document.documentElement.dataset.theme = next;
-      try {
-        localStorage.setItem("pixl_theme", next);
-      } catch (e) {}
-      syncTheme();
+  function syncTheme() {
+    if (!themeBtn || !themeMenu) return;
+    const active = document.documentElement.dataset.theme || "dark";
+    themeBtn.innerHTML = PALETTE_ICON;
+    themeBtn.setAttribute("aria-label", "Change theme");
+    themeMenu.innerHTML = THEMES.map(
+      (t) => `
+      <button class="theme-opt${t.id === active ? " active" : ""}" type="button" data-theme-id="${t.id}">
+        <span class="swatch" style="background:${t.panel};box-shadow:inset 0 0 0 2px ${t.gold}"></span>
+        <span>${t.label}</span>
+      </button>`,
+    ).join("");
+    themeMenu.querySelectorAll(".theme-opt").forEach((opt) => {
+      opt.onclick = () => {
+        setTheme(opt.dataset.themeId);
+        themeMenu.hidden = true;
+        themeBtn.setAttribute("aria-expanded", "false");
+      };
+    });
+  }
+  if (themeBtn && themeMenu) {
+    themeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      themeMenu.hidden = !themeMenu.hidden;
+      themeBtn.setAttribute("aria-expanded", String(!themeMenu.hidden));
+    });
+    document.addEventListener("click", (e) => {
+      if (!themeMenu.hidden && !themeMenu.contains(e.target) && e.target !== themeBtn) {
+        themeMenu.hidden = true;
+        themeBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !themeMenu.hidden) {
+        themeMenu.hidden = true;
+        themeBtn.setAttribute("aria-expanded", "false");
+      }
     });
     syncTheme();
   }

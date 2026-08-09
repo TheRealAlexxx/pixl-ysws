@@ -77,20 +77,46 @@ const Pixl = (() => {
     document.documentElement.dataset.theme = "dark";
   }
 
-  function syncThemeToggles() {
-    const light = document.documentElement.dataset.theme === "light";
-    document.querySelectorAll(".theme-toggle").forEach((btn) => {
-      btn.innerHTML = light ? MOON_ICON : SUN_ICON;
-      btn.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
-      btn.onclick = toggleTheme;
-    });
+  // Swatch preview colors for the picker menu — CSS custom properties only
+  // expose the *active* theme's values, so the other themes' panel/gold need
+  // their own small copy here just to draw the dots. Keep in sync with
+  // packages/theme/palette.json by eye; there's no runtime data feeding this.
+  const THEMES = [
+    { id: "dark", label: "Ledger Dark", panel: "#211f1e", gold: "#d99a1f" },
+    { id: "light", label: "Ledger", panel: "#fbf5e8", gold: "#d99a1f" },
+  ];
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme || "dark";
   }
 
-  function toggleTheme() {
-    const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("pixl_theme", next); } catch {}
+  function setTheme(id) {
+    document.documentElement.dataset.theme = id;
+    try { localStorage.setItem("pixl_theme", id); } catch {}
     syncThemeToggles();
+  }
+
+  function syncThemeToggles() {
+    const active = currentTheme();
+    document.querySelectorAll(".theme-picker").forEach((wrap) => {
+      const btn = wrap.querySelector(".theme-toggle");
+      const menu = wrap.querySelector(".theme-menu");
+      if (!btn || !menu) return;
+      btn.innerHTML = PALETTE_ICON;
+      btn.setAttribute("aria-label", "Change theme (current: " + (THEMES.find((t) => t.id === active)?.label || active) + ")");
+      menu.innerHTML = THEMES.map((t) => `
+        <button class="theme-opt${t.id === active ? " active" : ""}" type="button" data-theme-id="${t.id}">
+          <span class="swatch" style="background:${t.panel};box-shadow:inset 0 0 0 2px ${t.gold}"></span>
+          <span>${t.label}</span>
+        </button>`).join("");
+      menu.querySelectorAll(".theme-opt").forEach((opt) => {
+        opt.onclick = () => {
+          setTheme(opt.dataset.themeId);
+          menu.hidden = true;
+          btn.setAttribute("aria-expanded", "false");
+        };
+      });
+    });
   }
 
   const API = "https://server.pixl.rsvp";
@@ -289,8 +315,9 @@ const Pixl = (() => {
   // Blocky pixel-art glyphs for the top-rail controls (help + theme toggle),
   // matching the sidebar nav icons instead of leaving these as raw text glyphs.
   const HELP_ICON = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="5" y="2" width="6" height="2"/><rect x="3" y="4" width="2" height="2"/><rect x="11" y="4" width="2" height="2"/><rect x="11" y="6" width="2" height="2"/><rect x="9" y="8" width="2" height="2"/><rect x="7" y="9" width="2" height="3"/><rect x="7" y="13" width="2" height="2"/></svg>`;
-  const SUN_ICON = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="4" height="4"/><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/></svg>`;
-  const MOON_ICON = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="5" y="2" width="2" height="1"/><rect x="4" y="3" width="3" height="1"/><rect x="3" y="4" width="3" height="1"/><rect x="2" y="5" width="4" height="1"/><rect x="2" y="6" width="5" height="1"/><rect x="2" y="7" width="5" height="1"/><rect x="2" y="8" width="5" height="1"/><rect x="2" y="9" width="6" height="1"/><rect x="2" y="10" width="8" height="1"/><rect x="3" y="11" width="10" height="1"/><rect x="4" y="12" width="8" height="1"/><rect x="5" y="13" width="6" height="1"/></svg>`;
+  // Blocky pixel-art paint palette — the theme-picker button's icon, one for
+  // all themes rather than a sun/moon pair that only made sense for two.
+  const PALETTE_ICON = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="4" y="2" width="8" height="2"/><rect x="2" y="4" width="2" height="7"/><rect x="12" y="4" width="2" height="6"/><rect x="4" y="11" width="7" height="2"/><rect x="10" y="10" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="8" width="2" height="2"/></svg>`;
 
   function mountTopbar(active) {
     const navLink = (slug, label, extra) =>
@@ -324,7 +351,11 @@ const Pixl = (() => {
       </div>`;
     // Signed-out visitors (e.g. someone reading the public docs) get a trimmed
     // rail: no wallet, no tour replay, and the CTA invites them into the game.
-    const themeBtn = `<button class="theme-toggle" id="pixl-theme-btn" type="button" title="Toggle theme" aria-label="Toggle theme"></button>`;
+    const themeBtn = `
+      <div class="theme-picker" id="pixl-theme-picker">
+        <button class="theme-toggle" id="pixl-theme-btn" type="button" title="Change theme" aria-expanded="false"></button>
+        <div class="theme-menu" id="pixl-theme-menu" hidden></div>
+      </div>`;
     const rail = token
       ? `<div class="rest-chip" id="pixl-rest" title="Core Integrity — the community's Restoration progress" hidden>
             <span class="slot">${RE_ICON}</span>
@@ -371,6 +402,24 @@ const Pixl = (() => {
       });
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && !sheetEl.hidden) setOpen(false);
+      });
+    }
+    const themeBtnEl = document.getElementById("pixl-theme-btn");
+    const themeMenuEl = document.getElementById("pixl-theme-menu");
+    if (themeBtnEl && themeMenuEl) {
+      const setMenuOpen = (open) => {
+        themeMenuEl.hidden = !open;
+        themeBtnEl.setAttribute("aria-expanded", String(open));
+      };
+      themeBtnEl.onclick = (e) => {
+        e.stopPropagation();
+        setMenuOpen(themeMenuEl.hidden);
+      };
+      document.addEventListener("click", (e) => {
+        if (!themeMenuEl.hidden && !themeMenuEl.contains(e.target) && e.target !== themeBtnEl) setMenuOpen(false);
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !themeMenuEl.hidden) setMenuOpen(false);
       });
     }
     syncThemeToggles();
@@ -1003,5 +1052,5 @@ const Pixl = (() => {
     document.addEventListener("DOMContentLoaded", gate);
   }
 
-  return { API, config, token, api, apiUrl, send, upload, esc, bbcode, bbstrip, markdown, toast, mountTopbar, loadWallet, loadRestoration, timeAgo, countdown, hours, hasToken: !!token, runTour, maybeOnboard, ONBOARDING_STEPS, confirm: confirmDialog, toggleTheme };
+  return { API, config, token, api, apiUrl, send, upload, esc, bbcode, bbstrip, markdown, toast, mountTopbar, loadWallet, loadRestoration, timeAgo, countdown, hours, hasToken: !!token, runTour, maybeOnboard, ONBOARDING_STEPS, confirm: confirmDialog, setTheme };
 })();
