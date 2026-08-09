@@ -1,16 +1,23 @@
-// 1200x630 Open Graph card, drawn in the shell's DUSK palette.
+// 1200x630 Open Graph card, drawn in the shell's DUSK palette. Colors come
+// from packages/theme/palette.json's web.dark tokens - the card renders the
+// same DUSK a visitor sees on the page, not a third hand-copied palette.
 import { Canvas, hex, type Rgb } from "./png.ts";
 import { drawText, textWidth, wrap, GLYPH_H } from "./font.ts";
 
 const W = 1200;
 const H = 630;
 
-const BG = hex("#150f0a");
-const PANEL = hex("#241a12");
-const STROKE = hex("#3a2c1d");
-const GOLD = hex("#f4b942");
-const INK = hex("#efe7da");
-const DIM = hex("#897b67");
+const paletteJson = JSON.parse(
+  await Bun.file(new URL("../../theme/palette.json", import.meta.url)).text(),
+);
+const DUSK = paletteJson.web.dark;
+
+const BG = hex(DUSK["panel-deep"]);
+const PANEL = hex(DUSK.panel);
+const STROKE = hex(DUSK.stroke);
+const GOLD = hex(DUSK.gold);
+const INK = hex(DUSK.ink);
+const DIM = hex(DUSK.dim);
 
 export interface CardInput {
   title: string;
