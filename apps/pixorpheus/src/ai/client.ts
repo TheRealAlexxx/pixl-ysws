@@ -182,34 +182,52 @@ export async function streamedAICall(
 ): Promise<StreamedCallHandle> {
   const fmt = format || ((t: string) => t);
   let ts: string | undefined;
-  try {
-    const placeholder = await client.chat.postMessage({ ...postParams, text: fmt("…") });
-    ts = placeholder.ts;
-  } catch (e) {
-    // no placeholder — fall back to a single non-streamed post in finalize()
-  }
-
   let lastUpdate = 0;
   let lastShown: string | null = null;
-  const onDelta = ts
-    ? (full: string) => {
-        const display = safeDisplayText(full, { stripSkip });
-        if (!display || display === lastShown) return;
-        const now = Date.now();
-        if (now - lastUpdate < STREAM_UPDATE_INTERVAL_MS) return;
-        lastUpdate = now;
-        lastShown = display;
-        client.chat.update({ channel: postParams.channel, ts: ts!, text: fmt(display) }).catch(() => {});
-      }
-    : undefined;
+  let latestFull = "";
+
+  const pushUpdate = (full: string, force = false) => {
+    if (!ts) return;
+    const display = safeDisplayText(full, { stripSkip });
+    if (!display || display === lastShown) return;
+    const now = Date.now();
+    if (!force && now - lastUpdate < STREAM_UPDATE_INTERVAL_MS) return;
+    lastUpdate = now;
+    lastShown = display;
+    client.chat.update({ channel: postParams.channel, ts: ts!, text: fmt(display) }).catch(() => {});
+  };
+
+  // Post the placeholder and start asking the model at the same time — the
+  // model can already be generating tokens while we're still waiting on
+  // Slack to confirm the placeholder, instead of paying for those two
+  // network round-trips back to back. Whatever streamed in during that
+  // wait gets flushed immediately once the placeholder lands, bypassing
+  // the throttle for that first flush so it doesn't sit on-screen as "…"
+  // for up to another 900ms for no reason.
+  const placeholderPromise = client.chat
+    .postMessage({ ...postParams, text: fmt("…") })
+    .then((placeholder) => {
+      ts = placeholder.ts;
+      if (latestFull) pushUpdate(latestFull, true);
+    })
+    .catch(() => {
+      // no placeholder — fall back to a single non-streamed post in finalize()
+    });
+
+  const onDelta = (full: string) => {
+    latestFull = full;
+    pushUpdate(full);
+  };
 
   let res: AIResponse;
   try {
     res = await aiCall(aiBody, onDelta);
   } catch (e) {
+    await placeholderPromise;
     if (ts) client.chat.delete({ channel: postParams.channel, ts }).catch(() => {});
     throw e;
   }
+  await placeholderPromise;
 
   const rawContent = res.data.choices?.[0]?.message?.content || "";
   return {
