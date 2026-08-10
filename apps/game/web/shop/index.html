@@ -301,6 +301,11 @@
         from { transform: translateX(0); }
         to { transform: translateX(-50%); }
       }
+      @media (max-width: 560px) {
+        /* same px/s speed as desktop reads much faster on a narrow viewport,
+           since less of the track is visible at once - slow it down instead. */
+        .marquee > div { animation-duration: 55s; }
+      }
     </style>
   </head>
   <body>
