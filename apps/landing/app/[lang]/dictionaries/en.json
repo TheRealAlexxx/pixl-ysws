@@ -109,6 +109,12 @@
     "min": "min",
     "sec": "sec"
   },
+  "mapPreview": {
+    "badge": "The World",
+    "title": "Every region looks different",
+    "subtitle": "A real screenshot straight out of the game engine. Drag it around and take a look.",
+    "hint": "Drag to explore"
+  },
   "sidequests": {
     "badge": "Examples",
     "title": "Trials and Rewards",
