@@ -28,16 +28,16 @@ func _ready() -> void:
 	_root.visible = false
 	add_child(_root)
 
-	# Bottom-left, sized to fit the circle plus the shadow's offset so
-	# neither gets clipped by the display container's own bounds.
+	# Top-right, sized to fit the circle plus the shadow's offset so neither
+	# gets clipped by the display container's own bounds.
 	var display := Control.new()
 	display.custom_minimum_size = Vector2(MAP_SIZE + SHADOW_OFFSET, MAP_SIZE + SHADOW_OFFSET)
-	display.anchor_top = 1.0
-	display.anchor_bottom = 1.0
-	display.offset_left = MARGIN
-	display.offset_right = MARGIN + MAP_SIZE + SHADOW_OFFSET
-	display.offset_top = -(MAP_SIZE + SHADOW_OFFSET + MARGIN)
-	display.offset_bottom = -MARGIN
+	display.anchor_left = 1.0
+	display.anchor_right = 1.0
+	display.offset_left = -(MARGIN + MAP_SIZE + SHADOW_OFFSET)
+	display.offset_right = -MARGIN
+	display.offset_top = MARGIN
+	display.offset_bottom = MARGIN + MAP_SIZE + SHADOW_OFFSET
 	display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(display)
 
