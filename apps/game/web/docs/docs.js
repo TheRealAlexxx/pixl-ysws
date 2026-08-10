@@ -15,7 +15,7 @@
           return r;
         }
       } catch (e) {}
-      return "/home/";
+      return "/dashboard/";
     })();
     back.addEventListener("click", () => {
       location.href = ref;

@@ -238,7 +238,7 @@ const Pixl = (() => {
     {
       label: "PLAY",
       items: [
-        ["home", "OVERVIEW"],
+        ["dashboard", "OVERVIEW"],
         ["docs", "DOCS"],
         ["explore", "EXPLORE"],
         ["ideas", "IDEAS"],
@@ -273,7 +273,7 @@ const Pixl = (() => {
 
   // What the mobile dock shows without opening the MORE sheet. Four items plus
   // MORE fits a phone row at a readable size; the full ten did not.
-  const MOBILE_PRIMARY = ["home", "projects", "shop", "explore"];
+  const MOBILE_PRIMARY = ["dashboard", "projects", "shop", "explore"];
 
   // Small inline pixel-art glyphs (no image assets) for the sidebar nav.
   //
@@ -284,7 +284,7 @@ const Pixl = (() => {
   // and the detail just disappears into the fill.
   const ICONS = {
     // house: roof over a body with a doorway punched out of the bottom
-    home: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6" height="2"/><rect x="3" y="5" width="10" height="2"/><rect x="3" y="7" width="3" height="7"/><rect x="10" y="7" width="3" height="7"/><rect x="6" y="7" width="4" height="2"/></svg>`,
+    dashboard: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="7" y="1" width="2" height="2"/><rect x="5" y="3" width="6" height="2"/><rect x="3" y="5" width="10" height="2"/><rect x="3" y="7" width="3" height="7"/><rect x="10" y="7" width="3" height="7"/><rect x="6" y="7" width="4" height="2"/></svg>`,
     // open book: two pages split by a full-height gutter, bound at the bottom
     docs: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="2" y="4" width="5" height="8"/><rect x="9" y="4" width="5" height="8"/><rect x="2" y="12" width="12" height="2"/></svg>`,
     // shopping bag: square body under an arched handle (the old one tapered,
