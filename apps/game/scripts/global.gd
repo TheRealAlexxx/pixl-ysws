@@ -14,6 +14,11 @@ var editor_return_scene: String = "res://scenes/main_menu.tscn"
 
 var ui_blockers: int = 0
 
+# Minecraft-style hide-HUD toggle (F2, since F1 is already guide_hud's help
+# panel): hides the always-on overlays (stats bar, minimap, chat, emotes) so
+# screenshots aren't cluttered.
+var hud_hidden: bool = false
+
 func push_ui_blocker() -> void:
 	ui_blockers += 1
 
@@ -22,6 +27,17 @@ func pop_ui_blocker() -> void:
 
 func ui_blocked() -> bool:
 	return ui_blockers > 0
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F2):
+		return
+	if ChatHud.is_typing() or Dialogue.is_open or ui_blocked():
+		return
+	hud_hidden = not hud_hidden
+	MinimapHud.visible = not hud_hidden
+	EmoteHud.visible = not hud_hidden
+	PlayerHud.visible = not hud_hidden
+	get_viewport().set_input_as_handled()
 
 func day_phase() -> Dictionary:
 	var td := Time.get_time_dict_from_system()

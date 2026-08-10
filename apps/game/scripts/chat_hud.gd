@@ -141,7 +141,7 @@ func _ready() -> void:
 	_update_hint()
 
 func _process(_delta: float) -> void:
-	visible = _in_gameplay() and not global.ui_blocked()
+	visible = _in_gameplay() and not global.ui_blocked() and not global.hud_hidden
 	if _input.has_focus():
 		return
 	var now := Time.get_ticks_msec() / 1000.0
