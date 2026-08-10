@@ -109,6 +109,12 @@
     "min": "min",
     "sec": "seg"
   },
+  "mapPreview": {
+    "badge": "El mundo",
+    "title": "Cada región es diferente",
+    "subtitle": "Una captura real del motor del juego. Arrástrala y échale un vistazo.",
+    "hint": "Arrastra para explorar"
+  },
   "sidequests": {
     "badge": "Ejemplos",
     "title": "Pruebas y recompensas",
