@@ -57,7 +57,11 @@ app.message(async ({ message, client }) => {
   if (text.startsWith("##")) return;
 
   const isDM = m.channel_type === "im";
-  const lowerText = text.toLowerCase();
+  // Slack emoji shortcodes like :yay-pixo: or :pix-wave: literally contain
+  // "pixo"/"pix" and used to falsely trigger the bot. Strip every :shortcode:
+  // before any name-mention check so only the name in actual prose counts.
+  const textNoEmoji = text.replace(/:[a-z0-9_'+-]+:/gi, " ");
+  const lowerText = textNoEmoji.toLowerCase();
   const mentionsBot =
     lowerText.includes("pixorpheus") ||
     lowerText.includes("pixo") ||
@@ -303,7 +307,7 @@ app.message(async ({ message, client }) => {
   // Only checked when the bot's actually being addressed (we're already past
   // the mentionsBot/inActiveThread/isDM gate above), so a stray "shut up" in
   // an unrelated thread never trips this.
-  const mentionsPixoName = /\b(pixo|pixorpheus|pix)\b/i.test(text);
+  const mentionsPixoName = /\b(pixo|pixorpheus|pix)\b/i.test(textNoEmoji);
   const isNaturalStop = mentionsPixoName && /\b(shut\s*up|shut\s*it|be\s*quiet|quiet\s*down|stop\s*talking|hush|stfu)\b/i.test(text);
   const isNaturalStart = mentionsPixoName && /\b(you\s*can\s*talk|talk\s*again|come\s*back|start\s*talking|unmute)\b/i.test(text);
 
