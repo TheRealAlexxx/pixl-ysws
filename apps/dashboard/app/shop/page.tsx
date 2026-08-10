@@ -225,6 +225,7 @@ export default async function ShopPage({
                   <Disclosure summary="Edit item" className="mt-3">
                     <form action={updateShopItem} className="space-y-3">
                       <input type="hidden" name="id" value={item.id} />
+                      <input type="hidden" name="original_name" value={item.name} />
                       <div className="grid grid-cols-[1fr_6.5rem] gap-3">
                         <Label className="block font-normal">
                           <span className="block text-xs font-medium text-muted-foreground mb-1">Name</span>
@@ -286,6 +287,18 @@ export default async function ShopPage({
                           className={FILE_INPUT}
                         />
                       </Label>
+                      <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="apply_all_regions"
+                          value="1"
+                          className="mt-0.5 h-4 w-4 rounded border-border accent-brand"
+                        />
+                        <span>
+                          Apply <span className="font-medium text-foreground">name &amp; description</span> to
+                          this item in every region (price, options &amp; image stay per-region)
+                        </span>
+                      </label>
                       <PendingButton
                         className="bg-brand text-white border-transparent"
                         pendingText="Saving…"

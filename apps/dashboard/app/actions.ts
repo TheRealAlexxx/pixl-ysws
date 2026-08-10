@@ -2444,6 +2444,25 @@ export async function updateShopItem(formData: FormData): Promise<void> {
   }
   const { error } = await db.from("shop_items").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
+
+  // "Apply name & description to every region": the same item lives as one row
+  // per region (matched by name), so propagate just those two shared fields to
+  // its siblings. Match on the ORIGINAL name (the edit may rename it), and skip
+  // trophies (unlock_xp > 0) since those aren't region-scoped.
+  const applyAllRegions = String(formData.get("apply_all_regions") ?? "") === "1";
+  if (applyAllRegions) {
+    const originalName = String(formData.get("original_name") ?? "").trim();
+    if (originalName) {
+      const { error: propErr } = await db
+        .from("shop_items")
+        .update({ name, description })
+        .eq("name", originalName)
+        .eq("unlock_xp", 0)
+        .neq("id", id);
+      if (propErr) throw new Error(propErr.message);
+    }
+  }
+
   revalidatePath("/shop");
 }
 
