@@ -1,0 +1,79 @@
+# Build context is the repo root, not apps/game: the shell's docs pages and
+# link-preview cards are generated out of docs/ and packages/docs-engine/.
+#
+# This is .github/workflows/deploy-game.yml as a container - same Godot version,
+# same export preset, same shell assembly - with serve.ts standing in for the
+# rewrites and headers vercel.json used to apply.
+
+FROM debian:bookworm-slim AS godot
+ARG GODOT_VERSION=4.6
+ARG GODOT_RELEASE=stable
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl unzip \
+      libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libxext6 \
+      libgl1 libglu1-mesa libasound2 libfontconfig1 libudev1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_RELEASE}"; \
+    curl -fSL -o /tmp/godot.zip "${BASE}/Godot_v${GODOT_VERSION}-${GODOT_RELEASE}_linux.x86_64.zip"; \
+    curl -fSL -o /tmp/templates.tpz "${BASE}/Godot_v${GODOT_VERSION}-${GODOT_RELEASE}_export_templates.tpz"; \
+    cd /tmp; \
+    unzip -q godot.zip; \
+    unzip -q templates.tpz; \
+    mv "Godot_v${GODOT_VERSION}-${GODOT_RELEASE}_linux.x86_64" /usr/local/bin/godot; \
+    chmod +x /usr/local/bin/godot; \
+    mkdir -p "/root/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_RELEASE}"; \
+    mv templates/* "/root/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_RELEASE}/"; \
+    rm -rf /tmp/godot.zip /tmp/templates.tpz /tmp/templates
+
+WORKDIR /repo
+COPY apps/game apps/game
+
+# Importing writes the .godot/ resource cache the export then reads. It reports
+# failures for editor-only bits that don't matter headless, hence the `|| true`.
+RUN godot --headless --path apps/game --import --quit-after 200 || true
+
+# Absolute output path: with --path, Godot resolves a relative export target
+# against the project dir, not the working directory.
+RUN mkdir -p /out \
+    && godot --headless --path apps/game --export-release Web /out/index.html \
+    && test -f /out/index.html
+
+# docs:build and previews:build write into apps/game/web/, so they have to run
+# before the shell is copied into the site. Neither has any dependency beyond
+# Bun's stdlib, so there is nothing to install.
+FROM oven/bun:1.3.13 AS shell
+WORKDIR /repo
+COPY package.json ./
+COPY packages packages
+COPY docs docs
+COPY apps/game/web apps/game/web
+COPY apps/game/assets apps/game/assets
+RUN bun run docs:build && test -f apps/game/web/docs/index.html
+RUN bun run previews:build && test -f apps/game/web/dashboard/og.png
+
+FROM debian:bookworm-slim AS assemble
+WORKDIR /site
+COPY --from=godot /out/ ./
+COPY --from=shell /repo/apps/game/web/. ./
+COPY --from=shell /repo/apps/game/assets/fonts/Monocraft.ttf ./fonts/Monocraft.ttf
+COPY --from=shell /repo/apps/game/assets/npcs/cheetah_char.png ./img/cheetah_char.png
+COPY --from=shell /repo/apps/game/assets/ui/pixel_currency_red.png ./img/pixel.png
+# api/ is TypeScript that serve.ts imports directly - serving it as static
+# files would just hand out the source.
+RUN rm -f .gdignore vercel.json && rm -rf api
+
+FROM oven/bun:1.3.13 AS runtime
+WORKDIR /srv/app
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV SITE_ROOT=/srv/site
+
+COPY --from=assemble /site /srv/site
+COPY apps/game/serve.ts ./serve.ts
+COPY apps/game/web/api ./web/api
+
+EXPOSE 3000
+CMD ["bun", "run", "serve.ts"]

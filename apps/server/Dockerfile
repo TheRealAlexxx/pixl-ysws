@@ -1,0 +1,30 @@
+# Build context is apps/server (this app has its own bun.lock and no workspace
+# deps, so it installs standalone the same way it does on Railway).
+#
+# Bun installs and runs tsc; the runtime stage is plain node because that is
+# what `bun run start` does (node dist/index.js) and what packages/config's
+# generated .js entry exists for.
+
+FROM oven/bun:1.3.13 AS build
+WORKDIR /app
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+RUN bun run build
+
+FROM node:22-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# drizzle-orm sits in devDependencies but src imports it at runtime, so the
+# install can't be pruned to production deps without breaking the server.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/drizzle ./drizzle
+COPY --from=build /app/drizzle.config.ts /app/package.json ./
+
+EXPOSE 3000
+CMD ["node", "dist/index.js"]
