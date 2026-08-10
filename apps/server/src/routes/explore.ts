@@ -57,12 +57,10 @@ router.get("/api/explore/players", async (req, res) => {
 
   res.json({
     ok: true,
-    players: (users ?? [])
-      .map((u) => ({
-        ...u,
-        project_count: counts.get(u.id as string) ?? 0,
-      }))
-      .filter((u) => u.project_count > 0),
+    players: (users ?? []).map((u) => ({
+      ...u,
+      project_count: counts.get(u.id as string) ?? 0,
+    })),
   });
 });
 
