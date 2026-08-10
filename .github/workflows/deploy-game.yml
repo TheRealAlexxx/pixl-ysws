@@ -70,13 +70,13 @@ jobs:
           bun run docs:build
           test -f apps/game/web/docs/index.html
 
-      # Same reasoning: link-preview cards for /home, /shop, /ideas etc. need
-      # to exist before the copy below picks up apps/game/web/.
+      # Same reasoning: link-preview cards for /dashboard, /shop, /ideas etc.
+      # need to exist before the copy below picks up apps/game/web/.
       - name: Build link-preview cards for the web shell
         run: |
           set -euo pipefail
           bun run previews:build
-          test -f apps/game/web/home/og.png
+          test -f apps/game/web/dashboard/og.png
 
       - name: Add web pages (quests / hackatime / vault / timeline)
         run: |

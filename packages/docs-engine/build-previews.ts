@@ -1,5 +1,5 @@
 /**
- * Link-preview cards for the static web-shell pages (/home, /shop, /ideas, ...) -
+ * Link-preview cards for the static web-shell pages (/dashboard, /shop, /ideas, ...) -
  * a carbon copy of what build.ts already does per doc page, reusing the same
  * renderCard() so every preview across the whole site (docs included) comes
  * from one theme-aware card renderer, not two.
@@ -26,7 +26,7 @@ interface PageMeta {
 }
 
 const pages: PageMeta[] = [
-  { slug: "home", eyebrow: "Dashboard", description: "Your Pixl status at a glance: level, Pixels, Restoration Energy and what's next." },
+  { slug: "dashboard", eyebrow: "Dashboard", description: "Your Pixl status at a glance: level, Pixels, Restoration Energy and what's next." },
   { slug: "ideas", eyebrow: "Community", description: "Post project ideas, browse what others are building, and upvote your favorites." },
   { slug: "shop", eyebrow: "Shop", description: "Spend your Pixels on real, physical rewards." },
   { slug: "shop/item", eyebrow: "Shop", description: "A closer look at a Pixl shop item." },
