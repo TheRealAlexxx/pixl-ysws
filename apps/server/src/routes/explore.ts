@@ -153,7 +153,7 @@ router.get("/api/explore/leaderboard", async (req, res) => {
 // metric — duplicated here rather than imported since that's a "use server"
 // module the game server can't pull in.
 const REFERRAL_MILESTONE_EVERY = 10;
-const REFERRAL_MILESTONE_PX = 357;
+const REFERRAL_MILESTONE_PX = 119;
 router.get("/api/explore/leaderboard/referrals", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";
   const session = token ? verifySessionToken(token) : null;

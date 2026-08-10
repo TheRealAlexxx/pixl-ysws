@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/guard";
 import {
   listReferrals,
   referrerLeaderboard,
+  REFERRAL_BOOST_PX_PER_HOUR,
   REFERRAL_BOOST_SHIP_CAP,
   REFERRAL_MILESTONE_EVERY,
   REFERRAL_MILESTONE_PX,
@@ -47,10 +48,12 @@ export default async function ReferralsPage() {
         <h1 className="text-2xl font-semibold text-foreground tracking-tight">Referrals</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
           A referrer is paid once their referred player ships a project clearing an hour tier
-          (2h &rarr; 29px/$2.03, 5h &rarr; 57px/$3.99, 10h &rarr; 100px/$7.00), then the referral
+          (2h &rarr; 10px/$0.70, 5h &rarr; 19px/$1.33, 10h &rarr; 33px/$2.31), then the referral
           closes. Every {REFERRAL_MILESTONE_EVERY} rewarded referrals also pays a{" "}
-          {REFERRAL_MILESTONE_PX}px (~$25) milestone bonus. Referred players get a flat +14px/hr
-          (~$1/hr) boost on their first {REFERRAL_BOOST_SHIP_CAP} approved ships. 1px = $0.07.
+          {REFERRAL_MILESTONE_PX}px (~${(REFERRAL_MILESTONE_PX * 0.07).toFixed(2)}) milestone bonus.
+          Referred players get a flat +{REFERRAL_BOOST_PX_PER_HOUR}px/hr
+          (~${(REFERRAL_BOOST_PX_PER_HOUR * 0.07).toFixed(2)}/hr) boost on their first{" "}
+          {REFERRAL_BOOST_SHIP_CAP} approved ships. 1px = $0.07.
         </p>
       </div>
 

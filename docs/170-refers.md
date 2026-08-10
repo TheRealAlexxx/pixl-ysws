@@ -20,7 +20,7 @@ That window exists so referrals mean actual new builders. Without it, two people
 
 ## What the referred player gets
 
-An extra **14 pixels an hour**, roughly a dollar an hour, on top of their normal rate. It applies to their **first newly approved ship only**, so it's a welcome bonus rather than a permanent rate change.
+An extra **5 pixels an hour**, roughly 35 cents an hour, on top of their normal rate. It applies to their **first newly approved ship only**, so it's a welcome bonus rather than a permanent rate change.
 
 ## What the referrer gets
 
@@ -30,4 +30,4 @@ Once that pays out, the referral is closed and settled. You're rewarded for the 
 
 ## Milestones
 
-Every 10th referral that pays out also pays a **357 pixel** milestone on top. Ten people who all shipped is a real contribution to the Restoration, and it's treated like one.
+Every 10th referral that pays out also pays a **119 pixel** milestone on top. Ten people who all shipped is a real contribution to the Restoration, and it's treated like one.

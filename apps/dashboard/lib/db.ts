@@ -1979,25 +1979,25 @@ export async function listBanLog(limit = 100): Promise<BanLogRow[]> {
 // Referral system (see [[referral-system]] in project memory). 1px = $0.07
 // (50px/hr = $3.50/hr base, matching apps/server/src/xp.ts), NOT 10px = $1 ,
 // that was a drifted assumption this file used to make; fixed 2026-08-01.
-// Pixel amounts below are the nearest whole pixel to the real dollar targets
-// (they were originally specified in dollars): 2h->$2, 5h->$4, 10h->$7,
-// 25h->$15, 50h->$22, 100h->$40 (top tier), milestone->$25, boost->$1/hr.
-// - Referred player: +14px/hr (~$1/hr) on top of their normal rate, for
+// Cut to roughly a third of the original rates on 2026-08-11 , referral
+// payouts were too rich relative to actual submission volume this early;
+// revisit once ships from referred players pick up.
+// - Referred player: +5px/hr (~$0.35/hr) on top of their normal rate, for
 //   their first newly-approved ship only.
 // - Referrer: a one-time pixel reward once the referred player's first
 //   qualifying ship clears an hour tier, then the contract closes.
 // - Every 10th referral a referrer gets rewarded on also pays a milestone.
-export const REFERRAL_BOOST_PX_PER_HOUR = 14; // $0.98
+export const REFERRAL_BOOST_PX_PER_HOUR = 5; // $0.35
 export const REFERRAL_BOOST_SHIP_CAP = 1;
 export const REFERRAL_MILESTONE_EVERY = 10;
-export const REFERRAL_MILESTONE_PX = 357; // $24.99
+export const REFERRAL_MILESTONE_PX = 119; // $8.33
 export const REFERRAL_TIERS: { minHours: number; key: string; px: number }[] = [
-  { minHours: 100, key: "100h", px: 571 }, // $39.97
-  { minHours: 50, key: "50h", px: 314 }, // $21.98
-  { minHours: 25, key: "25h", px: 214 }, // $14.98
-  { minHours: 10, key: "10h", px: 100 }, // $7.00
-  { minHours: 5, key: "5h", px: 57 }, // $3.99
-  { minHours: 2, key: "2h", px: 29 }, // $2.03
+  { minHours: 100, key: "100h", px: 190 }, // $13.30
+  { minHours: 50, key: "50h", px: 105 }, // $7.35
+  { minHours: 25, key: "25h", px: 71 }, // $4.97
+  { minHours: 10, key: "10h", px: 33 }, // $2.31
+  { minHours: 5, key: "5h", px: 19 }, // $1.33
+  { minHours: 2, key: "2h", px: 10 }, // $0.70
 ];
 
 export function referralTierFor(hours: number): { key: string; px: number } | null {
