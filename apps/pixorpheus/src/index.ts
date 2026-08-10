@@ -23,6 +23,7 @@ import "./commands/memoryCommands.js";
 import "./commands/ai.js";
 import "./commands/ship.js";
 import "./github/webhook.js";
+import "./shop/webhook.js";
 import "./external/ticketApi.js";
 
 (async () => {
