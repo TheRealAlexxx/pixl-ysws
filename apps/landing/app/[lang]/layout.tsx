@@ -33,13 +33,13 @@ export async function generateMetadata({
       description: dict.meta.description,
       url: config.urls.site,
       siteName: "Pixl",
-      images: [{ url: "/og-boot-splash-v2.png", width: 1000, height: 650 }],
+      images: [{ url: "/og-boot-splash-v3.png", width: 1000, height: 650 }],
     },
     twitter: {
       card: "summary_large_image",
       title: dict.meta.title,
       description: dict.meta.description,
-      images: ["/og-boot-splash-v2.png"],
+      images: ["/og-boot-splash-v3.png"],
     },
   };
 }
