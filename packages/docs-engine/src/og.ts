@@ -1,6 +1,11 @@
 // 1200x630 Open Graph card, drawn in the shell's LEDGER palette. Colors come
 // from packages/theme/palette.json's web.dark tokens - the card renders the
 // same LEDGER DARK a visitor sees on the page, not a third hand-copied palette.
+//
+// Reads the palette with node:fs rather than Bun.file: this module also runs
+// inside Vercel's Node.js serverless function runtime (the shop item preview
+// cards), which has no Bun global.
+import { readFileSync } from "node:fs";
 import { Canvas, hex, type Rgb } from "./png.ts";
 import { drawText, textWidth, wrap, GLYPH_H } from "./font.ts";
 
@@ -8,16 +13,16 @@ const W = 1200;
 const H = 630;
 
 const paletteJson = JSON.parse(
-  await Bun.file(new URL("../../theme/palette.json", import.meta.url)).text(),
+  readFileSync(new URL("../../theme/palette.json", import.meta.url), "utf8"),
 );
 const LEDGER = paletteJson.web.dark;
 
-const BG = hex(LEDGER["panel-deep"]);
-const PANEL = hex(LEDGER.panel);
-const STROKE = hex(LEDGER.stroke);
-const GOLD = hex(LEDGER.gold);
-const INK = hex(LEDGER.ink);
-const DIM = hex(LEDGER.dim);
+export const BG = hex(LEDGER["panel-deep"]);
+export const PANEL = hex(LEDGER.panel);
+export const STROKE = hex(LEDGER.stroke);
+export const GOLD = hex(LEDGER.gold);
+export const INK = hex(LEDGER.ink);
+export const DIM = hex(LEDGER.dim);
 
 export interface CardInput {
   title: string;
@@ -25,7 +30,7 @@ export interface CardInput {
   url: string;
 }
 
-function shard(canvas: Canvas, x: number, y: number, unit: number, color: Rgb): void {
+export function shard(canvas: Canvas, x: number, y: number, unit: number, color: Rgb): void {
   [1, 2, 3, 4, 3, 2, 1].forEach((w, i) => {
     canvas.fill(x - (w * unit) / 2, y + i * unit, w * unit, unit, color);
   });

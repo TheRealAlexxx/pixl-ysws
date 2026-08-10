@@ -1,8 +1,8 @@
-// Minimal RGB PNG encoder (+ a decoder for compositing product photos into
-// shop item cards). The cards are mostly rectangles and bitmap glyphs, so
-// this beats pulling in sharp/resvg/satori and making them build on every
-// host - the decoder only needs to handle whatever comes back from item
-// image_urls, which are always 8-bit, non-interlaced PNGs in practice.
+// Standalone copy of packages/docs-engine/src/png.ts for this Vercel
+// function. apps/game isn't a JS workspace member (it's the Godot project;
+// its vercel.json runs no install step at all for the static site), so this
+// can't import the shared package - kept in sync by hand, small enough that
+// duplicating it beats wiring up a whole workspace dependency for one file.
 import { deflateSync, inflateSync } from "node:zlib";
 
 const CRC_TABLE = (() => {
@@ -131,8 +131,7 @@ export class Canvas {
       raw.set(this.px.subarray(y * stride, (y + 1) * stride), y * (stride + 1) + 1);
     }
 
-    // IDAT is a zlib stream, not raw deflate. Bun.deflateSync gives raw, which
-    // produces a file that passes `file` and then fails in every real decoder.
+    // IDAT is a zlib stream, not raw deflate.
     const idat = new Uint8Array(deflateSync(raw));
 
     const parts = [

@@ -144,6 +144,28 @@ router.post("/api/shop/region", async (req, res) => {
   res.json({ ok: true, region });
 });
 
+// Unauthenticated, deliberately minimal: just the fields a link-preview card
+// needs (name/description/price/image). Crawlers unfurling a shared /shop/item
+// link have no player session to scope a region to, so this ignores region
+// entirely and just returns whichever active row has this id.
+router.get("/api/shop/item/:id/public", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ ok: false });
+
+  const { data, error } = await supabase
+    .from("shop_items")
+    .select("id, name, description, price, image_url")
+    .eq("id", id)
+    .eq("active", true)
+    .maybeSingle();
+  if (error) {
+    console.error("[shop] public item lookup failed", error.message);
+    return res.status(500).json({ ok: false });
+  }
+  if (!data) return res.status(404).json({ ok: false });
+  res.json({ ok: true, item: data });
+});
+
 // Live remaining counts for a stock-limited item's choices (e.g. how many
 // "Ridit" Signed Org Photos are left) — polled from the item detail page so
 // counts stay current as other players buy without a full page reload.

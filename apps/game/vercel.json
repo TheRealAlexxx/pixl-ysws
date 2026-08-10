@@ -4,7 +4,8 @@
   "installCommand": null,
   "outputDirectory": ".",
   "rewrites": [
-    { "source": "/docs/:slug", "destination": "/docs/index.html" }
+    { "source": "/docs/:slug", "destination": "/docs/index.html" },
+    { "source": "/shop/item", "destination": "/api/shop-item-meta" }
   ],
   "headers": [
     {
