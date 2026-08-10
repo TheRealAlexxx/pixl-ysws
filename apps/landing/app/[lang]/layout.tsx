@@ -5,6 +5,7 @@ import { SmoothScroll } from "../_components/SmoothScroll";
 import { EasterEgg } from "../_components/EasterEgg";
 import { LocaleProvider } from "../_components/LocaleProvider";
 import { defaultLocale, getDictionary, hasLocale, locales } from "./dictionaries";
+import { config } from "../_generated/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,20 @@ export async function generateMetadata({
   return {
     title: dict.meta.title,
     description: dict.meta.description,
+    metadataBase: new URL(config.urls.site),
+    openGraph: {
+      title: dict.meta.title,
+      description: dict.meta.description,
+      url: config.urls.site,
+      siteName: "Pixl",
+      images: [{ url: "/og-boot-splash.png", width: 1000, height: 650 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: dict.meta.title,
+      description: dict.meta.description,
+      images: ["/og-boot-splash.png"],
+    },
   };
 }
 
