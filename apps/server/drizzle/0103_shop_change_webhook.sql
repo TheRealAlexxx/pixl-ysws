@@ -17,37 +17,52 @@
 --                                 var, the header is simply ignored.)
 --
 -- Safe to run once. Re-running is a no-op (function/trigger replaced in place).
--- Run this in the Supabase SQL editor.
-
-CREATE EXTENSION IF NOT EXISTS pg_net;
-
-CREATE OR REPLACE FUNCTION public.notify_shop_change()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
+--
+-- pg_net ships with Supabase and does not exist on stock Postgres, so where it
+-- is unavailable this skips itself rather than failing the whole migration run.
+-- The shop notification then has to come from the app rather than the database.
+DO $do$
 BEGIN
-  PERFORM net.http_post(
-    url     := 'https://<PIXORPHEUS_PUBLIC_URL>/webhooks/shop',
-    body    := jsonb_build_object(
-      'type',       TG_OP,
-      'table',      TG_TABLE_NAME,
-      'schema',     TG_TABLE_SCHEMA,
-      'record',     CASE WHEN TG_OP = 'DELETE' THEN NULL ELSE to_jsonb(NEW) END,
-      'old_record', CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE to_jsonb(OLD) END
-    ),
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-shop-webhook-secret', '<SHOP_WEBHOOK_SECRET>'
-    ),
-    timeout_milliseconds := 5000
-  );
-  RETURN NULL; -- AFTER trigger; return value ignored
-END;
-$$;
+  IF NOT EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'pg_net') THEN
+    RAISE NOTICE 'pg_net unavailable, skipping shop change webhook trigger';
+    RETURN;
+  END IF;
 
-DROP TRIGGER IF EXISTS shop_items_change_webhook ON public.shop_items;
+  CREATE EXTENSION IF NOT EXISTS pg_net;
 
-CREATE TRIGGER shop_items_change_webhook
-AFTER INSERT OR UPDATE OR DELETE ON public.shop_items
-FOR EACH ROW EXECUTE FUNCTION public.notify_shop_change();
+  -- Nested in EXECUTE so the function body's own dollar quoting survives being
+  -- written inside this DO block.
+  EXECUTE $fn$
+    CREATE OR REPLACE FUNCTION public.notify_shop_change()
+    RETURNS trigger
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    AS $body$
+    BEGIN
+      PERFORM net.http_post(
+        url     := 'https://<PIXORPHEUS_PUBLIC_URL>/webhooks/shop',
+        body    := jsonb_build_object(
+          'type',       TG_OP,
+          'table',      TG_TABLE_NAME,
+          'schema',     TG_TABLE_SCHEMA,
+          'record',     CASE WHEN TG_OP = 'DELETE' THEN NULL ELSE to_jsonb(NEW) END,
+          'old_record', CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE to_jsonb(OLD) END
+        ),
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'x-shop-webhook-secret', '<SHOP_WEBHOOK_SECRET>'
+        ),
+        timeout_milliseconds := 5000
+      );
+      RETURN NULL; -- AFTER trigger; return value ignored
+    END;
+    $body$;
+  $fn$;
+
+  DROP TRIGGER IF EXISTS shop_items_change_webhook ON public.shop_items;
+
+  CREATE TRIGGER shop_items_change_webhook
+  AFTER INSERT OR UPDATE OR DELETE ON public.shop_items
+  FOR EACH ROW EXECUTE FUNCTION public.notify_shop_change();
+END
+$do$;
