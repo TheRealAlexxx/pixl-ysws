@@ -55,14 +55,18 @@ const Pixl = (() => {
   // stranded in three places.
   const BASE_PX_PER_HOUR = Math.round(config.economy.basePayoutUsd / config.economy.pixelValueUsd);
 
-  // play.pixl.rsvp is the raw game origin; the canonical host is the apex
-  // pixl.rsvp (which proxies these same pages). Bounce direct visitors to the
-  // apex so every link lives on one host. This is client-side and host-keyed, so
-  // it can only fire on a direct play.* visit — never on the proxied apex load
-  // (hostname there is pixl.rsvp), which is why it can't loop with the proxy.
+  // play.pixl.rsvp is the raw game origin; there the canonical host is the apex
+  // pixl.rsvp, which proxies these same pages through vercel.json. Bounce direct
+  // visitors to the apex so every link lives on one host. This is client-side and
+  // host-keyed, so it can only fire on a direct play.* visit — never on the
+  // proxied apex load (hostname there is pixl.rsvp), which is why it can't loop.
+  //
+  // Scoped to pixl.rsvp deliberately: only that domain has the apex proxy. The
+  // hackclub.com deploy serves the game on its own host with no rewrites behind
+  // the apex, so bouncing there strands visitors on a /play that doesn't exist.
   try {
     const h = location.hostname;
-    if (h.indexOf("play.") === 0) {
+    if (h.indexOf("play.") === 0 && h.endsWith(".pixl.rsvp")) {
       const dest = (location.pathname === "/" || location.pathname === "") ? "/play" : location.pathname;
       location.replace(location.protocol + "//" + h.substring(5) + dest + location.search + location.hash);
     }

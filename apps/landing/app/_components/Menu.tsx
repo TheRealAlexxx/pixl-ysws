@@ -14,7 +14,7 @@ export function Menu() {
         <LanguageSwitcher />
         <a
           className="relative text-center px-4 py-2 text-sm sm:text-xl md:text-2xl lg:text-3xl bg-[#ec3750] cursor-pointer text-white hover:-translate-y-1 hover:-translate-x-1 border-black border-r-8 border-t-2 border-l-2 hover:border-b-12 border-b-8 transition-all lg:px-7 lg:py-3"
-          href="https://pixl.rsvp/play"
+          href="https://pixl.hackclub.com/play"
         >
           {t.playTheGame}
         </a>
