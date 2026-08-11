@@ -19,8 +19,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# drizzle-orm sits in devDependencies but src imports it at runtime, so the
-# install can't be pruned to production deps without breaking the server.
+# Full node_modules, not a production prune: drizzle-kit and drizzle-orm are
+# runtime deps here so `drizzle-kit migrate` can be run inside the pod, which is
+# the only place the cluster-internal Postgres host resolves.
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/drizzle ./drizzle
