@@ -65,6 +65,30 @@ COPY --from=shell /repo/apps/game/assets/ui/pixel_currency_red.png ./img/pixel.p
 # files would just hand out the source.
 RUN rm -f .gdignore vercel.json && rm -rf api
 
+# The exported index.html is written by Godot, so it is the one page previews:build
+# cannot inject into - without this the game itself is the only link on the site
+# that unfurls with no card at all. Values come from the synced pixl.json.
+COPY --from=shell /repo/apps/game/pixl.json /tmp/pixl.json
+RUN set -eux; \
+    SITE="$(sed -n 's/.*"site": "\([^"]*\)".*/\1/p' /tmp/pixl.json)"; \
+    TAGLINE="$(sed -n 's/.*"tagline": "\([^"]*\)".*/\1/p' /tmp/pixl.json)"; \
+    META="<meta name=\"description\" content=\"${TAGLINE}\">\
+<meta property=\"og:type\" content=\"website\">\
+<meta property=\"og:site_name\" content=\"Pixl\">\
+<meta property=\"og:title\" content=\"Pixl\">\
+<meta property=\"og:description\" content=\"${TAGLINE}\">\
+<meta property=\"og:url\" content=\"${SITE}/play\">\
+<meta property=\"og:image\" content=\"${SITE}/og.png\">\
+<meta property=\"og:image:width\" content=\"1200\">\
+<meta property=\"og:image:height\" content=\"630\">\
+<meta name=\"twitter:card\" content=\"summary_large_image\">\
+<meta name=\"twitter:title\" content=\"Pixl\">\
+<meta name=\"twitter:description\" content=\"${TAGLINE}\">\
+<meta name=\"twitter:image\" content=\"${SITE}/og.png\">"; \
+    sed -i "s|</title>|</title>${META}|" index.html; \
+    rm -f /tmp/pixl.json; \
+    grep -q 'og:image' index.html
+
 FROM oven/bun:1.3.13 AS runtime
 WORKDIR /srv/app
 ENV NODE_ENV=production

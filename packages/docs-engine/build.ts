@@ -6,11 +6,16 @@ import { renderCard } from "./src/og.ts";
 const ROOT = new URL("../../", import.meta.url).pathname;
 const CONTENT = `${ROOT}docs`;
 const OUT = `${ROOT}apps/game/web/docs`;
-const SITE = "https://pixl.rsvp";
-
 const config = JSON.parse(
   await Bun.file(`${ROOT}packages/config/pixl.json`).text(),
 );
+
+// Canonical host for absolute links and card URLs. Off packages/config so a
+// domain move is one edit, not a hunt through two builders - these were
+// hardcoded to pixl.rsvp and kept pointing there after the move, which left
+// every og:image resolving to a 404.
+const SITE: string = config.urls.site;
+const SITE_HOST = SITE.replace(/^https?:\/\//, "");
 const E = config.economy;
 
 // Numbers the copy quotes, resolved at build time so the pages can never drift
@@ -104,7 +109,7 @@ for (const [i, doc] of docs.entries()) {
     renderCard({
       title: doc.meta.title,
       eyebrow: doc.meta.group,
-      url: `pixl.rsvp/docs/${doc.slug}`,
+      url: `${SITE_HOST}/docs/${doc.slug}`,
     }),
   );
 }

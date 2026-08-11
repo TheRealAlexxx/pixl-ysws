@@ -17,7 +17,14 @@ import { renderCard } from "./src/og.ts";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const WEB = `${ROOT}apps/game/web`;
-const SITE = "https://pixl.rsvp";
+
+// Canonical host off packages/config rather than a literal - this was pinned to
+// pixl.rsvp and kept emitting og:image URLs there after the move, so every card
+// pointed at a 404 even where the page itself was reachable.
+const SITE: string = JSON.parse(
+  await Bun.file(`${ROOT}packages/config/pixl.json`).text(),
+).urls.site;
+const SITE_HOST = SITE.replace(/^https?:\/\//, "");
 
 interface PageMeta {
   slug: string;
@@ -96,9 +103,17 @@ for (const page of pages) {
 
   await writeFile(
     `${dir}/og.png`,
-    renderCard({ title, eyebrow: page.eyebrow, url: `pixl.rsvp/${page.slug}` }),
+    renderCard({ title, eyebrow: page.eyebrow, url: `${SITE_HOST}/${page.slug}` }),
   );
   count++;
 }
 
-console.log(`[previews] wrote ${count} og.png cards + meta blocks under apps/game/web/`);
+// The game itself has no hand-authored page to inject into - its index.html
+// comes out of the Godot export - so only the card is written here and
+// apps/game/Dockerfile stitches the meta into the exported HTML.
+await writeFile(
+  `${WEB}/og.png`,
+  renderCard({ title: "Pixl", eyebrow: "Play", url: SITE_HOST }),
+);
+
+console.log(`[previews] wrote ${count} og.png cards + meta blocks under apps/game/web/, plus the root card`);

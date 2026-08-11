@@ -12,6 +12,7 @@ apps/game/web/docs/index.html
 # Link-preview cards built by `bun run previews:build` during the deploy
 # workflow. The index.html files next to these stay tracked - the build only
 # injects a marked meta block into them.
+apps/game/web/og.png
 apps/game/web/*/og.png
 apps/game/web/*/*/og.png
 
