@@ -67,8 +67,9 @@ RUN rm -f .gdignore vercel.json && rm -rf api
 
 # The exported index.html is written by Godot, so it is the one page previews:build
 # cannot inject into - without this the game itself is the only link on the site
-# that unfurls with no card at all. Values come from the synced pixl.json.
-COPY --from=shell /repo/apps/game/pixl.json /tmp/pixl.json
+# that unfurls with no card at all. Values come from the synced pixl.json, taken
+# straight from the build context: the shell stage only copies web/ and assets/.
+COPY apps/game/pixl.json /tmp/pixl.json
 RUN set -eux; \
     SITE="$(sed -n 's/.*"site": "\([^"]*\)".*/\1/p' /tmp/pixl.json)"; \
     TAGLINE="$(sed -n 's/.*"tagline": "\([^"]*\)".*/\1/p' /tmp/pixl.json)"; \
