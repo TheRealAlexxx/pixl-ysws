@@ -1,0 +1,134 @@
+/**
+ * One-shot copy of every row out of Supabase and into the Orchard Postgres.
+ *
+ *   node scripts/import-from-supabase.js          (dry run: counts only)
+ *   node scripts/import-from-supabase.js --write  (actually insert)
+ *
+ * Reads through PostgREST rather than a Postgres connection: the service key
+ * works, while the pooler credentials in the old .env do not. It has to run
+ * inside the cluster because the target host only resolves there.
+ *
+ * Insertion is multi-pass instead of a hand-maintained dependency order - a
+ * table that fails on a foreign key is retried on the next pass, once its
+ * parent has landed. That converges without anyone having to keep a topological
+ * sort in sync with 50 tables.
+ */
+import postgres from "postgres";
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const DATABASE_URL = process.env.DATABASE_URL;
+const WRITE = process.argv.includes("--write");
+
+if (!SUPABASE_URL || !SERVICE_KEY) throw new Error("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set");
+if (!DATABASE_URL) throw new Error("DATABASE_URL must be set");
+
+const sql = postgres(DATABASE_URL, { max: 1, onnotice: () => {} });
+const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+
+async function fetchAll(table: string): Promise<Record<string, unknown>[] | null> {
+  const rows: Record<string, unknown>[] = [];
+  const page = 1000;
+  for (let from = 0; ; from += page) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+      headers: { ...headers, Range: `${from}-${from + page - 1}`, "Range-Unit": "items" },
+    });
+    if (!res.ok) return null;
+    const batch = (await res.json()) as Record<string, unknown>[];
+    rows.push(...batch);
+    if (batch.length < page) return rows;
+  }
+}
+
+// Only import into tables that actually exist in the target, and only columns
+// the target has - the .sql files and the live Supabase schema have drifted.
+const targetTables = await sql<{ table_name: string }[]>`
+  select table_name from information_schema.tables
+  where table_schema = 'public' and table_type = 'BASE TABLE' order by table_name`;
+
+const columnsFor = new Map<string, Set<string>>();
+for (const { table_name } of targetTables) {
+  const cols = await sql<{ column_name: string }[]>`
+    select column_name from information_schema.columns
+    where table_schema = 'public' and table_name = ${table_name}`;
+  columnsFor.set(table_name, new Set(cols.map((c) => c.column_name)));
+}
+
+console.log(`target tables: ${targetTables.length}`);
+
+const pending = new Map<string, Record<string, unknown>[]>();
+const skipped: string[] = [];
+
+for (const { table_name } of targetTables) {
+  const rows = await fetchAll(table_name);
+  if (rows === null) {
+    skipped.push(table_name);
+    continue;
+  }
+  if (rows.length) pending.set(table_name, rows);
+}
+
+console.log(`not in supabase: ${skipped.length ? skipped.join(", ") : "(none)"}`);
+console.log(`tables with rows: ${pending.size}`);
+console.log(`rows to copy: ${[...pending.values()].reduce((a, r) => a + r.length, 0)}`);
+
+if (!WRITE) {
+  console.log("\ndry run - pass --write to insert");
+  await sql.end();
+  process.exit(0);
+}
+
+const done = new Map<string, number>();
+const errors = new Map<string, string>();
+
+for (let pass = 1; pending.size && pass <= 10; pass++) {
+  const before = pending.size;
+  for (const [table, rows] of [...pending]) {
+    const allowed = columnsFor.get(table)!;
+    const clean = rows.map((r) =>
+      Object.fromEntries(Object.entries(r).filter(([k]) => allowed.has(k))),
+    );
+    try {
+      await sql.begin(async (tx) => {
+        for (let i = 0; i < clean.length; i += 500) {
+          const chunk = clean.slice(i, i + 500);
+          const cols = [...new Set(chunk.flatMap((r) => Object.keys(r)))];
+          await tx`insert into ${tx(table)} ${tx(chunk, ...cols)} on conflict do nothing`;
+        }
+      });
+      done.set(table, clean.length);
+      errors.delete(table);
+      pending.delete(table);
+    } catch (err) {
+      errors.set(table, (err as Error).message.split("\n")[0]);
+    }
+  }
+  console.log(`pass ${pass}: ${before - pending.size} tables copied, ${pending.size} left`);
+  if (pending.size === before) break; // no progress, stop retrying
+}
+
+// Sequences don't advance when ids are inserted explicitly, so the next insert
+// would collide with an imported row.
+for (const table of done.keys()) {
+  const [seq] = await sql<{ col: string; seq: string }[]>`
+    select a.attname as col, pg_get_serial_sequence(${`public.${table}`}, a.attname) as seq
+    from pg_attribute a
+    where a.attrelid = ${`public.${table}`}::regclass and a.attnum > 0 and not a.attisdropped
+      and pg_get_serial_sequence(${`public.${table}`}, a.attname) is not null
+    limit 1`;
+  if (seq?.seq) {
+    await sql.unsafe(
+      `select setval('${seq.seq}', coalesce((select max(${seq.col}) from ${table}), 1))`,
+    );
+  }
+}
+
+console.log("\nCOPIED:");
+for (const [t, n] of [...done].sort((a, b) => b[1] - a[1])) console.log(`  ${t.padEnd(30)} ${n}`);
+console.log(`total rows: ${[...done.values()].reduce((a, b) => a + b, 0)}`);
+if (pending.size) {
+  console.log("\nFAILED:");
+  for (const t of pending.keys()) console.log(`  ${t.padEnd(30)} ${errors.get(t) ?? "unknown"}`);
+}
+
+await sql.end();
