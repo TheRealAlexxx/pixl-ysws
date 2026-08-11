@@ -30,8 +30,8 @@ const USE_PROD: bool = true
 # config:sync` rather than a hunt through the scripts. These are vars, not
 # consts, because a const has to be known at parse time and this reads the
 # synced file at runtime.
-var SERVER_HTTP_URL: String = PixlConfig.url("server", "https://server.pixl.hackclub.com") if USE_PROD else DEV_SERVER_URL
-var SERVER_WS_URL: String = PixlConfig.url("ws", "wss://server.pixl.hackclub.com/ws") if USE_PROD else DEV_WS_URL
+var SERVER_HTTP_URL: String = PixlConfig.url("server", "https://server.pixl.rsvp") if USE_PROD else DEV_SERVER_URL
+var SERVER_WS_URL: String = PixlConfig.url("ws", "wss://server.pixl.rsvp/ws") if USE_PROD else DEV_WS_URL
 
 var session_token: String = ""
 var user_id: String = ""
