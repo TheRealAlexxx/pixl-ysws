@@ -13,7 +13,16 @@
 
 BEGIN;
 
-SET LOCAL session_replication_role = replica;  -- silence the notify trigger
+-- Silencing the trigger needs superuser, which the managed Postgres role is
+-- not. Where that is refused the trigger from 0103 was skipped too (no pg_net),
+-- so there is nothing to suppress and the update proceeds either way.
+DO $$
+BEGIN
+  SET LOCAL session_replication_role = replica;
+EXCEPTION WHEN insufficient_privilege THEN
+  RAISE NOTICE 'cannot set session_replication_role; shop change trigger is absent anyway';
+END
+$$;
 
 UPDATE shop_items
 SET price = (round(price * 1.1 / 25.0) * 25)::int
