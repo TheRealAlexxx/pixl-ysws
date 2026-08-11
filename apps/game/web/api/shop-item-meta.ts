@@ -10,7 +10,9 @@
 // build-previews.ts also writes, using the item's public data when `id`
 // resolves to one. No id, or a lookup miss, falls through to the original
 // generic meta block untouched.
-const SERVER = "https://server.pixl.rsvp";
+import pixl from "../../pixl.json" with { type: "json" };
+
+const SERVER = pixl.urls.server;
 
 const OPEN = "<!-- <pixl-preview> -->";
 const CLOSE = "<!-- <pixl-preview:end> -->";

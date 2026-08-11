@@ -6,7 +6,9 @@
 // unchanged since Vercel's very first Node runtime.
 import { renderItemCard } from "./_lib/shopCard.ts";
 
-const SERVER = "https://server.pixl.rsvp";
+import pixl from "../../pixl.json" with { type: "json" };
+
+const SERVER = pixl.urls.server;
 
 interface MinimalReq {
   url?: string;

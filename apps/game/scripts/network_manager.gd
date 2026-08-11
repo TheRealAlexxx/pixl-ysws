@@ -22,13 +22,16 @@ signal name_result(ok: bool, text: String)
 
 const DEV_SERVER_URL = "http://localhost:4728"
 const DEV_WS_URL = "ws://localhost:4728/ws"
-const PROD_SERVER_URL = "https://server.pixl.rsvp"
-const PROD_WS_URL = "wss://server.pixl.rsvp/ws"
 
 const USE_PROD: bool = true
 
-const SERVER_HTTP_URL = PROD_SERVER_URL if USE_PROD else DEV_SERVER_URL
-const SERVER_WS_URL = PROD_WS_URL if USE_PROD else DEV_WS_URL
+# The prod hosts live in packages/config/pixl.json and reach the export through
+# res://pixl.json, so moving domains is one config edit plus `bun run
+# config:sync` rather than a hunt through the scripts. These are vars, not
+# consts, because a const has to be known at parse time and this reads the
+# synced file at runtime.
+var SERVER_HTTP_URL: String = PixlConfig.url("server", "https://server.pixl.hackclub.com") if USE_PROD else DEV_SERVER_URL
+var SERVER_WS_URL: String = PixlConfig.url("ws", "wss://server.pixl.hackclub.com/ws") if USE_PROD else DEV_WS_URL
 
 var session_token: String = ""
 var user_id: String = ""

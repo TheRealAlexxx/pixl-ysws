@@ -9,6 +9,8 @@ export const config = {
     "site": "https://www.pixl.rsvp",
     "play": "https://play.pixl.rsvp",
     "docs": "https://pixl.rsvp/docs",
+    "server": "https://server.pixl.hackclub.com",
+    "ws": "wss://server.pixl.hackclub.com/ws",
     "repo": "https://github.com/ridit-jangra/pixl"
   },
   "economy": {

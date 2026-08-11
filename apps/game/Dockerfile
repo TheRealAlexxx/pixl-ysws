@@ -74,6 +74,9 @@ ENV SITE_ROOT=/srv/site
 COPY --from=assemble /site /srv/site
 COPY apps/game/serve.ts ./serve.ts
 COPY apps/game/web/api ./web/api
+# The api handlers read the server URL from ../../pixl.json, so the layout under
+# /srv/app has to match the repo's (apps/game/pixl.json next to web/).
+COPY apps/game/pixl.json ./pixl.json
 
 EXPOSE 3000
 CMD ["bun", "run", "serve.ts"]

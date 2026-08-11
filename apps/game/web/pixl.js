@@ -10,6 +10,8 @@ const Pixl = (() => {
       "site": "https://www.pixl.rsvp",
       "play": "https://play.pixl.rsvp",
       "docs": "https://pixl.rsvp/docs",
+      "server": "https://server.pixl.hackclub.com",
+      "ws": "wss://server.pixl.hackclub.com/ws",
       "repo": "https://github.com/ridit-jangra/pixl"
     },
     "economy": {
@@ -123,7 +125,7 @@ const Pixl = (() => {
     });
   }
 
-  const API = "https://server.pixl.rsvp";
+  const API = config.urls.server;
   // On the standalone play.* host the game is at the root; when the same build
   // is served under pixl.rsvp (via rewrites) it lives at /play. Keep the
   // "back to game" link pointing at the right place without a redirect.

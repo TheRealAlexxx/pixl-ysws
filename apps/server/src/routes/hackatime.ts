@@ -3,13 +3,14 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { verifySessionToken } from "../auth/session.js";
 import { supabase } from "../db/client.js";
 import { fetchHackatimeStats, fetchProjectActivitySummary, HACKATIME_CUTOFF } from "../hackatime/api.js";
+import { config } from "../config.generated.js";
 
 // OAuth app config — set these as env vars on the server (never in the repo).
 const BASE = (process.env.HACKATIME_BASE ?? "https://hackatime.hackclub.com").replace(/\/$/, "");
 const CLIENT_ID = process.env.HACKATIME_CLIENT_ID ?? "";
 const CLIENT_SECRET = process.env.HACKATIME_CLIENT_SECRET ?? "";
 const REDIRECT_URI =
-  process.env.HACKATIME_REDIRECT_URI ?? "https://server.pixl.rsvp/hackatime/callback";
+  process.env.HACKATIME_REDIRECT_URI ?? `${config.urls.server}/hackatime/callback`;
 const SCOPES = process.env.HACKATIME_SCOPES ?? "profile read";
 
 function configured(): boolean {
