@@ -84,6 +84,8 @@ const HCA_BASE_URL = "https://auth.hackclub.com";
 const CLIENT_ID = process.env.HCA_CLIENT_ID!;
 const CLIENT_SECRET = process.env.HCA_CLIENT_SECRET!;
 const REDIRECT_URI = process.env.HCA_REDIRECT_URI!;
+const HCA_SCOPES =
+  "openid profile slack_id phone birthdate address basic_info";
 
 const pendingStates = new Set<string>();
 // Maps OAuth `state` -> the web game's URL to redirect back to after login,
@@ -105,7 +107,6 @@ interface HackClubMeResponse {
     last_name?: string;
     primary_email?: string;
     slack_id?: string;
-    verification_status?: string;
     [key: string]: unknown;
   };
   scopes: string[];
@@ -124,10 +125,10 @@ router.get("/auth/hackclub", (req, res) => {
   url.searchParams.set("client_id", CLIENT_ID);
   url.searchParams.set("redirect_uri", REDIRECT_URI);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set(
-    "scope",
-    "openid profile email name slack_id verification_status",
-  );
+  // Must stay a subset of the scopes the HCA app is registered for, HCA
+  // rejects the whole authorize request otherwise. "email"/"name"/
+  // "verification_status" were never registered names.
+  url.searchParams.set("scope", HCA_SCOPES);
   url.searchParams.set("state", state);
 
   res.redirect(url.toString());
@@ -175,6 +176,17 @@ router.get("/auth/hackclub/callback", async (req, res) => {
 
   const me = (await meRes.json()) as HackClubMeResponse;
   const identity = me.identity;
+  // Which HCA scope actually carries name/email isn't documented, so say so
+  // loudly if a login comes back without them rather than silently falling
+  // through to a user_xxxxxxxx placeholder.
+  if (!identity.first_name && !identity.primary_email) {
+    console.warn(
+      "HCA identity missing name and email, granted scopes:",
+      me.scopes,
+      "fields:",
+      Object.keys(identity),
+    );
+  }
   let fullName = [identity.first_name, identity.last_name]
     .filter(Boolean)
     .join(" ")
