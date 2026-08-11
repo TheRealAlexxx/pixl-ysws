@@ -9,6 +9,7 @@ import {
 } from "@/lib/guard";
 import {
   listAdmins,
+  listSuperAdminIds,
   reviewerStatsBySlackId,
   displayNamesBySlackId,
   payoutTotalsBySlackId,
@@ -81,22 +82,25 @@ export default async function ReviewersPage({
   if (!access.isSuper) redirect("/");
   const { q, page } = await searchParams;
 
-  const [admins, stats, payoutTotals] = await Promise.all([
+  const [admins, stats, payoutTotals, superIds] = await Promise.all([
     listAdmins(),
     reviewerStatsBySlackId(),
     payoutTotalsBySlackId(),
+    listSuperAdminIds(),
   ]);
   const tableReviewers = admins.filter((a) => a.permissions.includes("review"));
   const inTable = new Set(tableReviewers.map((r) => r.slack_id));
   const blocked = new Set(
     admins.filter((a) => a.permissions.includes(NO_REVIEW)).map((a) => a.slack_id),
   );
-  const owners = new Set(ownerSlackIds());
-  const envOnly = [...new Set([...ownerSlackIds(), ...secondPassSlackIds()])].filter(
+  // Super admins hold every permission, so they review whether or not they
+  // have an admins row , same as the env owners they sit alongside.
+  const owners = new Set([...ownerSlackIds(), ...superIds]);
+  const implicit = [...new Set([...owners, ...secondPassSlackIds()])].filter(
     (id) => !inTable.has(id) && !blocked.has(id),
   );
   const allReviewers = [
-    ...envOnly.map((id) => ({ slack_id: id, name: "", permissions: [] as string[] })),
+    ...implicit.map((id) => ({ slack_id: id, name: "", permissions: [] as string[] })),
     ...tableReviewers.map((r) => ({
       slack_id: r.slack_id,
       name: r.name,
@@ -241,7 +245,7 @@ export default async function ReviewersPage({
                             admin
                           </Badge>
                         )}
-                        {isSecondPassReviewer(r.slack_id, r.permissions) && (
+                        {isSecondPassReviewer(r.slack_id, r.permissions, owners.has(r.slack_id)) && (
                           <Badge variant="success" className="text-[0.65rem] uppercase tracking-wide">
                             second pass
                           </Badge>

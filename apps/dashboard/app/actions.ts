@@ -30,6 +30,9 @@ import {
   removeFulfiller,
   addModerator,
   removeModerator,
+  addSuperAdmin,
+  removeSuperAdmin,
+  listSuperAdmins,
   insertBanProposal,
   getBanProposal,
   decideBanProposal,
@@ -56,6 +59,7 @@ import {
   requireFulfiller,
   requireModerator,
   requireWarnAccess,
+  isSuperAdmin,
   ownerSlackIds,
   secondPassSlackIds,
   SUBADMIN_PERMISSIONS,
@@ -1585,12 +1589,15 @@ export async function banPlayer(formData: FormData): Promise<void> {
   revalidatePath("/", "layout");
 }
 
-// Everyone who can confirm a ban proposal: env owners plus sub-admins
-// explicitly holding the "ban" permission.
+// Everyone who can confirm a ban proposal: super admins (env owners and the
+// super_admins table both) plus sub-admins explicitly holding the "ban"
+// permission.
 async function banConfirmerSlackIds(): Promise<string[]> {
-  const admins = await listAdmins();
+  const [admins, supers] = await Promise.all([listAdmins(), listSuperAdmins()]);
   const withBanPerm = admins.filter((a) => a.permissions.includes("ban")).map((a) => a.slack_id);
-  return [...new Set([...ownerSlackIds(), ...withBanPerm])];
+  return [
+    ...new Set([...ownerSlackIds(), ...supers.map((s) => s.slack_id), ...withBanPerm]),
+  ];
 }
 
 // Moderators can't ban directly , they propose one, and an admin/owner with
@@ -1978,6 +1985,66 @@ async function setTeamPerms(
   revalidatePath("/", "layout");
 }
 
+// Super admins hold every permission and are the only role that can hand
+// permissions out, promote other supers, or demote one. Env owners
+// (ADMIN_SLACK_IDS) are supers too but have no table row, so they can't be
+// demoted from here , that's deliberate, it's the lockout escape hatch.
+export async function addSuperAdminAction(formData: FormData): Promise<void> {
+  const access = await requireSuper();
+  const slackId = String(formData.get("slackId") ?? "").trim().toUpperCase();
+  const name = String(formData.get("name") ?? "").trim();
+  if (!/^[UW][A-Z0-9]{6,}$/.test(slackId))
+    redirect(
+      `/admins?serror=${encodeURIComponent("Enter a valid Slack member ID (starts with U).")}`,
+    );
+  await addSuperAdmin(slackId, name, actorName(access));
+  await logTeamChange(
+    slackId,
+    name || slackId,
+    "super added",
+    [],
+    ["super admin"],
+    actorName(access),
+    "",
+  );
+  await dmTeam(
+    slackId,
+    [
+      "You're a Pixl super admin now. 👑",
+      "That's full access to the dashboard: every permission, plus the ability to grant permissions and promote other super admins.",
+      `Sign in with Slack here: ${DASH_URL}`,
+    ].join("\n\n"),
+  );
+  revalidatePath("/", "layout");
+}
+
+export async function removeSuperAdminAction(formData: FormData): Promise<void> {
+  const access = await requireSuper();
+  const slackId = String(formData.get("slackId") ?? "").trim();
+  const reason = String(formData.get("reason") ?? "").trim().slice(0, 500);
+  if (!slackId || !reason) return;
+  // Demoting yourself mid-session is the one move that can't be undone from
+  // the UI afterwards , another super has to do it.
+  if (slackId === access.session.slackId)
+    redirect(
+      `/admins?serror=${encodeURIComponent("You can't remove your own super admin access , ask another super admin.")}`,
+    );
+  const row = (await listSuperAdmins()).find((r) => r.slack_id === slackId);
+  if (!row) return;
+  await removeSuperAdmin(slackId);
+  await logTeamChange(
+    slackId,
+    row.name || slackId,
+    "super removed",
+    ["super admin"],
+    [],
+    actorName(access),
+    reason,
+  );
+  await dmRemoved(slackId, "Your Pixl super admin access has been removed.", reason);
+  revalidatePath("/", "layout");
+}
+
 export async function addAdmin(formData: FormData): Promise<void> {
   const access = await requireSuper();
   const slackId = String(formData.get("slackId") ?? "").trim();
@@ -2055,8 +2122,12 @@ async function dmRemoved(slackId: string, headline: string, reason: string): Pro
   );
 }
 
-function isEnvReviewer(slackId: string): boolean {
-  return ownerSlackIds().includes(slackId) || secondPassSlackIds().includes(slackId);
+// Review rights that don't come from a "review" entry in the admins table:
+// super admins hold every permission, and SECOND_PASS_SLACK_IDS grants it in
+// the env. Taking review away from one of these writes a NO_REVIEW marker
+// instead of dropping a permission that was never stored.
+async function isImplicitReviewer(slackId: string): Promise<boolean> {
+  return (await isSuperAdmin(slackId)) || secondPassSlackIds().includes(slackId);
 }
 
 // Promote a reviewer to final (second-pass) reviewer, or take it back. The
@@ -2104,10 +2175,11 @@ export async function addReviewer(formData: FormData): Promise<void> {
   const existing = await getAdmin(slackId);
   const kept = (existing?.permissions ?? []).filter((p) => p !== NO_REVIEW);
   // Env admins review by default: lifting their block is enough, no row needed.
-  const permissions = isEnvReviewer(slackId) ? kept : [...new Set([...kept, "review"])];
+  const implicit = await isImplicitReviewer(slackId);
+  const permissions = implicit ? kept : [...new Set([...kept, "review"])];
   const wasReviewer =
     !existing?.permissions.includes(NO_REVIEW) &&
-    (existing?.permissions.includes("review") || isEnvReviewer(slackId));
+    (existing?.permissions.includes("review") || implicit);
   await setTeamPerms(
     slackId,
     name,
@@ -2133,9 +2205,10 @@ export async function removeReviewer(formData: FormData): Promise<void> {
   const reason = String(formData.get("reason") ?? "").trim().slice(0, 500);
   if (!slackId || !reason) return;
   const existing = await getAdmin(slackId);
-  if (!existing && !isEnvReviewer(slackId)) return;
+  const implicit = await isImplicitReviewer(slackId);
+  if (!existing && !implicit) return;
   const permissions = (existing?.permissions ?? []).filter((p) => p !== "review");
-  if (isEnvReviewer(slackId) && !permissions.includes(NO_REVIEW)) permissions.push(NO_REVIEW);
+  if (implicit && !permissions.includes(NO_REVIEW)) permissions.push(NO_REVIEW);
   await setTeamPerms(
     slackId,
     existing?.name ?? "",
@@ -2946,6 +3019,10 @@ export async function undoTeamChange(formData: FormData): Promise<void> {
   if (!id) return;
   const { data } = await db.from("team_log").select("*").eq("id", id).single();
   if (!data) return;
+  // Super-admin grants are logged here but don't live in `admins` , undoing
+  // one through setTeamPerms would write a bogus permission row. Promote or
+  // demote from the Super admins card instead.
+  if (String(data.action).startsWith("super ")) return;
   await setTeamPerms(
     String(data.slack_id),
     String(data.name),

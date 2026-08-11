@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { isAllowed, setSessionCookie } from "@/lib/session";
-import { getAdmin, listModeratorIds, listReportViewerIds } from "@/lib/db";
+import {
+  getAdmin,
+  listModeratorIds,
+  listReportViewerIds,
+  listSuperAdminIds,
+} from "@/lib/db";
 import { getSlackUserProfile } from "@/lib/slack";
 
 const HCA_BASE_URL = "https://auth.hackclub.com";
@@ -79,12 +84,13 @@ export async function GET(req: NextRequest) {
     name = profile?.displayName || profile?.realName || profile?.name || slackId;
   }
 
-  // Moderators and report-viewers live in their own tables, not `admins`
-  // (see lib/guard.ts) , check those too or a standalone moderator/viewer
-  // (no admins row) can never get past login.
+  // Super admins, moderators and report-viewers live in their own tables, not
+  // `admins` (see lib/guard.ts) , check those too or a standalone
+  // super/moderator/viewer (no admins row) can never get past login.
   if (
     !isAllowed(slackId) &&
     !(await getAdmin(slackId)) &&
+    !(await listSuperAdminIds()).includes(slackId) &&
     !(await listModeratorIds()).includes(slackId) &&
     !(await listReportViewerIds()).includes(slackId)
   )

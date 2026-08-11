@@ -222,7 +222,7 @@ export function Shell({
         },
         {
           href: "/admins",
-          label: "Sub-admins",
+          label: "Admins",
           icon: "admins",
           show: nav.admins,
         },

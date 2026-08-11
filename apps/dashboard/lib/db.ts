@@ -1482,6 +1482,50 @@ export async function removeReportViewer(slackId: string): Promise<void> {
   if (error) console.error("removeReportViewer", error.message);
 }
 
+// Super admins: the tier that hands out permissions and promotes other super
+// admins. Same allow-list shape as the roles below, and additive to the
+// ADMIN_SLACK_IDS env owners (see lib/guard.ts) , env owners are permanent and
+// never appear here.
+export interface SuperAdminRow {
+  slack_id: string;
+  name: string;
+  added_by: string;
+  created_at: string;
+}
+
+export async function listSuperAdminIds(): Promise<string[]> {
+  const { data, error } = await db.from("super_admins").select("slack_id");
+  if (error) {
+    console.error("listSuperAdminIds", error.message);
+    return [];
+  }
+  return (data ?? []).map((r) => r.slack_id as string);
+}
+
+export async function listSuperAdmins(): Promise<SuperAdminRow[]> {
+  const { data, error } = await db
+    .from("super_admins")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("listSuperAdmins", error.message);
+    return [];
+  }
+  return (data ?? []) as SuperAdminRow[];
+}
+
+export async function addSuperAdmin(slackId: string, name: string, by: string): Promise<void> {
+  const { error } = await db
+    .from("super_admins")
+    .upsert({ slack_id: slackId, name, added_by: by }, { onConflict: "slack_id" });
+  if (error) throw new Error(error.message);
+}
+
+export async function removeSuperAdmin(slackId: string): Promise<void> {
+  const { error } = await db.from("super_admins").delete().eq("slack_id", slackId);
+  if (error) throw new Error(error.message);
+}
+
 // Moderators: a lighter-weight role than sub-admins. Listing here folds into
 // the report_viewers check (see lib/guard.ts isReportViewer) and lets someone
 // warn players directly, but they can only propose a ban , an admin/owner

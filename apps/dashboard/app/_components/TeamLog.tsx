@@ -29,6 +29,10 @@ function describe(row: TeamLogRow): string {
       return `permissions changed: ${fmt(before)} → ${fmt(after)}`;
     case "undo":
       return `change undone: ${fmt(before)} → ${fmt(after)}`;
+    case "super added":
+      return "promoted to super admin , full access, can grant permissions";
+    case "super removed":
+      return "super admin access removed";
     default:
       return `${row.action}: ${fmt(before)} → ${fmt(after)}`;
   }
@@ -42,6 +46,8 @@ const ACTION_VARIANT: Record<
   removed: "destructive",
   updated: "secondary",
   undo: "warning",
+  "super added": "success",
+  "super removed": "destructive",
 };
 
 export async function TeamLog() {
@@ -84,7 +90,7 @@ export async function TeamLog() {
                   </div>
                 </TableCell>
                 <TableCell className="p-4 align-top text-right w-px">
-                  {row.action !== "undo" && (
+                  {row.action !== "undo" && !row.action.startsWith("super ") && (
                     <form action={undoTeamChange}>
                       <input type="hidden" name="id" value={row.id} />
                       <PendingButton

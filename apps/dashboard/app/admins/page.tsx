@@ -1,11 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requireAdmin, SUBADMIN_PERMISSIONS } from "@/lib/guard";
-import { listAdmins } from "@/lib/db";
-import { addAdmin, removeAdmin, updateAdminPerms } from "@/app/actions";
+import { requireAdmin, ownerSlackIds, SUBADMIN_PERMISSIONS } from "@/lib/guard";
+import { listAdmins, listSuperAdmins } from "@/lib/db";
+import {
+  addAdmin,
+  addSuperAdminAction,
+  removeAdmin,
+  removeSuperAdminAction,
+  updateAdminPerms,
+} from "@/app/actions";
 import { slackHandles } from "@/lib/slack";
 import { TeamLog } from "@/app/_components/TeamLog";
 import { PendingButton } from "@/app/_components/PendingButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -60,32 +68,161 @@ const PER = 8;
 export default async function AdminsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; serror?: string }>;
 }) {
   const access = await requireAdmin();
   if (!access.isSuper) redirect("/");
-  const { page } = await searchParams;
-  const allAdmins = (await listAdmins()).filter((a) =>
+  const { page, serror } = await searchParams;
+  const [all, supers] = await Promise.all([listAdmins(), listSuperAdmins()]);
+  const allAdmins = all.filter((a) =>
     a.permissions.some((p) => (SUBADMIN_PERMISSIONS as readonly string[]).includes(p)),
   );
   const pages = Math.max(1, Math.ceil(allAdmins.length / PER));
   const cur = Math.min(Math.max(parseInt(page ?? "1", 10) || 1, 1), pages);
   const start = (cur - 1) * PER;
   const admins = allAdmins.slice(start, start + PER);
-  const handles = await slackHandles(admins.map((a) => a.slack_id));
+  // Env owners have no table row , list them alongside the table supers so the
+  // page shows everyone who actually holds the tier. An owner who also has a
+  // row is shown as an owner: that's the grant that can't be taken away here.
+  const owners = ownerSlackIds();
+  const tableSupers = supers.filter((s) => !owners.includes(s.slack_id));
+  const handles = await slackHandles([
+    ...admins.map((a) => a.slack_id),
+    ...tableSupers.map((s) => s.slack_id),
+    ...owners,
+  ]);
+  const label = (slackId: string, name?: string) =>
+    name || handles.get(slackId) || slackId;
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Sub-admins</h1>
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Admins</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-          Owners always have every permission. Sub-admins sign in with Slack and only get the
-          permissions you grant here. Reviewers are managed on the{" "}
+          Super admins have every permission and are the only ones who can grant permissions or
+          promote another super admin. Sub-admins sign in with Slack and only get the permissions
+          you grant them here. Reviewers are managed on the{" "}
           <Link href="/reviewers" className="text-brand underline">
             Reviewers
           </Link>{" "}
           tab.
         </p>
+      </div>
+
+      {serror && (
+        <Alert variant="destructive">
+          <AlertDescription className="font-medium text-destructive">{serror}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Super admins</h2>
+          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+            Full access, including this page. Promote carefully , a super admin can promote
+            anyone else, including themselves out of a corner. Nobody can remove their own access.
+          </p>
+        </div>
+
+        <Card className="p-5 md:p-6 gap-0">
+          <div className="text-base font-semibold mb-4">Promote a super admin</div>
+          <form action={addSuperAdminAction} className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Label className="block font-normal">
+                <span className="block text-sm font-medium mb-1.5">Name</span>
+                <Input name="name" placeholder="e.g. Alex Rivera" className="w-full text-sm" />
+              </Label>
+              <Label className="block font-normal">
+                <span className="block text-sm font-medium mb-1.5">Slack member ID</span>
+                <Input
+                  name="slackId"
+                  required
+                  placeholder="U0XXXXXXX"
+                  className="w-full text-sm font-mono"
+                />
+                <span className="block text-xs text-muted-foreground mt-1">
+                  Slack → profile → ⋯ → Copy member ID
+                </span>
+              </Label>
+            </div>
+            <div className="flex justify-end">
+              <PendingButton
+                className="bg-brand text-white border-transparent"
+                pendingText="Promoting…"
+                confirm="Give this person full super admin access?"
+              >
+                Make super admin
+              </PendingButton>
+            </div>
+          </form>
+        </Card>
+
+        <Card className="p-5 gap-0 space-y-3">
+          {owners.length === 0 && tableSupers.length === 0 && (
+            <div className="text-sm text-muted-foreground">
+              Nobody holds this tier , set ADMIN_SLACK_IDS or promote someone above.
+            </div>
+          )}
+          {owners.map((id) => (
+            <div key={id} className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <div className="font-semibold truncate flex items-center gap-2">
+                  {label(id)}
+                  <Badge variant="secondary" className="text-[0.65rem] uppercase tracking-wide">
+                    owner
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground font-mono truncate">{id}</div>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                From ADMIN_SLACK_IDS , change it in the env
+              </span>
+            </div>
+          ))}
+          {tableSupers.map((s) => (
+            <div key={s.slack_id} className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <div className="font-semibold truncate flex items-center gap-2">
+                  {label(s.slack_id, s.name)}
+                  <Badge variant="destructive" className="text-[0.65rem] uppercase tracking-wide">
+                    super
+                  </Badge>
+                  {s.slack_id === access.session.slackId && (
+                    <span className="text-xs text-muted-foreground font-normal">you</span>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono truncate">
+                  {handles.get(s.slack_id) ?? s.slack_id}
+                  {s.added_by ? ` · added by ${s.added_by}` : ""}
+                </div>
+              </div>
+              {s.slack_id !== access.session.slackId && (
+                <form action={removeSuperAdminAction} className="flex items-center gap-2 flex-wrap">
+                  <input type="hidden" name="slackId" value={s.slack_id} />
+                  <Input
+                    name="reason"
+                    required
+                    maxLength={500}
+                    placeholder="Reason (sent to them)"
+                    className="text-sm w-44"
+                  />
+                  <PendingButton
+                    variant="outline"
+                    pendingText="Removing…"
+                    confirm={`Remove super admin access from ${label(s.slack_id, s.name)}?`}
+                    className="text-rose-600 border-rose-200 dark:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600"
+                  >
+                    Remove
+                  </PendingButton>
+                </form>
+              )}
+            </div>
+          ))}
+        </Card>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight">Sub-admins</h2>
       </div>
 
       <Card className="p-5 md:p-6 gap-0">

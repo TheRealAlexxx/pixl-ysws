@@ -743,6 +743,13 @@
       "when": 1782000104000,
       "tag": "0104_raise_all_prices_10pct",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1782000105000,
+      "tag": "0105_super_admins",
+      "breakpoints": true
     }
   ]
 }

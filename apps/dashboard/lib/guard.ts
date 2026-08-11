@@ -6,6 +6,7 @@ import {
   listHelperIds,
   listFulfillerIds,
   listModeratorIds,
+  listSuperAdminIds,
 } from "./db";
 
 export const ALL_PERMISSIONS = ["warn", "ban", "notify", "review"] as const;
@@ -25,6 +26,10 @@ export const SECOND_PASS = "second_pass";
 export interface AdminAccess {
   session: AdminSession;
   isSuper: boolean;
+  // Env owner (ADMIN_SLACK_IDS). A subset of isSuper with identical rights ,
+  // the flag only exists so the dashboard can show that this one can't be
+  // demoted from the UI.
+  isOwner: boolean;
   perms: Set<string>;
   canSecondPass: boolean;
 }
@@ -46,32 +51,48 @@ export function secondPassSlackIds(): string[] {
 
 // Final reviewers do the mandatory second pass and are the only ones who can
 // approve (and credit pixels). Comes from SECOND_PASS_SLACK_IDS (if unset,
-// owners qualify) or a SECOND_PASS marker granted from the dashboard.
-export function isSecondPassReviewer(slackId: string, tablePerms?: string[]): boolean {
+// super admins qualify) or a SECOND_PASS marker granted from the dashboard.
+// isSuper covers the table-backed supers, who the env check can't see.
+export function isSecondPassReviewer(
+  slackId: string,
+  tablePerms?: string[],
+  isSuper = false,
+): boolean {
   if (tablePerms?.includes(SECOND_PASS)) return true;
   const ids = secondPassSlackIds();
-  if (ids.length === 0) return isAllowed(slackId);
+  if (ids.length === 0) return isSuper || isAllowed(slackId);
   return ids.includes(slackId);
 }
 
-// Owners come from the ADMIN_SLACK_IDS env allowlist and hold every
-// permission (minus review if blocked via NO_REVIEW); sub-admins live in the
-// admins table with an explicit set.
+// Super admins hold every permission (minus review if blocked via NO_REVIEW)
+// and are the only ones who can hand permissions out. They come from the
+// ADMIN_SLACK_IDS env allow-list (permanent owners) or the super_admins table,
+// which supers manage from /admins. Sub-admins live in the admins table with
+// an explicit permission set.
+export async function isSuperAdmin(slackId: string): Promise<boolean> {
+  if (isAllowed(slackId)) return true;
+  return (await listSuperAdminIds()).includes(slackId);
+}
+
 export async function getAccess(): Promise<AdminAccess | null> {
   const session = await getSession();
   if (!session) return null;
-  const row = await getAdmin(session.slackId);
+  const [row, isSuper] = await Promise.all([
+    getAdmin(session.slackId),
+    isSuperAdmin(session.slackId),
+  ]);
   const reviewBlocked = row?.permissions.includes(NO_REVIEW) ?? false;
   const canSecondPass =
-    isSecondPassReviewer(session.slackId, row?.permissions) && !reviewBlocked;
-  if (isAllowed(session.slackId)) {
+    isSecondPassReviewer(session.slackId, row?.permissions, isSuper) && !reviewBlocked;
+  const isOwner = isAllowed(session.slackId);
+  if (isSuper) {
     const perms = new Set<string>(ALL_PERMISSIONS);
     if (reviewBlocked) perms.delete("review");
-    return { session, isSuper: true, perms, canSecondPass };
+    return { session, isSuper: true, isOwner, perms, canSecondPass };
   }
   if (!row) return null;
   const perms = new Set(row.permissions.filter((p) => p !== NO_REVIEW && p !== SECOND_PASS));
-  return { session, isSuper: false, perms, canSecondPass };
+  return { session, isSuper: false, isOwner: false, perms, canSecondPass };
 }
 
 // Signed-in users who lost their access land on /removed instead of the
@@ -164,7 +185,7 @@ export async function requireWarnAccess(): Promise<string> {
 
 export async function requireSuper(): Promise<AdminAccess> {
   const access = await getAccess();
-  if (!access || !access.isSuper) throw new Error("Owners only.");
+  if (!access || !access.isSuper) throw new Error("Super admins only.");
   return access;
 }
 
