@@ -8,11 +8,8 @@ FROM oven/bun:1.3.13 AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Not --frozen-lockfile: the committed lockfile satisfies package.json locally,
-# but Orchard's builder resolves it differently and fails frozen, which takes the
-# site down on a routine rebuild. Same reason apps/dashboard installs unfrozen.
 COPY package.json bun.lock ./
-RUN bun install
+RUN bun install --frozen-lockfile
 
 COPY . .
 RUN bun run build
