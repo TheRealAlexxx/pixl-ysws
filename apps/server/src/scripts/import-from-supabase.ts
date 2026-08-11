@@ -97,6 +97,30 @@ console.log(`relaxed ${identity.length} GENERATED ALWAYS columns to BY DEFAULT`)
 // numbers for rows that have gone without one.
 await sql.unsafe(`alter table "tickets" alter column "ticket_number" drop not null`);
 
+// Some migrations seed catalog rows (shop_items, story_nodes, vault_levels)
+// using ids of their own, while the live catalog in Supabase evolved different
+// ids for the same products. Inserting on top of that silently drops the real
+// rows on the (name, region) unique constraint and leaves shop_orders pointing
+// at the wrong item. Source wins: clear anything already in a table we are
+// about to copy. Multi-pass for the same reason inserts are - children have to
+// go before parents.
+{
+  const clearing = new Set(pending.keys());
+  for (let pass = 1; clearing.size && pass <= 10; pass++) {
+    const before = clearing.size;
+    for (const table of [...clearing]) {
+      try {
+        await sql.unsafe(`delete from "${table}"`);
+        clearing.delete(table);
+      } catch {
+        /* retry next pass once dependents are gone */
+      }
+    }
+    if (clearing.size === before) break;
+  }
+  if (clearing.size) console.log(`could not clear: ${[...clearing].join(", ")}`);
+}
+
 const done = new Map<string, number>();
 const errors = new Map<string, string>();
 
@@ -112,10 +136,13 @@ for (let pass = 1; pending.size && pass <= 10; pass++) {
         for (let i = 0; i < clean.length; i += 500) {
           const chunk = clean.slice(i, i + 500);
           const cols = [...new Set(chunk.flatMap((r) => Object.keys(r)))];
-          await tx`insert into ${tx(table)} ${tx(chunk, ...cols)} on conflict do nothing`;
+          await tx`insert into ${tx(table)} ${tx(chunk, ...cols)}`;
         }
       });
-      done.set(table, clean.length);
+      // Count what actually landed, not what was attempted: "on conflict do
+      // nothing" previously reported 183 shop_items while inserting 129.
+      const [{ c }] = await sql.unsafe<{ c: number }[]>(`select count(*)::int c from "${table}"`);
+      done.set(table, c);
       errors.delete(table);
       pending.delete(table);
     } catch (err) {
