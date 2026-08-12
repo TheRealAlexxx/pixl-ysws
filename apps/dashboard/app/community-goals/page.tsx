@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/guard";
+import { requirePagePerm } from "@/lib/guard";
 import { listVaultLevels, type VaultLevelRow } from "@/lib/db";
 import {
   addVaultLevel,
@@ -28,8 +28,7 @@ export default async function CommunityGoalsPage({
 }: {
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
-  const access = await requireAdmin();
-  if (!access.isSuper) redirect("/");
+  const access = await requirePagePerm(["goals"]);
   const { error, saved } = await searchParams;
   const levels = await listVaultLevels();
 

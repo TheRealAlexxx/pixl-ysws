@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/guard";
+import { requirePagePerm } from "@/lib/guard";
 import { getPlayerBySlackId, playerLabel, searchPlayerHandles } from "@/lib/db";
 import { getSlackUserProfile } from "@/lib/slack";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,8 +26,7 @@ export default async function SlackLookupPage({
 }: {
   searchParams: Promise<{ q?: string; name?: string }>;
 }) {
-  const access = await requireAdmin();
-  if (!access.isSuper) redirect("/");
+  const access = await requirePagePerm(["lookup"]);
   const { q, name } = await searchParams;
   const query = q?.trim() ?? "";
   const nameQuery = name?.trim() ?? "";

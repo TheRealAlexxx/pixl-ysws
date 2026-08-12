@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/guard";
+import { requirePagePerm } from "@/lib/guard";
 import {
   listEvents,
   listShopItems,
@@ -63,8 +63,7 @@ export default async function EventsPage({
 }: {
   searchParams: Promise<{ error?: string; created?: string }>;
 }) {
-  const access = await requireAdmin();
-  if (!access.isSuper) redirect("/");
+  const access = await requirePagePerm(["events"]);
   const { error, created } = await searchParams;
 
   const [events, allShopItems] = await Promise.all([listEvents(), listShopItems()]);

@@ -61,8 +61,7 @@ export default async function PixelsPage({
     adjusted?: string;
   }>;
 }) {
-  const access = await requirePagePerm(["review"]);
-  if (!access.isSuper) redirect("/");
+  const access = await requirePagePerm(["pixels"]);
   const { page, filter, user, error, adjusted } = await searchParams;
   const all = await listPixelTransactions(1000);
 

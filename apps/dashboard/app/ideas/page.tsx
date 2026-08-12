@@ -22,7 +22,7 @@ export default async function IdeasPage({
 }: {
   searchParams: Promise<{ q?: string; error?: string }>;
 }) {
-  await requirePagePerm(["warn", "ban"]);
+  await requirePagePerm(["ideas"]);
   const { q, error } = await searchParams;
   const ideas = await listIdeas(q);
 

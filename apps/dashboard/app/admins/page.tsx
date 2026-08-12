@@ -31,6 +31,18 @@ const PERM_INFO: Record<string, { label: string; desc: string }> = {
   warn: { label: "Warn", desc: "Send warnings to players" },
   ban: { label: "Ban", desc: "Ban and unban players" },
   notify: { label: "Notify", desc: "Send broadcast notifications" },
+  review: { label: "Review", desc: "Grade shipped projects" },
+  pixels: { label: "Pixels", desc: "Adjust player pixel balances" },
+  shop: { label: "Shop", desc: "Manage the shop catalogue and stock" },
+  fulfillment: { label: "Fulfillment", desc: "Process and ship shop orders" },
+  events: { label: "Events", desc: "Create and run events" },
+  sidequests: { label: "Sidequests", desc: "Manage sidequests and trials" },
+  story: { label: "Story", desc: "Edit story nodes and chapters" },
+  goals: { label: "Community goals", desc: "Set and adjust community goals" },
+  referrals: { label: "Referrals", desc: "View and manage referrals" },
+  ideas: { label: "Ideas", desc: "Moderate the ideas board" },
+  tickets: { label: "Tickets", desc: "Answer and resolve help tickets" },
+  lookup: { label: "Slack lookup", desc: "Look players up by Slack account" },
 };
 
 function PermToggles({

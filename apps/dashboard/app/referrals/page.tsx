@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/guard";
+import { requirePagePerm } from "@/lib/guard";
 import {
   listReferrals,
   referrerLeaderboard,
@@ -31,8 +31,7 @@ function fmtDate(iso: string | null): string {
 }
 
 export default async function ReferralsPage() {
-  const access = await requireAdmin();
-  if (!access.isSuper) redirect("/");
+  const access = await requirePagePerm(["referrals"]);
 
   const referrals = await listReferrals();
   const leaderboard = await referrerLeaderboard(referrals);

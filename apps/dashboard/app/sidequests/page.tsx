@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/guard";
+import { requirePagePerm } from "@/lib/guard";
 import { listSidequests } from "@/lib/db";
 import { addSidequest, toggleSidequest, deleteSidequest } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
@@ -16,8 +16,7 @@ export default async function SidequestsPage({
 }: {
   searchParams: Promise<{ error?: string; created?: string }>;
 }) {
-  const access = await requireAdmin();
-  if (!access.isSuper) redirect("/");
+  const access = await requirePagePerm(["sidequests"]);
   const { error, created } = await searchParams;
   const quests = await listSidequests();
 

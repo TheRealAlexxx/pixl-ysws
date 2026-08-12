@@ -9,11 +9,38 @@ import {
   listSuperAdminIds,
 } from "./db";
 
-export const ALL_PERMISSIONS = ["warn", "ban", "notify", "review"] as const;
+// One permission per area an admin can be given the keys to. Adding to this
+// list is all it takes to make a new toggle appear on /admins: the values live
+// in admins.permissions (a text[]), so there's no migration, and supers get
+// every permission automatically in getAccess below.
+//
+// Deliberately absent: /admins, /reviewers and /fulfillers. Those hand out
+// access itself, so gating them on anything but super would let an admin
+// promote their way up.
+export const ALL_PERMISSIONS = [
+  "warn",
+  "ban",
+  "notify",
+  "review",
+  "pixels",
+  "shop",
+  "fulfillment",
+  "events",
+  "sidequests",
+  "story",
+  "goals",
+  "referrals",
+  "ideas",
+  "tickets",
+  "lookup",
+] as const;
 export type Permission = (typeof ALL_PERMISSIONS)[number];
 
-// Sub-admins are managed with these; "review" is granted from the Reviewers tab.
-export const SUBADMIN_PERMISSIONS = ["warn", "ban", "notify"] as const;
+// The set shown as toggles on /admins. "review" is granted from the Reviewers
+// tab instead, since that flow also handles second-pass status.
+export const SUBADMIN_PERMISSIONS = ALL_PERMISSIONS.filter(
+  (p) => p !== "review",
+) as readonly Permission[];
 
 // Marker stored in an admins row to take reviewing away from an env admin,
 // whose review right would otherwise come from ADMIN_SLACK_IDS.
@@ -189,13 +216,15 @@ export async function requireSuper(): Promise<AdminAccess> {
   return access;
 }
 
-// Tickets are a helpers-only surface (the `helpers` table, also managed from
-// the Pixorpheus Slack bot). Owners always qualify; other sub-admins do NOT
-// unless they're explicitly listed as a helper.
+// Tickets are a helpers surface (the `helpers` table, also managed from the
+// Pixorpheus Slack bot). Supers always qualify; everyone else needs either a
+// helper listing or the "tickets" permission, so the allow-list and the
+// permission toggle are two routes to the same access rather than a trap
+// where ticking the box does nothing.
 export async function getHelperAccess(): Promise<AdminAccess | null> {
   const access = await getAccess();
   if (!access) return null;
-  if (access.isSuper) return access;
+  if (access.isSuper || access.perms.has("tickets")) return access;
   return (await listHelperIds()).includes(access.session.slackId) ? access : null;
 }
 
@@ -217,7 +246,7 @@ export async function requireHelper(): Promise<AdminAccess> {
 export async function getFulfillerAccess(): Promise<AdminAccess | null> {
   const access = await getAccess();
   if (!access) return null;
-  if (access.isSuper) return access;
+  if (access.isSuper || access.perms.has("fulfillment")) return access;
   return (await listFulfillerIds()).includes(access.session.slackId) ? access : null;
 }
 

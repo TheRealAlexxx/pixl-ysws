@@ -200,7 +200,7 @@ export default async function FulfillmentPage({
               order={o}
               handle={o.player_slack ? handles.get(o.player_slack) : undefined}
               mine={o.claimed_by_slack === me}
-              isSuper={access.isSuper}
+              canManage={access.perms.has("fulfillment")}
             />
           ))}
         </div>
@@ -243,12 +243,12 @@ function OrderCard({
   order: o,
   handle,
   mine,
-  isSuper,
+  canManage,
 }: {
   order: ShopOrderRow;
   handle?: string;
   mine: boolean;
-  isSuper: boolean;
+  canManage: boolean;
 }) {
   // Terminal orders are read-only; everything else still has an action.
   const actionable = o.status !== "done" && o.status !== "cancelled";
@@ -314,7 +314,7 @@ function OrderCard({
         <StageSteps status={o.status} />
       </div>
 
-      {actionable && <OrderActions order={o} mine={mine} isSuper={isSuper} />}
+      {actionable && <OrderActions order={o} mine={mine} canManage={canManage} />}
     </Card>
   );
 }
@@ -322,15 +322,15 @@ function OrderCard({
 function OrderActions({
   order: o,
   mine,
-  isSuper,
+  canManage,
 }: {
   order: ShopOrderRow;
   mine: boolean;
-  isSuper: boolean;
+  canManage: boolean;
 }) {
   // Reassign, cancel/refund, and the final "mark done" close stay owner-only ,
   // fulfillers can work a claimed order but not override or refund one.
-  const cancelForm = isSuper ? (
+  const cancelForm = canManage ? (
     <form action={cancelOrder}>
       <input type="hidden" name="id" value={o.id} />
       <PendingButton
@@ -346,7 +346,7 @@ function OrderActions({
 
   // Shipped: the only thing left is the final close, which any super can do.
   if (o.status === "shipped") {
-    if (!isSuper) return null;
+    if (!canManage) return null;
     return (
       <div className="flex items-end gap-2 flex-wrap">
         <form action={markOrderDone}>
@@ -361,7 +361,7 @@ function OrderActions({
 
   // Claimed by someone else: offer to take it over rather than acting on their queue.
   if (!mine && o.status !== "pending") {
-    if (!isSuper) return null;
+    if (!canManage) return null;
     return (
       <div className="flex items-end gap-2 flex-wrap">
         <form action={reassignOrder}>

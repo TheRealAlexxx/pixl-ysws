@@ -1291,7 +1291,7 @@ export async function sendBackToFirstPass(formData: FormData): Promise<void> {
 // Manual pixel correction from the Pixels tab. Deducts (or grants) whole
 // pixels with a mandatory reason; owners only, everything lands in the ledger.
 export async function adjustPixels(formData: FormData): Promise<void> {
-  const access = await requireSuper();
+  const access = await requirePerm("pixels");
   const by = actorName(access);
   const userId = String(formData.get("userId") ?? "").trim();
   const amount = Math.round(Number(formData.get("amount") ?? 0));
@@ -2461,7 +2461,7 @@ function readOptions(raw: string): string[] {
 }
 
 export async function addShopItem(formData: FormData): Promise<void> {
-  const access = await requireSuper();
+  const access = await requirePerm("shop");
   const name = String(formData.get("name") ?? "").trim().slice(0, 60);
   const description = String(formData.get("description") ?? "").trim().slice(0, 300);
   const price = Math.max(0, Math.round(Number(formData.get("price") ?? 0)));
@@ -2501,7 +2501,7 @@ export async function addShopItem(formData: FormData): Promise<void> {
 }
 
 export async function updateShopItem(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("shop");
   const id = Number(formData.get("id") ?? 0);
   const name = String(formData.get("name") ?? "").trim().slice(0, 60);
   const description = String(formData.get("description") ?? "").trim().slice(0, 300);
@@ -2540,7 +2540,7 @@ export async function updateShopItem(formData: FormData): Promise<void> {
 }
 
 export async function toggleShopItem(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("shop");
   const id = Number(formData.get("id") ?? 0);
   const active = String(formData.get("active") ?? "") === "1";
   if (!id) return;
@@ -2550,7 +2550,7 @@ export async function toggleShopItem(formData: FormData): Promise<void> {
 }
 
 export async function deleteShopItem(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("shop");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db.from("shop_items").delete().eq("id", id);
@@ -2575,7 +2575,7 @@ export interface ShopCsvRow {
 export async function checkShopItemsConflicts(
   rows: ShopCsvRow[],
 ): Promise<Record<string, { id: number; price: number; description: string }>> {
-  await requireSuper();
+  await requirePerm("shop");
   const names = [...new Set(rows.map((r) => r.name).filter(Boolean))];
   if (names.length === 0) return {};
   const { data, error } = await db
@@ -2607,7 +2607,7 @@ export async function commitShopItemsCsv(
   conflicts: Record<string, number>, // key -> existing shop_items.id
   resolutions: Record<string, "replace" | "skip">,
 ): Promise<{ added: number; replaced: number; skipped: number; errors: string[] }> {
-  const access = await requireSuper();
+  const access = await requirePerm("shop");
   let added = 0;
   let replaced = 0;
   let skipped = 0;
@@ -2786,7 +2786,7 @@ export async function shipOrder(formData: FormData): Promise<void> {
 // Any super can mark it done (it's the final administrative close, not a queue
 // advance), and it's a no-op on anything that isn't shipped.
 export async function markOrderDone(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("fulfillment");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db
@@ -2802,7 +2802,7 @@ export async function markOrderDone(formData: FormData): Promise<void> {
 // when the original fulfiller can't finish it , the caller becomes the new owner
 // and the order stays at its current stage.
 export async function reassignOrder(formData: FormData): Promise<void> {
-  const access = await requireSuper();
+  const access = await requirePerm("fulfillment");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db
@@ -2819,7 +2819,7 @@ export async function reassignOrder(formData: FormData): Promise<void> {
 // cancel_shop_order so they can't drift apart; it's idempotent, so a double-click
 // won't refund twice and a shipped order is a no-op.
 export async function cancelOrder(formData: FormData): Promise<void> {
-  const access = await requireSuper();
+  const access = await requirePerm("fulfillment");
   const id = Number(formData.get("id") ?? 0);
   const note = String(formData.get("note") ?? "").trim().slice(0, 300);
   if (!id) return;
@@ -2885,7 +2885,7 @@ export async function syncSlackAvatars(): Promise<void> {
 }
 
 export async function addSidequest(formData: FormData): Promise<void> {
-  const access = await requireSuper();
+  const access = await requirePerm("sidequests");
   const name = String(formData.get("name") ?? "").trim().slice(0, 80);
   const region = String(formData.get("region") ?? "").trim().slice(0, 40);
   const npc = String(formData.get("npc") ?? "").trim().slice(0, 40);
@@ -2915,7 +2915,7 @@ export async function addSidequest(formData: FormData): Promise<void> {
 }
 
 export async function toggleSidequest(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("sidequests");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db
@@ -2927,7 +2927,7 @@ export async function toggleSidequest(formData: FormData): Promise<void> {
 }
 
 export async function deleteSidequest(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("sidequests");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db.from("sidequests").delete().eq("id", id);
@@ -2936,7 +2936,7 @@ export async function deleteSidequest(formData: FormData): Promise<void> {
 }
 
 export async function createEvent(formData: FormData): Promise<void> {
-  const access = await requireSuper();
+  const access = await requirePerm("events");
   const type = String(formData.get("type") ?? "");
   const fail = (msg: string) => redirect(`/events?error=${encodeURIComponent(msg)}`);
   if (!(type in EVENT_TYPES)) fail("Pick an event type.");
@@ -2992,7 +2992,7 @@ export async function createEvent(formData: FormData): Promise<void> {
 }
 
 export async function stopEvent(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("events");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db
@@ -3005,7 +3005,7 @@ export async function stopEvent(formData: FormData): Promise<void> {
 }
 
 export async function deleteEvent(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("events");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db.from("events").delete().eq("id", id);
@@ -3101,7 +3101,7 @@ function parseRewards(raw: string): { icon: string; label: string }[] {
 }
 
 export async function addVaultLevel(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("goals");
   const level = Number(formData.get("level") ?? 0);
   const energy_required = Number(formData.get("energy_required") ?? 0);
   const title = String(formData.get("title") ?? "").trim().slice(0, 80);
@@ -3122,7 +3122,7 @@ export async function addVaultLevel(formData: FormData): Promise<void> {
 }
 
 export async function updateVaultLevel(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("goals");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const patch = {
@@ -3143,7 +3143,7 @@ export async function updateVaultLevel(formData: FormData): Promise<void> {
 }
 
 export async function toggleVaultLevel(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("goals");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db
@@ -3155,7 +3155,7 @@ export async function toggleVaultLevel(formData: FormData): Promise<void> {
 }
 
 export async function deleteVaultLevel(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("goals");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db.from("vault_levels").delete().eq("id", id);
@@ -3164,7 +3164,7 @@ export async function deleteVaultLevel(formData: FormData): Promise<void> {
 }
 
 export async function addStoryNode(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("story");
   const s = (k: string, max: number) => String(formData.get(k) ?? "").trim().slice(0, max);
   const title = s("title", 120);
   if (!title)
@@ -3189,7 +3189,7 @@ export async function addStoryNode(formData: FormData): Promise<void> {
 }
 
 export async function updateStoryNode(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("story");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const s = (k: string, max: number) => String(formData.get(k) ?? "").trim().slice(0, max);
@@ -3216,7 +3216,7 @@ export async function updateStoryNode(formData: FormData): Promise<void> {
 }
 
 export async function toggleStoryNode(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("story");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db
@@ -3228,7 +3228,7 @@ export async function toggleStoryNode(formData: FormData): Promise<void> {
 }
 
 export async function deleteStoryNode(formData: FormData): Promise<void> {
-  await requireSuper();
+  await requirePerm("story");
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db.from("story_nodes").delete().eq("id", id);
