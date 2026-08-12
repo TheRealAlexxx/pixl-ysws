@@ -197,9 +197,9 @@ export default async function ReportsPage({
               <Link href="/bans" className="text-brand underline">
                 Bans
               </Link>{" "}
-              page). They still need a sub-admin row (any permissions, even none) on the{" "}
+              page). They still need an admin row (any permissions, even none) on the{" "}
               <Link href="/admins" className="text-brand underline">
-                Sub-admins
+                Admins
               </Link>{" "}
               page to be able to sign in at all.
             </p>

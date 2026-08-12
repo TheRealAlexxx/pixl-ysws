@@ -100,7 +100,7 @@ export default async function AdminsPage({
         <h1 className="text-2xl font-semibold text-foreground tracking-tight">Admins</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
           Super admins have every permission and are the only ones who can grant permissions or
-          promote another super admin. Sub-admins sign in with Slack and only get the permissions
+          promote another super admin. Admins sign in with Slack and only get the permissions
           you grant them here. Reviewers are managed on the{" "}
           <Link href="/reviewers" className="text-brand underline">
             Reviewers
@@ -222,11 +222,11 @@ export default async function AdminsPage({
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold tracking-tight">Sub-admins</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Admins</h2>
       </div>
 
       <Card className="p-5 md:p-6 gap-0">
-        <div className="text-base font-semibold mb-4">Add a sub-admin</div>
+        <div className="text-base font-semibold mb-4">Add an admin</div>
         <form action={addAdmin} className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <Label className="block font-normal">
@@ -261,7 +261,7 @@ export default async function AdminsPage({
               className="bg-brand text-white border-transparent"
               pendingText="Adding…"
             >
-              Add sub-admin
+              Add admin
             </PendingButton>
           </div>
         </form>
@@ -269,11 +269,11 @@ export default async function AdminsPage({
 
       <div>
         <div className="text-sm font-medium text-muted-foreground mb-3">
-          {allAdmins.length} sub-admin{allAdmins.length === 1 ? "" : "s"}
+          {allAdmins.length} admin{allAdmins.length === 1 ? "" : "s"}
         </div>
         {allAdmins.length === 0 ? (
           <Card className="p-8 text-center text-muted-foreground text-sm">
-            No sub-admins yet. Add someone above to share the workload.
+            No admins yet. Add someone above to share the workload.
           </Card>
         ) : (
           <div className="space-y-4">
@@ -313,7 +313,7 @@ export default async function AdminsPage({
                       <PendingButton
                         variant="outline"
                         pendingText="Removing…"
-                        confirm={`Remove ${a.name || handle} as a sub-admin?`}
+                        confirm={`Remove ${a.name || handle} as an admin?`}
                         className="text-rose-600 border-rose-200 dark:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600"
                       >
                         Remove

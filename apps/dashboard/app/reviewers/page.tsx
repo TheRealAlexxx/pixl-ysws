@@ -191,7 +191,7 @@ export default async function ReviewersPage({
           </PendingButton>
         </form>
         <p className="text-xs text-muted-foreground mt-2">
-          Slack → profile → ⋯ → Copy member ID. If they&apos;re already a sub-admin, this just
+          Slack → profile → ⋯ → Copy member ID. If they&apos;re already an admin, this just
           grants them review access on top.
         </p>
       </Card>
