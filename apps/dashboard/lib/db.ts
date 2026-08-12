@@ -1,32 +1,11 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { decryptPII } from "./crypto";
 import { reForHours } from "@/app/_generated/config";
 
-function required(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`${name} is not set`);
-  return v;
-}
-
-// Created on first use, not at import time , Next evaluates this module while
-// prerendering static pages (e.g. /_not-found) where env vars may be absent.
-let _client: SupabaseClient | null = null;
-function client(): SupabaseClient {
-  _client ??= createClient(
-    required("SUPABASE_URL"),
-    required("SUPABASE_SERVICE_KEY"),
-    { auth: { persistSession: false } },
-  );
-  return _client;
-}
-
-export const db: SupabaseClient = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const c = client();
-    const value = c[prop as keyof SupabaseClient];
-    return typeof value === "function" ? (value as Function).bind(c) : value;
-  },
-});
+// Orchard Postgres over DATABASE_URL. pgCompat connects lazily, so this module
+// stays importable while Next prerenders static pages (e.g. /_not-found)
+// where env vars may be absent.
+export { db } from "./pgCompat";
+import { db } from "./pgCompat";
 
 export interface UserRow {
   id: string;

@@ -13,10 +13,10 @@
   "packageManager": "bun@1.3.13",
   "dependencies": {
     "@slack/bolt": "^4.7.3",
-    "@supabase/supabase-js": "^2.108.2",
     "axios": "^1.16.1",
     "express": "^5.2.1",
-    "jimp": "^0.22.12"
+    "jimp": "^0.22.12",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@slack/types": "^2.22.0",

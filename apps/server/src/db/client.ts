@@ -1,15 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
+import { db } from "./pgCompat.js";
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  throw new Error("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set");
-}
-
-// service_role key bypasses RLS — this client must only ever run server-side,
-// never ship this key to Godot/any client.
-export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// Talks straight to Orchard Postgres over DATABASE_URL. The name is kept so
+// the existing call sites don't all have to change at once; the builder API
+// it exposes is the same subset they were already using.
+export const supabase = db;
 
 // --- Types matching the table shapes (snake_case, matching Postgres columns) ---
 export interface UserRow {

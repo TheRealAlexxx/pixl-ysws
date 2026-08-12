@@ -1,13 +1,7 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { db as pg } from "./pgCompat.js";
 
-const supabase: SupabaseClient = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
-  { auth: { persistSession: false } },
-);
-
-export function db(): SupabaseClient {
-  return supabase;
+export function db() {
+  return pg;
 }
 
 /**

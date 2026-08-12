@@ -12,7 +12,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.108.2",
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
