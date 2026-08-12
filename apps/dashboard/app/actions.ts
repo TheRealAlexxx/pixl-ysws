@@ -1965,12 +1965,15 @@ async function setTeamPerms(
     const { error } = await db.from("admins").delete().eq("slack_id", slackId);
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await db.from("admins").upsert({
-      slack_id: slackId,
-      name: name || existing?.name || slackId,
-      permissions,
-      added_by: existing?.added_by || addedBy || "",
-    });
+    const { error } = await db.from("admins").upsert(
+      {
+        slack_id: slackId,
+        name: name || existing?.name || slackId,
+        permissions,
+        added_by: existing?.added_by || addedBy || "",
+      },
+      { onConflict: "slack_id" },
+    );
     if (error) throw new Error(error.message);
   }
   await logTeamChange(
