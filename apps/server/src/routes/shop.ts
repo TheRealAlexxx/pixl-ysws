@@ -311,9 +311,12 @@ router.post("/api/shop/buy/:id", async (req, res) => {
     p_note: note,
     p_stock_choice: stockChoice,
   });
-  if (error) {
-    // Migration 0093 (note + stock choice) may not be applied yet — retry
-    // against the older 5-arg signature so purchases keep working either way.
+  // Only when migration 0093 (note + stock choice) genuinely isn't applied and
+  // the 7-arg signature is missing, 42883. Retrying on any error instead would
+  // swallow real failures: every overload here has defaults, so a 5-arg call
+  // matches both the 5- and 7-arg ones and dies with "is not unique" (42725),
+  // reporting that instead of whatever actually went wrong.
+  if (error?.code === "42883") {
     ({ data, error } = await supabase.rpc("buy_shop_item", {
       p_user_id: session.userId,
       p_item_id: id,
