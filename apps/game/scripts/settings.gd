@@ -6,7 +6,7 @@ signal zoom_changed
 const PATH := "user://settings.json"
 
 var music_enabled := true
-var music_volume := 0.3
+var music_volume := 0.2
 var font_scale := 1.0
 var zoom_level := 1.0
 var day_night_enabled := true
