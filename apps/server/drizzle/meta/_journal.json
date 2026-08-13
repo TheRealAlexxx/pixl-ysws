@@ -771,6 +771,13 @@
       "when": 1782000108000,
       "tag": "0108_vault_level_chapter1_complete",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1782000109000,
+      "tag": "0109_fix_stale_shop_image_domain",
+      "breakpoints": true
     }
   ]
 }
