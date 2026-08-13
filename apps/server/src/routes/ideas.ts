@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifySessionToken } from "../auth/session.js";
 import { supabase } from "../db/client.js";
+import { withLock } from "../db/advisoryLock.js";
 import { containsBlocked } from "../moderation.js";
 
 const router = Router();
@@ -142,27 +143,24 @@ router.post("/api/ideas/:id/upvote", async (req, res) => {
   if (idea.user_id === session.userId)
     return res.status(400).json({ ok: false, error: "own_idea" });
 
-  const { data: existingDownvote } = await supabase
-    .from("idea_downvotes")
-    .select("id")
-    .eq("idea_id", id)
-    .eq("voter_id", session.userId)
-    .maybeSingle();
-  if (existingDownvote) return res.status(400).json({ ok: false, error: "already_downvoted" });
+  try {
+    const result = await withLock(`idea_vote:${id}:${session.userId}`, async (tx) => {
+      const existingDownvote = (
+        await tx`select id from idea_downvotes where idea_id = ${id} and voter_id = ${session.userId}`
+      )[0];
+      if (existingDownvote) return { error: "already_downvoted" as const };
 
-  const { error } = await supabase
-    .from("idea_upvotes")
-    .insert({ idea_id: id, voter_id: session.userId });
-  if (error && !String(error.code).startsWith("23")) {
-    console.error("[ideas] upvote insert failed", error);
-    return res.status(500).json({ ok: false });
+      await tx`insert into idea_upvotes (idea_id, voter_id) values (${id}, ${session.userId}) on conflict do nothing`;
+      const [{ n }] =
+        await tx`select count(*)::int as n from idea_upvotes where idea_id = ${id}`;
+      return { upvotes: n as number };
+    });
+    if ("error" in result) return res.status(400).json({ ok: false, error: result.error });
+    res.json({ ok: true, upvotes: result.upvotes, has_upvoted: true });
+  } catch (e) {
+    console.error("[ideas] upvote insert failed", e);
+    res.status(500).json({ ok: false });
   }
-
-  const { count } = await supabase
-    .from("idea_upvotes")
-    .select("id", { count: "exact", head: true })
-    .eq("idea_id", id);
-  res.json({ ok: true, upvotes: count ?? 0, has_upvoted: true });
 });
 
 // Permanent downvote on an idea — same rules as upvote, opposite direction.
@@ -184,27 +182,24 @@ router.post("/api/ideas/:id/downvote", async (req, res) => {
   if (idea.user_id === session.userId)
     return res.status(400).json({ ok: false, error: "own_idea" });
 
-  const { data: existingUpvote } = await supabase
-    .from("idea_upvotes")
-    .select("id")
-    .eq("idea_id", id)
-    .eq("voter_id", session.userId)
-    .maybeSingle();
-  if (existingUpvote) return res.status(400).json({ ok: false, error: "already_upvoted" });
+  try {
+    const result = await withLock(`idea_vote:${id}:${session.userId}`, async (tx) => {
+      const existingUpvote = (
+        await tx`select id from idea_upvotes where idea_id = ${id} and voter_id = ${session.userId}`
+      )[0];
+      if (existingUpvote) return { error: "already_upvoted" as const };
 
-  const { error } = await supabase
-    .from("idea_downvotes")
-    .insert({ idea_id: id, voter_id: session.userId });
-  if (error && !String(error.code).startsWith("23")) {
-    console.error("[ideas] downvote insert failed", error);
-    return res.status(500).json({ ok: false });
+      await tx`insert into idea_downvotes (idea_id, voter_id) values (${id}, ${session.userId}) on conflict do nothing`;
+      const [{ n }] =
+        await tx`select count(*)::int as n from idea_downvotes where idea_id = ${id}`;
+      return { downvotes: n as number };
+    });
+    if ("error" in result) return res.status(400).json({ ok: false, error: result.error });
+    res.json({ ok: true, downvotes: result.downvotes, has_downvoted: true });
+  } catch (e) {
+    console.error("[ideas] downvote insert failed", e);
+    res.status(500).json({ ok: false });
   }
-
-  const { count } = await supabase
-    .from("idea_downvotes")
-    .select("id", { count: "exact", head: true })
-    .eq("idea_id", id);
-  res.json({ ok: true, downvotes: count ?? 0, has_downvoted: true });
 });
 
 export default router;

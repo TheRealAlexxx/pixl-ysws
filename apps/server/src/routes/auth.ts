@@ -1,10 +1,11 @@
 import { Router } from "express";
 import crypto from "crypto";
 import { supabase, type UserRow } from "../db/client.js";
-import { issueSessionToken } from "../auth/session.js";
+import { issueSessionToken, verifySessionToken } from "../auth/session.js";
 import { activeBan } from "../moderation.js";
 import { fetchSlackAvatar, fetchSlackDisplayName } from "../slackAvatar.js";
 import { config } from "../config.generated.js";
+import { encryptPII } from "../crypto.js";
 
 const router = Router();
 
@@ -91,9 +92,16 @@ const HCA_SCOPES =
 // Maps OAuth `state` -> when it stops being valid, plus the web game's URL to
 // redirect back to after login (only set when the login was started from a web
 // export). Abandoned logins are never claimed, so they're swept on a timer.
+//
+// purpose distinguishes a normal login (creates/signs in a user, issues a
+// session) from a "verify address" round trip started from shop checkout
+// (re-authorizes with HCA to refresh the address on an *already* logged-in
+// user, no new session). userId is only set for the latter.
 interface PendingLogin {
   expiresAt: number;
   webRedirect?: string;
+  purpose?: "verify_address";
+  userId?: string;
 }
 const PENDING_LOGIN_TTL_MS = 10 * 60_000;
 const pendingLogins = new Map<string, PendingLogin>();
@@ -128,8 +136,10 @@ const ALLOWED_REDIRECT_HOSTS = new Set(
 const ALLOW_LOCAL_REDIRECT = process.env.ALLOW_LOCAL_REDIRECT === "true";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-// Returns the redirect stripped down to origin + path (the game only ever sends
-// that much), or null if it isn't one of ours.
+// Returns the redirect stripped down to origin + path + query (host/protocol
+// validated below; the query string is inert data the game round-trips to
+// itself, e.g. the verify-address flow uses it to remember which item was
+// mid-checkout), or null if it isn't one of ours.
 function safeWebRedirect(raw: string): string | null {
   let url: URL;
   try {
@@ -143,7 +153,7 @@ function safeWebRedirect(raw: string): string | null {
     if (url.protocol !== "https:") return null;
     if (!ALLOWED_REDIRECT_HOSTS.has(host)) return null;
   }
-  return `${url.origin}${url.pathname}`;
+  return `${url.origin}${url.pathname}${url.search}`;
 }
 
 interface HackClubTokenResponse {
@@ -161,9 +171,67 @@ interface HackClubMeResponse {
     last_name?: string;
     primary_email?: string;
     slack_id?: string;
+    // Standard OIDC claim names (matches the "birthdate"/"address" scope
+    // names we request) — unconfirmed against real HCA docs, so extraction
+    // logs the raw keys when these don't show up. See auth/hca-address.
+    birthdate?: string;
+    address?: {
+      formatted?: string;
+      street_address?: string;
+      locality?: string;
+      region?: string;
+      postal_code?: string;
+      country?: string;
+    };
     [key: string]: unknown;
   };
   scopes: string[];
+}
+
+// birthdate/address arrive as OIDC standard claims (best guess — HCA's docs
+// don't spell out the /me response shape, but the scope names we request
+// ("birthdate", "address") match the OIDC spec's claim names exactly). Warn
+// loudly instead of silently storing nothing if that guess is wrong, so the
+// first real login after a deploy shows up in the logs either way.
+function extractBirthday(identity: HackClubMeResponse["identity"]): string | null {
+  const raw = identity.birthdate;
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime()) || date > new Date() || date.getFullYear() < 1900) {
+    console.warn("HCA birthdate didn't parse as a date:", raw);
+    return null;
+  }
+  return raw.slice(0, 10);
+}
+
+interface HcaAddressPatch {
+  address_line1: string;
+  address_line2: string;
+  address_city: string;
+  address_state: string;
+  address_country: string;
+  address_postal: string;
+}
+
+function extractAddress(identity: HackClubMeResponse["identity"]): HcaAddressPatch | null {
+  const addr = identity.address;
+  if (!addr || typeof addr !== "object") return null;
+  const line1 = String(addr.street_address ?? addr.formatted ?? "").trim();
+  const city = String(addr.locality ?? "").trim();
+  const country = String(addr.country ?? "").trim();
+  const postal = String(addr.postal_code ?? "").trim();
+  if (!line1 || !city || !country || !postal) {
+    console.warn("HCA address missing expected fields, raw keys:", Object.keys(addr));
+    return null;
+  }
+  return {
+    address_line1: line1,
+    address_line2: "",
+    address_city: city,
+    address_state: String(addr.region ?? "").trim(),
+    address_country: country,
+    address_postal: postal,
+  };
 }
 
 router.get("/auth/hackclub", (req, res) => {
@@ -190,6 +258,43 @@ router.get("/auth/hackclub", (req, res) => {
   // Must stay a subset of the scopes the HCA app is registered for, HCA
   // rejects the whole authorize request otherwise. "email"/"name"/
   // "verification_status" were never registered names.
+  url.searchParams.set("scope", HCA_SCOPES);
+  url.searchParams.set("state", state);
+
+  res.redirect(url.toString());
+});
+
+// Re-authorizes with HCA to pull a fresh address for an already-logged-in
+// player, without touching their session — the "verify address" button on
+// shop checkout, so a stale address on file doesn't silently ship wrong.
+// Deliberately not auto-triggered; the player has to click it.
+router.get("/auth/hackclub/verify-address", (req, res) => {
+  const token = typeof req.query.token === "string" ? req.query.token : "";
+  const session = token ? verifySessionToken(token) : null;
+  if (!session) return res.status(401).send("Not logged in");
+
+  const requestedRedirect = req.query.web_redirect as string | undefined;
+  let webRedirect: string | null = null;
+  if (requestedRedirect) {
+    webRedirect = safeWebRedirect(requestedRedirect);
+    if (!webRedirect) {
+      console.warn("Rejected web_redirect", requestedRedirect);
+      return res.status(400).send("Invalid redirect target");
+    }
+  }
+
+  const state = crypto.randomBytes(16).toString("hex");
+  pendingLogins.set(state, {
+    expiresAt: Date.now() + PENDING_LOGIN_TTL_MS,
+    webRedirect: webRedirect ?? undefined,
+    purpose: "verify_address",
+    userId: session.userId,
+  });
+
+  const url = new URL(`${HCA_BASE_URL}/oauth/authorize`);
+  url.searchParams.set("client_id", CLIENT_ID);
+  url.searchParams.set("redirect_uri", REDIRECT_URI);
+  url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", HCA_SCOPES);
   url.searchParams.set("state", state);
 
@@ -241,6 +346,29 @@ router.get("/auth/hackclub/callback", async (req, res) => {
 
   const me = (await meRes.json()) as HackClubMeResponse;
   const identity = me.identity;
+
+  if (pending.purpose === "verify_address") {
+    const addr = extractAddress(identity);
+    if (addr && pending.userId) {
+      const { error: addrErr } = await supabase
+        .from("users")
+        .update({
+          address_line1: encryptPII(addr.address_line1),
+          address_line2: encryptPII(addr.address_line2),
+          address_city: encryptPII(addr.address_city),
+          address_state: encryptPII(addr.address_state),
+          address_country: encryptPII(addr.address_country),
+          address_postal: encryptPII(addr.address_postal),
+        })
+        .eq("id", pending.userId);
+      if (addrErr) console.error("Failed to refresh address from HCA", addrErr.message);
+    }
+    const target = webRedirect ?? config.urls.play;
+    const dest = new URL(target);
+    dest.searchParams.set("addr_verified", addr ? "1" : "0");
+    return res.redirect(dest.toString());
+  }
+
   // Which HCA scope actually carries name/email isn't documented, so say so
   // loudly if a login comes back without them rather than silently falling
   // through to a user_xxxxxxxx placeholder.
@@ -284,6 +412,9 @@ router.get("/auth/hackclub/callback", async (req, res) => {
   let displayName: string;
   let isNewUser = false;
 
+  const hcaBirthday = extractBirthday(identity);
+  const hcaAddress = extractAddress(identity);
+
   if (existingUsers && existingUsers.length > 0) {
     const existing = existingUsers[0] as UserRow;
     userId = existing.id;
@@ -296,6 +427,17 @@ router.get("/auth/hackclub/callback", async (req, res) => {
     if (fullName) patch.real_name = fullName;
     if (identity.first_name) patch.first_name = identity.first_name;
     if (identity.last_name) patch.last_name = identity.last_name;
+    // Birthday/address now come from HCA (the /account self-report form is
+    // gone) — keep them in sync every login the same way name/email are.
+    if (hcaBirthday) patch.birthday = encryptPII(hcaBirthday);
+    if (hcaAddress) {
+      patch.address_line1 = encryptPII(hcaAddress.address_line1);
+      patch.address_line2 = encryptPII(hcaAddress.address_line2);
+      patch.address_city = encryptPII(hcaAddress.address_city);
+      patch.address_state = encryptPII(hcaAddress.address_state);
+      patch.address_country = encryptPII(hcaAddress.address_country);
+      patch.address_postal = encryptPII(hcaAddress.address_postal);
+    }
     if (Object.keys(patch).length > 0) {
       void supabase
         .from("users")
@@ -321,6 +463,13 @@ router.get("/auth/hackclub/callback", async (req, res) => {
         avatar_url: null,
         slack_id: identity.slack_id ?? null,
         email: identity.primary_email ?? null,
+        birthday: hcaBirthday ? encryptPII(hcaBirthday) : null,
+        address_line1: hcaAddress ? encryptPII(hcaAddress.address_line1) : null,
+        address_line2: hcaAddress ? encryptPII(hcaAddress.address_line2) : null,
+        address_city: hcaAddress ? encryptPII(hcaAddress.address_city) : null,
+        address_state: hcaAddress ? encryptPII(hcaAddress.address_state) : null,
+        address_country: hcaAddress ? encryptPII(hcaAddress.address_country) : null,
+        address_postal: hcaAddress ? encryptPII(hcaAddress.address_postal) : null,
       })
       .select()
       .single();

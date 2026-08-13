@@ -22,10 +22,11 @@ ENV PORT=3000
 # Full node_modules, not a production prune: drizzle-kit and drizzle-orm are
 # runtime deps here so `drizzle-kit migrate` can be run inside the pod, which is
 # the only place the cluster-internal Postgres host resolves.
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/drizzle ./drizzle
-COPY --from=build /app/drizzle.config.ts /app/package.json ./
+COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=build --chown=node:node /app/drizzle ./drizzle
+COPY --from=build --chown=node:node /app/drizzle.config.ts /app/package.json ./
 
+USER node
 EXPOSE 3000
 CMD ["node", "dist/index.js"]

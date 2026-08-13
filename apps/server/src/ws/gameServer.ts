@@ -30,9 +30,25 @@ interface ConnectedPlayer {
   direction: string;
   skin: string;
   lastSaved: number;
+  lastMoveAt: number;
+  changingScene: boolean;
   lobbyGrant: string;
   blocked: Set<string>;
+  msgTimestamps: number[];
 }
+
+// Client sprint speed tops out around 200px/s (see apps/game/scripts/player.gd).
+// This is a generous multiple of that so normal play, batched frames, and
+// network jitter never trip it — it only rejects the kind of instant,
+// unbounded jump a modified/scripted client sends.
+const MAX_MOVE_SPEED_PX_PER_SEC = 600;
+const MOVE_SLACK_PX = 200;
+
+// Per-connection inbound message throttle. Legit play sends move updates at
+// most a few dozen times a second; this caps the fan-out/parse cost a single
+// abusive or malfunctioning client can put on everyone else in its scene.
+const MSG_WINDOW_MS = 1000;
+const MSG_MAX_PER_WINDOW = 60;
 
 const SKIN_RE = /^(cvc:[1-9]|cv1:b[1-3]h(\d|1[0-8])t([1-9]|1[0-8])o([1-9]|1[0-8]))$/;
 
@@ -85,6 +101,24 @@ function pickPublicLobby(): Lobby | null {
     }
   }
   return best ?? createLobby({ isPublic: true, ownerId: "" });
+}
+
+const EMPTY_SYSTEM_LOBBY_GRACE_MS = 3 * 60_000;
+
+// pickPublicLobby() auto-creates ownerless "system" lobbies when no public
+// lobby has room. Nobody can ever manage/delete one of those (the owner
+// check in lobby_manage requires a real ownerId), so left alone they
+// accumulate forever and eventually exhaust MAX_LOBBIES for everyone. Reap
+// any that are still empty after a grace period long enough for the player
+// who triggered the quick-join to actually walk in.
+function sweepEmptySystemLobbies() {
+  const now = Date.now();
+  for (const l of lobbies.values()) {
+    if (l.ownerId) continue;
+    if (now - l.createdAt < EMPTY_SYSTEM_LOBBY_GRACE_MS) continue;
+    if (lobbyMemberCount(l.id) > 0) continue;
+    deleteLobby(l.id);
+  }
 }
 
 function lobbyListFor(userId: string) {
@@ -357,14 +391,67 @@ async function sweepBans() {
   }
 }
 
+// Cap on new /ws connection attempts per IP. This is enforced on the raw
+// 'upgrade' event because a WebSocketServer bound with { server } attaches
+// straight to http.Server's upgrade event, which never passes through
+// Express — the app-level rate limiter in index.ts never sees this traffic.
+const UPGRADE_WINDOW_MS = 60_000;
+const UPGRADE_MAX_PER_WINDOW = 30;
+const upgradeAttempts = new Map<string, number[]>();
+
+function upgradeRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const arr = (upgradeAttempts.get(ip) ?? []).filter(
+    (t) => now - t < UPGRADE_WINDOW_MS,
+  );
+  arr.push(now);
+  upgradeAttempts.set(ip, arr);
+  return arr.length > UPGRADE_MAX_PER_WINDOW;
+}
+
 export function attachWebSocketServer(httpServer: Server) {
-  const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 32 * 1024 });
+
+  httpServer.on("upgrade", (req, socket, head) => {
+    const url = new URL(req.url ?? "", "http://localhost");
+    if (url.pathname !== "/ws") {
+      socket.destroy();
+      return;
+    }
+    const ip = req.socket.remoteAddress ?? "unknown";
+    if (upgradeRateLimited(ip)) {
+      socket.destroy();
+      return;
+    }
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  });
 
   void loadLobbies();
   setInterval(() => void sweepBans(), BAN_SWEEP_MS);
+  setInterval(sweepEmptySystemLobbies, EMPTY_SYSTEM_LOBBY_GRACE_MS);
+
+  const heartbeatInterval = setInterval(() => {
+    for (const ws of wss.clients) {
+      const w = ws as WebSocket & { isAlive?: boolean };
+      if (w.isAlive === false) {
+        w.terminate();
+        continue;
+      }
+      w.isAlive = false;
+      w.ping();
+    }
+  }, 30_000);
+  wss.on("close", () => clearInterval(heartbeatInterval));
 
   wss.on("connection", (ws, req) => {
     console.log("New WS connection attempt from", req.socket.remoteAddress);
+    (ws as WebSocket & { isAlive?: boolean }).isAlive = true;
+    ws.on("pong", () => {
+      (ws as WebSocket & { isAlive?: boolean }).isAlive = true;
+    });
+
     const url = new URL(req.url ?? "", "http://localhost");
     const token = url.searchParams.get("token");
     const session = token ? verifySessionToken(token) : null;
@@ -447,8 +534,11 @@ export function attachWebSocketServer(httpServer: Server) {
         direction: startState?.direction ?? "bottom",
         skin: (userRow as { skin?: string } | null)?.skin ?? "cvc:1",
         lastSaved: Date.now(),
+        lastMoveAt: Date.now(),
+        changingScene: false,
         lobbyGrant,
         blocked,
+        msgTimestamps: [],
       };
       const stale = players.get(session.userId);
       if (stale && stale.ws !== ws) {
@@ -514,6 +604,13 @@ export function attachWebSocketServer(httpServer: Server) {
       // Voice chat was removed; ignore any stray binary frames.
       if (isBinary) return;
 
+      const now0 = Date.now();
+      player.msgTimestamps = player.msgTimestamps.filter(
+        (t) => now0 - t < MSG_WINDOW_MS,
+      );
+      if (player.msgTimestamps.length >= MSG_MAX_PER_WINDOW) return;
+      player.msgTimestamps.push(now0);
+
       let msg: any;
       try {
         msg = JSON.parse(raw.toString());
@@ -522,9 +619,43 @@ export function attachWebSocketServer(httpServer: Server) {
       }
 
       if (msg.type === "move") {
-        player.posX = msg.posX;
-        player.posY = msg.posY;
-        player.direction = msg.direction ?? player.direction;
+        const posX = Number(msg.posX);
+        const posY = Number(msg.posY);
+        const direction =
+          typeof msg.direction === "string"
+            ? msg.direction.slice(0, 16)
+            : player.direction;
+
+        // Reject anything that isn't a real, finite coordinate outright — a
+        // client sending a string/object/NaN here would otherwise get
+        // broadcast verbatim to every other player in the scene and
+        // persisted into player_state.
+        if (!Number.isFinite(posX) || !Number.isFinite(posY)) return;
+
+        const now = Date.now();
+        const elapsedSec = Math.max((now - player.lastMoveAt) / 1000, 0);
+        const maxDist = MAX_MOVE_SPEED_PX_PER_SEC * elapsedSec + MOVE_SLACK_PX;
+        const dist = Math.hypot(posX - player.posX, posY - player.posY);
+        player.lastMoveAt = now;
+
+        if (dist > maxDist) {
+          // Refuse the jump and snap the client back to where the server
+          // still thinks it is, instead of accepting a teleport/speed-hack.
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(
+              JSON.stringify({
+                type: "position_correction",
+                posX: player.posX,
+                posY: player.posY,
+              }),
+            );
+          }
+          return;
+        }
+
+        player.posX = posX;
+        player.posY = posY;
+        player.direction = direction;
 
         broadcastToScene(
           player.scene,
@@ -538,7 +669,6 @@ export function attachWebSocketServer(httpServer: Server) {
           player.userId,
         );
 
-        const now = Date.now();
         if (now - player.lastSaved > SAVE_INTERVAL_MS) {
           player.lastSaved = now;
           persist(player).catch(console.error);
@@ -546,7 +676,14 @@ export function attachWebSocketServer(httpServer: Server) {
       }
 
       if (msg.type === "change_scene") {
+        // Two change_scene messages in flight for the same connection race:
+        // the second one's async continuation can read/broadcast against
+        // player.scene before the first has finished updating it, producing
+        // a "ghost" player_joined in one scene with no matching player_left.
+        // Serialize them per-connection instead.
+        if (player.changingScene) return;
         const leaving = player;
+        leaving.changingScene = true;
         const oldScene = leaving.scene;
         let requested = String(msg.scene ?? "");
 
@@ -578,82 +715,92 @@ export function attachWebSocketServer(httpServer: Server) {
         const newScene = roomFor(leaving.userId, requested);
 
         void (async () => {
-          // Save where the player was standing in the scene they're leaving so
-          // it's there when they come back. persist() snapshots the row
-          // synchronously, so it's safe to let the upsert finish in the
-          // background instead of stalling the init reply on a DB round-trip.
-          void persist(leaving);
+          try {
+            // Save where the player was standing in the scene they're leaving so
+            // it's there when they come back. persist() snapshots the row
+            // synchronously, so it's safe to let the upsert finish in the
+            // background instead of stalling the init reply on a DB round-trip.
+            void persist(leaving);
 
-          broadcastToScene(
-            oldScene,
-            { type: "player_left", userId: leaving.userId },
-            leaving.userId,
-          );
+            broadcastToScene(
+              oldScene,
+              { type: "player_left", userId: leaving.userId },
+              leaving.userId,
+            );
 
-          // Move into the new scene at its own saved position. If there's no
-          // saved position yet, tell the client to use the scene's spawn point.
-          // Re-entering the same scene skips the DB read — the in-memory
-          // position is already the latest.
-          const saved: Pick<PlayerStateRow, "pos_x" | "pos_y" | "direction"> | null =
-            oldScene === newScene
-              ? { pos_x: leaving.posX, pos_y: leaving.posY, direction: leaving.direction }
-              : await loadSceneState(leaving.userId, newScene);
-          leaving.scene = newScene;
-          let spawnAtDefault = false;
-          if (saved) {
-            leaving.posX = saved.pos_x;
-            leaving.posY = saved.pos_y;
-            leaving.direction = saved.direction;
-          } else {
-            spawnAtDefault = true;
-            leaving.direction = "bottom";
-          }
+            // Move into the new scene at its own saved position. If there's no
+            // saved position yet, tell the client to use the scene's spawn point.
+            // Re-entering the same scene skips the DB read — the in-memory
+            // position is already the latest.
+            const saved: Pick<PlayerStateRow, "pos_x" | "pos_y" | "direction"> | null =
+              oldScene === newScene
+                ? { pos_x: leaving.posX, pos_y: leaving.posY, direction: leaving.direction }
+                : await loadSceneState(leaving.userId, newScene);
+            leaving.scene = newScene;
+            let spawnAtDefault = false;
+            if (saved) {
+              leaving.posX = saved.pos_x;
+              leaving.posY = saved.pos_y;
+              leaving.direction = saved.direction;
+            } else {
+              spawnAtDefault = true;
+              leaving.direction = "bottom";
+            }
+            // The new scene is a different coordinate space entirely, so the
+            // move anti-cheat shouldn't compare the next move against where
+            // the player was standing in the old one.
+            leaving.lastMoveAt = Date.now();
 
-          console.log(
-            leaving.displayName,
-            "changed scene:",
-            oldScene,
-            "->",
-            newScene,
-            spawnAtDefault ? "(default spawn)" : "(restored position)",
-            "| players now in",
-            newScene,
-            ":",
-            snapshotForScene(newScene).map((p) => p.displayName),
-          );
+            console.log(
+              leaving.displayName,
+              "changed scene:",
+              oldScene,
+              "->",
+              newScene,
+              spawnAtDefault ? "(default spawn)" : "(restored position)",
+              "| players now in",
+              newScene,
+              ":",
+              snapshotForScene(newScene).map((p) => p.displayName),
+            );
 
-          ws.send(
-            JSON.stringify({
-              type: "init",
-              scene: newScene,
-              you: {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(
+                JSON.stringify({
+                  type: "init",
+                  scene: newScene,
+                  you: {
+                    userId: leaving.userId,
+                    displayName: leaving.displayName,
+                    posX: leaving.posX,
+                    posY: leaving.posY,
+                    skin: leaving.skin,
+                  },
+                  spawnAtDefault,
+                  players: snapshotForScene(newScene, leaving.userId),
+                }),
+              );
+            }
+
+            void sendNpcInit(leaving, baseSceneName(newScene));
+            sendLobbyTheme(leaving);
+
+            broadcastToScene(
+              newScene,
+              {
+                type: "player_joined",
                 userId: leaving.userId,
                 displayName: leaving.displayName,
                 posX: leaving.posX,
                 posY: leaving.posY,
+                direction: leaving.direction,
                 skin: leaving.skin,
               },
-              spawnAtDefault,
-              players: snapshotForScene(newScene, leaving.userId),
-            }),
-          );
-
-          void sendNpcInit(leaving, baseSceneName(newScene));
-          sendLobbyTheme(leaving);
-
-          broadcastToScene(
-            newScene,
-            {
-              type: "player_joined",
-              userId: leaving.userId,
-              displayName: leaving.displayName,
-              posX: leaving.posX,
-              posY: leaving.posY,
-              direction: leaving.direction,
-              skin: leaving.skin,
-            },
-            leaving.userId,
-          );
+              leaving.userId,
+            );
+          } finally {
+            leaving.changingScene = false;
+          }
         })().catch(console.error);
       }
 
@@ -726,11 +873,19 @@ export function attachWebSocketServer(httpServer: Server) {
         const text = censorChat(raw);
         if (text !== raw) void punishChat(player, ws, raw);
 
-        let target: ConnectedPlayer | undefined;
-        for (const p of players.values()) {
-          if (p.displayName.toLowerCase() === targetName.toLowerCase()) {
-            target = p;
-            break;
+        // Prefer an exact userId match (unambiguous) so a future client can
+        // route by id; fall back to case-insensitive display-name matching
+        // for the current client, which only ever sends a name. Display
+        // names aren't guaranteed unique (they come from Hack Club
+        // Auth/Slack), so the fallback can still misdeliver on a collision —
+        // routing by id is the real fix once the client sends one.
+        let target: ConnectedPlayer | undefined = players.get(targetName);
+        if (!target) {
+          for (const p of players.values()) {
+            if (p.displayName.toLowerCase() === targetName.toLowerCase()) {
+              target = p;
+              break;
+            }
           }
         }
         if (!target) {
@@ -800,8 +955,10 @@ export function attachWebSocketServer(httpServer: Server) {
           const friend = players.get(friendId);
           const lid = friend ? lobbyIdFromScene(friend.scene) : null;
           const lobby = lid ? lobbies.get(lid) : undefined;
-          const deny = (reason: string) =>
-            ws.send(JSON.stringify({ type: "lobby_denied", reason }));
+          const deny = (reason: string) => {
+            if (ws.readyState === WebSocket.OPEN)
+              ws.send(JSON.stringify({ type: "lobby_denied", reason }));
+          };
           if (!friend) return deny("That friend isn't online right now.");
           if (!lid || !lobby)
             return deny("Your friend isn't in a lobby right now.");
@@ -810,12 +967,13 @@ export function attachWebSocketServer(httpServer: Server) {
           if (lobbyMemberCount(lid, asking.userId) >= lobby.capacity)
             return deny("That lobby is full.");
           asking.lobbyGrant = lid;
-          ws.send(
-            JSON.stringify({
-              type: "lobby_joined",
-              lobby: lobbyInfoFor(lobby, lobbyMemberCount(lid), asking.userId),
-            }),
-          );
+          if (ws.readyState === WebSocket.OPEN)
+            ws.send(
+              JSON.stringify({
+                type: "lobby_joined",
+                lobby: lobbyInfoFor(lobby, lobbyMemberCount(lid), asking.userId),
+              }),
+            );
         })().catch(console.error);
       }
 
@@ -823,8 +981,10 @@ export function attachWebSocketServer(httpServer: Server) {
         const inviteId = Number(msg.inviteId ?? 0);
         const asking = player;
         void (async () => {
-          const deny = (reason: string) =>
-            ws.send(JSON.stringify({ type: "lobby_denied", reason }));
+          const deny = (reason: string) => {
+            if (ws.readyState === WebSocket.OPEN)
+              ws.send(JSON.stringify({ type: "lobby_denied", reason }));
+          };
           if (!inviteId) return deny("That invite is no longer valid.");
           const { data, error } = await supabase
             .from("village_invites")
@@ -863,16 +1023,17 @@ export function attachWebSocketServer(httpServer: Server) {
             return deny("Couldn't reach the village right now.");
           }
           asking.lobbyGrant = lobby.id;
-          ws.send(
-            JSON.stringify({
-              type: "lobby_joined",
-              lobby: lobbyInfoFor(
-                lobby,
-                lobbyMemberCount(lobby.id),
-                asking.userId,
-              ),
-            }),
-          );
+          if (ws.readyState === WebSocket.OPEN)
+            ws.send(
+              JSON.stringify({
+                type: "lobby_joined",
+                lobby: lobbyInfoFor(
+                  lobby,
+                  lobbyMemberCount(lobby.id),
+                  asking.userId,
+                ),
+              }),
+            );
         })().catch(console.error);
       }
 
@@ -1018,12 +1179,13 @@ export function attachWebSocketServer(httpServer: Server) {
             });
             if (error) {
               console.error("[village] buy_village_theme failed", error);
-              ws.send(
-                JSON.stringify({
-                  type: "lobby_denied",
-                  reason: "Couldn't complete that purchase.",
-                }),
-              );
+              if (ws.readyState === WebSocket.OPEN)
+                ws.send(
+                  JSON.stringify({
+                    type: "lobby_denied",
+                    reason: "Couldn't complete that purchase.",
+                  }),
+                );
               return;
             }
             const result = data as { ok?: boolean; error?: string };
@@ -1034,7 +1196,8 @@ export function attachWebSocketServer(httpServer: Server) {
                   : result?.error === "owned"
                     ? "Your village already owns that theme."
                     : "Couldn't complete that purchase.";
-              ws.send(JSON.stringify({ type: "lobby_denied", reason }));
+              if (ws.readyState === WebSocket.OPEN)
+                ws.send(JSON.stringify({ type: "lobby_denied", reason }));
               return;
             }
             lobby.themesUnlocked.add(theme);

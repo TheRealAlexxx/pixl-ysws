@@ -85,22 +85,42 @@ function ident(name: string): string {
 }
 
 // PostgREST spells one filter as "col.op.value"; .or() takes them comma
-// separated. Only the flat form the call sites use is supported.
-function parseOrTerm(term: string): { text: string; value: unknown } | null {
-  const first = term.indexOf(".");
-  const second = term.indexOf(".", first + 1);
+// separated, and a term can itself be an "and(...)"/"or(...)" group of flat
+// terms (e.g. "and(a.eq.1,b.eq.2),and(a.eq.2,b.eq.1)" for a symmetric-pair
+// lookup). Splitting has to respect paren depth or a comma inside a group
+// gets mistaken for a top-level separator, which was silently corrupting
+// every .or() call that used grouping (areFriends() always returned false).
+function parseOrTerm(term: string): { text: string; values: unknown[] } | null {
+  const t = term.trim();
+  const group = t.match(/^(and|or)\((.*)\)$/s);
+  if (group) {
+    const [, kind, inner] = group;
+    const parts: string[] = [];
+    const values: unknown[] = [];
+    for (const sub of splitTopLevel(inner)) {
+      const parsed = parseOrTerm(sub);
+      if (!parsed) continue;
+      parts.push(parsed.text);
+      values.push(...parsed.values);
+    }
+    if (!parts.length) return null;
+    return { text: `(${parts.join(kind === "and" ? " and " : " or ")})`, values };
+  }
+
+  const first = t.indexOf(".");
+  const second = t.indexOf(".", first + 1);
   if (first === -1 || second === -1) return null;
-  const col = term.slice(0, first);
-  const op = term.slice(first + 1, second) as Op;
-  const raw = term.slice(second + 1);
-  if (op === "is") return { text: `${ident(col)} is ${raw === "null" ? "null" : raw}`, value: undefined };
+  const col = t.slice(0, first);
+  const op = t.slice(first + 1, second) as Op;
+  const raw = t.slice(second + 1);
+  if (op === "is") return { text: `${ident(col)} is ${raw === "null" ? "null" : raw}`, values: [] };
   if (op === "in") {
     const items = raw.replace(/^\(|\)$/g, "").split(",").map((s) => s.replace(/^"|"$/g, ""));
-    return { text: `${ident(col)} = any(?)`, value: items };
+    return { text: `${ident(col)} = any(?)`, values: [items] };
   }
   const sqlOp = OPERATORS[op as keyof typeof OPERATORS];
   if (!sqlOp) return null;
-  return { text: `${ident(col)} ${sqlOp} ?`, value: raw === "null" ? null : raw };
+  return { text: `${ident(col)} ${sqlOp} ?`, values: [raw === "null" ? null : raw] };
 }
 
 // PostgREST lets a select embed a related table: "*, users(display_name)" or
@@ -295,14 +315,15 @@ class Builder<T = any> implements PromiseLike<PgResult<T[]>> {
 
     for (const group of this.orTerms) {
       const ors: string[] = [];
-      for (const term of group.split(",")) {
-        const parsed = parseOrTerm(term.trim());
+      for (const term of splitTopLevel(group)) {
+        const parsed = parseOrTerm(term);
         if (!parsed) continue;
-        if (parsed.value === undefined) ors.push(parsed.text);
-        else {
-          params.push(parsed.value);
-          ors.push(parsed.text.replace("?", `$${params.length}`));
+        let text = parsed.text;
+        for (const v of parsed.values) {
+          params.push(v);
+          text = text.replace("?", `$${params.length}`);
         }
+        ors.push(text);
       }
       if (ors.length) parts.push(`(${ors.join(" or ")})`);
     }

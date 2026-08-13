@@ -11,7 +11,7 @@ import {
   reForLevel,
   MAX_LEVEL,
 } from "../xp.js";
-import { decryptPII, encryptPII } from "../crypto.js";
+import { decryptPII } from "../crypto.js";
 
 const router = Router();
 
@@ -295,9 +295,11 @@ router.post("/api/profile/card-pixelate", async (req, res) => {
   res.json({ ok: true });
 });
 
-// Birthday + mailing address, collected once for Hack Club's YSWS Unified
-// Database submission requirements (not entered per-ship — see /account in
-// apps/game/web and the address-confirm step before shop checkout).
+// Birthday + mailing address now come from Hack Club Auth at login (see
+// src/routes/auth.ts's extractBirthday/extractAddress) rather than a
+// self-report form — self-reporting a birthday would defeat the point of
+// using it for the YSWS age-eligibility check below, so there's no write
+// path for either field here anymore.
 const ADDRESS_FIELDS = [
   "address_line1",
   "address_line2",
@@ -316,6 +318,15 @@ function hasAddress(row: Record<string, unknown>): boolean {
   );
 }
 
+// Hack Club's YSWS programs are for under-19s. Matches the age math the
+// dashboard's turnedNineteenSinceShipping already uses (lib/db.ts).
+function ageOn(birthday: Date, at: Date): number {
+  let age = at.getFullYear() - birthday.getFullYear();
+  const m = at.getMonth() - birthday.getMonth();
+  if (m < 0 || (m === 0 && at.getDate() < birthday.getDate())) age--;
+  return age;
+}
+
 router.get("/api/profile/eligibility", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";
   const session = token ? verifySessionToken(token) : null;
@@ -332,9 +343,20 @@ router.get("/api/profile/eligibility", async (req, res) => {
   }
   const row = (data ?? {}) as Record<string, unknown>;
   const birthday = decryptPII(row.birthday as string | null);
+  let age: number | null = null;
+  let yswsEligible = true;
+  if (birthday) {
+    const bday = new Date(birthday);
+    if (!Number.isNaN(bday.getTime())) {
+      age = ageOn(bday, new Date());
+      yswsEligible = age < 19;
+    }
+  }
   res.json({
     ok: true,
     birthday: birthday || null,
+    age,
+    yswsEligible,
     addressLine1: decryptPII(row.address_line1 as string | null),
     addressLine2: decryptPII(row.address_line2 as string | null),
     addressCity: decryptPII(row.address_city as string | null),
@@ -344,62 +366,5 @@ router.get("/api/profile/eligibility", async (req, res) => {
     hasAddress: hasAddress(row),
   });
 });
-
-router.post("/api/profile/eligibility", async (req, res) => {
-  const token = typeof req.query.token === "string" ? req.query.token : "";
-  const session = token ? verifySessionToken(token) : null;
-  if (!session) return res.status(401).json({ ok: false });
-
-  const patch: Record<string, string | null> = {};
-
-  if (req.body?.birthday !== undefined) {
-    const raw = String(req.body.birthday ?? "").trim();
-    if (raw) {
-      const date = new Date(raw);
-      const now = new Date();
-      if (Number.isNaN(date.getTime()) || date > now || date.getFullYear() < 1900) {
-        return res.json({ ok: false, reason: "That birthday doesn't look right." });
-      }
-      patch.birthday = encryptPII(raw.slice(0, 10));
-    } else {
-      patch.birthday = null;
-    }
-  }
-
-  const wantsAddress = ADDRESS_FIELDS.some((f) => req.body?.[toCamel(f)] !== undefined);
-  if (wantsAddress) {
-    const line1 = String(req.body?.addressLine1 ?? "").trim().slice(0, 200);
-    const line2 = String(req.body?.addressLine2 ?? "").trim().slice(0, 200);
-    const city = String(req.body?.addressCity ?? "").trim().slice(0, 100);
-    const state = String(req.body?.addressState ?? "").trim().slice(0, 100);
-    const country = String(req.body?.addressCountry ?? "").trim().slice(0, 100);
-    const postal = String(req.body?.addressPostal ?? "").trim().slice(0, 20);
-    if (!line1 || !city || !country || !postal) {
-      return res.json({
-        ok: false,
-        reason: "Address line 1, city, country and postal code are required.",
-      });
-    }
-    patch.address_line1 = encryptPII(line1);
-    patch.address_line2 = encryptPII(line2);
-    patch.address_city = encryptPII(city);
-    patch.address_state = encryptPII(state);
-    patch.address_country = encryptPII(country);
-    patch.address_postal = encryptPII(postal);
-  }
-
-  if (Object.keys(patch).length === 0) return res.json({ ok: true });
-
-  const { error } = await supabase.from("users").update(patch).eq("id", session.userId);
-  if (error) {
-    console.error("[profile] eligibility update failed", error.message);
-    return res.status(500).json({ ok: false, reason: "Database error." });
-  }
-  res.json({ ok: true });
-});
-
-function toCamel(snake: string): string {
-  return snake.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-}
 
 export default router;

@@ -119,6 +119,7 @@ export async function fetchHackatimeStats(token: string | null): Promise<Hackati
   try {
     const res = await fetch(BASE + PROJECTS_PATH, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      signal: AbortSignal.timeout(10000),
     });
     if (res.status === 401) return { ...DISCONNECTED, error: "invalid_key" };
     if (!res.ok) return { ...DISCONNECTED, error: `http_${res.status}` };

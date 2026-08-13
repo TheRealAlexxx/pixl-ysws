@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifySessionToken } from "../auth/session.js";
 import { supabase } from "../db/client.js";
+import { withLock } from "../db/advisoryLock.js";
 
 const router = Router();
 
@@ -51,28 +52,31 @@ router.post("/api/projects/:id/upvote", async (req, res) => {
   if (project.user_id === session.userId)
     return res.status(400).json({ ok: false, error: "own_project" });
 
-  const { data: existingDownvote } = await supabase
-    .from("project_downvotes")
-    .select("id")
-    .eq("project_id", id)
-    .eq("voter_id", session.userId)
-    .maybeSingle();
-  if (existingDownvote) return res.status(400).json({ ok: false, error: "already_downvoted" });
+  try {
+    // A lock scoped to this (project, voter) pair closes the race where a
+    // concurrent upvote and downvote for the same project each read "no
+    // opposite vote exists" before either writes, leaving the voter holding
+    // both directions at once.
+    const result = await withLock(
+      `project_vote:${id}:${session.userId}`,
+      async (tx) => {
+        const existingDownvote = (
+          await tx`select id from project_downvotes where project_id = ${id} and voter_id = ${session.userId}`
+        )[0];
+        if (existingDownvote) return { error: "already_downvoted" as const };
 
-  // Permanent + unique(project_id, voter_id): ignore a duplicate rather than 500.
-  const { error } = await supabase
-    .from("project_upvotes")
-    .insert({ project_id: id, voter_id: session.userId });
-  if (error && !String(error.code).startsWith("23")) {
-    console.error("[upvotes] insert failed", error);
-    return res.status(500).json({ ok: false });
+        await tx`insert into project_upvotes (project_id, voter_id) values (${id}, ${session.userId}) on conflict do nothing`;
+        const [{ n }] =
+          await tx`select count(*)::int as n from project_upvotes where project_id = ${id}`;
+        return { upvotes: n as number };
+      },
+    );
+    if ("error" in result) return res.status(400).json({ ok: false, error: result.error });
+    res.json({ ok: true, upvotes: result.upvotes, has_upvoted: true });
+  } catch (e) {
+    console.error("[upvotes] insert failed", e);
+    res.status(500).json({ ok: false });
   }
-
-  const { count } = await supabase
-    .from("project_upvotes")
-    .select("id", { count: "exact", head: true })
-    .eq("project_id", id);
-  res.json({ ok: true, upvotes: count ?? 0, has_upvoted: true });
 });
 
 // Permanent downvote on an approved project. Same rules as upvote (one per
@@ -100,28 +104,27 @@ router.post("/api/projects/:id/downvote", async (req, res) => {
   if (project.user_id === session.userId)
     return res.status(400).json({ ok: false, error: "own_project" });
 
-  const { data: existingUpvote } = await supabase
-    .from("project_upvotes")
-    .select("id")
-    .eq("project_id", id)
-    .eq("voter_id", session.userId)
-    .maybeSingle();
-  if (existingUpvote) return res.status(400).json({ ok: false, error: "already_upvoted" });
+  try {
+    const result = await withLock(
+      `project_vote:${id}:${session.userId}`,
+      async (tx) => {
+        const existingUpvote = (
+          await tx`select id from project_upvotes where project_id = ${id} and voter_id = ${session.userId}`
+        )[0];
+        if (existingUpvote) return { error: "already_upvoted" as const };
 
-  // Permanent + unique(project_id, voter_id): ignore a duplicate rather than 500.
-  const { error } = await supabase
-    .from("project_downvotes")
-    .insert({ project_id: id, voter_id: session.userId });
-  if (error && !String(error.code).startsWith("23")) {
-    console.error("[downvotes] insert failed", error);
-    return res.status(500).json({ ok: false });
+        await tx`insert into project_downvotes (project_id, voter_id) values (${id}, ${session.userId}) on conflict do nothing`;
+        const [{ n }] =
+          await tx`select count(*)::int as n from project_downvotes where project_id = ${id}`;
+        return { downvotes: n as number };
+      },
+    );
+    if ("error" in result) return res.status(400).json({ ok: false, error: result.error });
+    res.json({ ok: true, downvotes: result.downvotes, has_downvoted: true });
+  } catch (e) {
+    console.error("[downvotes] insert failed", e);
+    res.status(500).json({ ok: false });
   }
-
-  const { count } = await supabase
-    .from("project_downvotes")
-    .select("id", { count: "exact", head: true })
-    .eq("project_id", id);
-  res.json({ ok: true, downvotes: count ?? 0, has_downvoted: true });
 });
 
 // The signed-in player's spendable upvote balance ("upvote account").
@@ -170,36 +173,53 @@ router.post("/api/collectibles/:id/buy", async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isFinite(id)) return res.status(400).json({ ok: false, error: "bad_id" });
 
-  const { data: item } = await supabase
-    .from("collectibles")
-    .select("id, cost, active")
-    .eq("id", id)
-    .maybeSingle();
-  if (!item || !item.active) return res.status(404).json({ ok: false, error: "not_found" });
+  try {
+    // Locked per-user (not per-item): the balance is derived across every
+    // collectible the user owns, so two concurrent buys of *different*
+    // items could otherwise both read the same sufficient balance and both
+    // succeed, overspending it.
+    const result = await withLock(`collectible_buy:${session.userId}`, async (tx) => {
+      const item = (
+        await tx`select id, cost, active from collectibles where id = ${id}`
+      )[0] as { id: number; cost: number; active: boolean } | undefined;
+      if (!item || !item.active) return { error: "not_found" as const };
 
-  const { data: already } = await supabase
-    .from("collectible_purchases")
-    .select("id")
-    .eq("user_id", session.userId)
-    .eq("collectible_id", id)
-    .maybeSingle();
-  if (already) return res.status(400).json({ ok: false, error: "already_owned" });
+      const already = (
+        await tx`select id from collectible_purchases where user_id = ${session.userId} and collectible_id = ${id}`
+      )[0];
+      if (already) return { error: "already_owned" as const };
 
-  const balance = await upvoteBalance(session.userId);
-  const cost = Number(item.cost);
-  if (balance < cost)
-    return res.status(400).json({ ok: false, error: "insufficient_upvotes", balance, cost });
+      const ownedProjects =
+        await tx`select id from projects where user_id = ${session.userId}`;
+      const ids = ownedProjects.map((p) => p.id as number);
+      let received = 0;
+      if (ids.length > 0) {
+        const [{ n }] =
+          await tx`select count(*)::int as n from project_upvotes where project_id = any(${ids})`;
+        received = n as number;
+      }
+      const spends =
+        await tx`select cost from collectible_purchases where user_id = ${session.userId}`;
+      const spent = spends.reduce((s, r) => s + Number(r.cost), 0);
+      const balance = Math.max(0, received - spent);
 
-  const { error } = await supabase
-    .from("collectible_purchases")
-    .insert({ user_id: session.userId, collectible_id: id, cost });
-  if (error) {
-    if (String(error.code).startsWith("23"))
-      return res.status(400).json({ ok: false, error: "already_owned" });
-    console.error("[collectibles] buy failed", error);
-    return res.status(500).json({ ok: false });
+      const cost = Number(item.cost);
+      if (balance < cost)
+        return { error: "insufficient_upvotes" as const, balance, cost };
+
+      await tx`insert into collectible_purchases (user_id, collectible_id, cost) values (${session.userId}, ${id}, ${cost})`;
+      return { balance: balance - cost };
+    });
+
+    if ("error" in result) {
+      const status = result.error === "not_found" ? 404 : 400;
+      return res.status(status).json({ ok: false, ...result });
+    }
+    res.json({ ok: true, balance: result.balance });
+  } catch (e) {
+    console.error("[collectibles] buy failed", e);
+    res.status(500).json({ ok: false });
   }
-  res.json({ ok: true, balance: balance - cost });
 });
 
 export default router;

@@ -15,11 +15,12 @@ async function regionFor(userId: string): Promise<string> {
   return region && SHOP_REGIONS.includes(region) ? region : "US";
 }
 
-// Base columns plus unlock_xp (trophies) and region. unlock_xp/config_options
-// arrived with migration 0032/0058, region with 0063 — fall back gracefully
-// before each is applied so the catalog keeps loading.
+// Base columns plus unlock_xp (trophies), region and category. unlock_xp/
+// config_options arrived with migration 0032/0058, region with 0063, category
+// with 0106 — fall back gracefully before each is applied so the catalog
+// keeps loading.
 const ITEM_COLUMNS =
-  "id, name, description, price, image_url, options, unlock_xp, config_options, region";
+  "id, name, description, price, image_url, options, unlock_xp, config_options, region, category";
 const ITEM_COLUMNS_FALLBACK = "id, name, description, price, image_url, options";
 
 // Items are scoped to the player's own region (fulfillment/shipping differ a
@@ -46,6 +47,7 @@ async function fetchItems(filterIds?: number[], region?: string) {
         unlock_xp: 0,
         config_options: null,
         region: "US",
+        category: "other",
       })),
     };
   }

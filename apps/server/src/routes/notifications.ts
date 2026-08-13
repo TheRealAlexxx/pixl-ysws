@@ -1,8 +1,17 @@
 import { Router } from "express";
+import { timingSafeEqual } from "crypto";
 import { verifySessionToken } from "../auth/session.js";
 import { supabase } from "../db/client.js";
 
 const router = Router();
+
+function validAdminKey(given: string): boolean {
+  const key = process.env.ADMIN_API_KEY;
+  if (!key || !given) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(key);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 // Drop a notification into a user's inbox. Best-effort: failures are logged,
 // never thrown, so they can't break the action that triggered them.
@@ -23,7 +32,7 @@ router.post("/api/admin/notifications", async (req, res) => {
   const key =
     req.header("x-api-key") ??
     (typeof req.query.key === "string" ? req.query.key : "");
-  if (!process.env.ADMIN_API_KEY || key !== process.env.ADMIN_API_KEY)
+  if (!validAdminKey(key))
     return res.status(401).json({ ok: false, reason: "Bad API key." });
 
   const title =

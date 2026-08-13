@@ -233,7 +233,6 @@ interface ProjectFields {
   repo_url: string;
   demo_url: string;
   image_url: string;
-  level: number;
   project_type: string;
   used_ai: boolean;
   ai_notes: string;
@@ -243,6 +242,10 @@ interface ProjectFields {
 // Shared field parsing/validation for create + update. Returns an error code
 // on a missing name or a repo link that isn't a GitHub repository. Also used by
 // the YSWS importer (src/ysws/routes.ts) to turn an archive entry into a draft.
+//
+// Tier ("level" in the DB) is deliberately not parsed here - it's not a
+// player-set field. New projects get the column default (1); reviewers are
+// the only ones who set/change it, via the verdict form in the dashboard.
 export function parseProjectBody(
   body: any,
 ): { error: string; fields?: never } | { error?: never; fields: ProjectFields } {
@@ -255,7 +258,6 @@ export function parseProjectBody(
   const usedAi = body?.usedAi === true;
   const aiNotes = String(body?.aiNotes ?? "").trim().slice(0, 500);
   if (usedAi && aiNotes.length < 10) return { error: "ai_notes_required" };
-  const level = Number(body?.level ?? 1);
   const projectType = PROJECT_TYPES.includes(String(body?.projectType))
     ? String(body?.projectType)
     : "other";
@@ -266,7 +268,6 @@ export function parseProjectBody(
       repo_url: repoUrl,
       demo_url: demoUrl,
       image_url: String(body?.imageUrl ?? "").trim().slice(0, 500),
-      level: Number.isInteger(level) && level >= 1 && level <= 4 ? level : 1,
       project_type: projectType,
       used_ai: usedAi,
       ai_notes: usedAi ? aiNotes : "",
