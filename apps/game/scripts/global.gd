@@ -16,7 +16,9 @@ var ui_blockers: int = 0
 
 # Minecraft-style hide-HUD toggle (F2, since F1 is already guide_hud's help
 # panel): hides the always-on overlays (stats bar, minimap, chat, emotes) so
-# screenshots aren't cluttered.
+# screenshots aren't cluttered. Mac keyboards map bare F-keys to system
+# functions (brightness etc.) by default, so F2 never reaches the app there;
+# Cmd+H is the Mac-only alternate binding for the same toggle.
 var hud_hidden: bool = false
 
 func push_ui_blocker() -> void:
@@ -29,7 +31,12 @@ func ui_blocked() -> bool:
 	return ui_blockers > 0
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F2):
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	var is_toggle_key := event.keycode == KEY_F2
+	if OS.get_name() == "macOS":
+		is_toggle_key = is_toggle_key or (event.keycode == KEY_H and event.meta_pressed)
+	if not is_toggle_key:
 		return
 	if ChatHud.is_typing() or Dialogue.is_open or ui_blocked():
 		return
