@@ -1,6 +1,7 @@
 import type { WebClient } from "@slack/web-api";
 import { db } from "../db/client.js";
 import { aiPost } from "../ai/client.js";
+import { checkAiRateLimit } from "../ai/rateLimit.js";
 import { app } from "../slack/app.js";
 import { normalizeTicket } from "./repo.js";
 import { ticketBlocks } from "./blocks.js";
@@ -17,6 +18,9 @@ import {
 export async function checkFAQAndSimilar(event: PendingTicketEvent, client: WebClient): Promise<void> {
   const question = event.text || "";
   if (question.length < 15) return;
+  // Nothing else gated this AI call — spamming ticket creation was an
+  // unthrottled way to burn through the shared OpenRouter credit budget.
+  if (!checkAiRateLimit(event.user)) return;
 
   let rows: { description: string; permalink: string | null; title: string | null }[] = [];
   try {
@@ -497,18 +501,26 @@ export async function runMacro(
 }
 
 export async function resolveTicket(msgTs: string, resolverSlackId: string, client: WebClient): Promise<string> {
-  const { data: check } = await db().from("tickets").select("status").eq("msg_ts", msgTs).maybeSingle();
-  if (!check) return "not_found";
-  if (check.status === "closed") return "already_closed";
-
-  await db()
+  // Conditional update (status = "open" in the WHERE, not just a prior
+  // SELECT) so two concurrent resolves on the same ticket can't both pass a
+  // check-then-act race and both fire off the closing side effects below —
+  // only the call that actually flips the row wins.
+  const { data: won } = await db()
     .from("tickets")
     .update({
       status: "closed",
       closed_at: new Date().toISOString(),
       closed_by_slack_id: resolverSlackId,
     })
-    .eq("msg_ts", msgTs);
+    .eq("msg_ts", msgTs)
+    .eq("status", "open")
+    .select("msg_ts");
+
+  if (!won || won.length === 0) {
+    const { data: check } = await db().from("tickets").select("status").eq("msg_ts", msgTs).maybeSingle();
+    if (!check) return "not_found";
+    return "already_closed";
+  }
 
   await client.chat.postMessage({
     channel: process.env.SLACK_HELP_CHANNEL!,
@@ -572,11 +584,20 @@ export async function resolveTicket(msgTs: string, resolverSlackId: string, clie
 }
 
 export async function reopenTicket(msgTs: string, reopenerSlackId: string, client: WebClient): Promise<string> {
-  const { data: check } = await db().from("tickets").select("status").eq("msg_ts", msgTs).maybeSingle();
-  if (!check) return "not_found";
-  if (check.status === "open") return "already_open";
+  // Same conditional-update pattern as resolveTicket — only the caller that
+  // actually flips status "closed" -> "open" proceeds.
+  const { data: won } = await db()
+    .from("tickets")
+    .update({ status: "open", closed_at: null, closed_by_slack_id: null })
+    .eq("msg_ts", msgTs)
+    .eq("status", "closed")
+    .select("msg_ts");
 
-  await db().from("tickets").update({ status: "open", closed_at: null, closed_by_slack_id: null }).eq("msg_ts", msgTs);
+  if (!won || won.length === 0) {
+    const { data: check } = await db().from("tickets").select("status").eq("msg_ts", msgTs).maybeSingle();
+    if (!check) return "not_found";
+    return "already_open";
+  }
 
   await client.chat.postMessage({
     channel: process.env.SLACK_HELP_CHANNEL!,

@@ -52,7 +52,14 @@ export async function GET(): Promise<NextResponse> {
     if (!auditByProject.has(a.project_id)) auditByProject.set(a.project_id, a.audit_note ?? "");
   }
 
-  const esc = (s: string) => `"${String(s ?? "").replaceAll('"', '""')}"`;
+  // A cell starting with =, +, -, or @ is a live formula to Excel/Sheets —
+  // prefix with a leading quote so these (name, description, audit notes...)
+  // render as inert text instead of executing when the sheet is opened.
+  const esc = (s: string) => {
+    const str = String(s ?? "");
+    const safe = /^[=+\-@]/.test(str) ? `'${str}` : str;
+    return `"${safe.replaceAll('"', '""')}"`;
+  };
   const header = [
     "Code URL",
     "Playable URL",

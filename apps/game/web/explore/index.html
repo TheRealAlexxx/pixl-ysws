@@ -164,8 +164,8 @@ function levelBadge(p) {
 function avatarHtml(p) {
   const letter = Pixl.esc(String(p.display_name || "?").trim().charAt(0).toUpperCase() || "?");
   let src = "";
-  if (p.slack_id && p.card_pixelate !== false)
-    src = Pixl.apiUrl(`/api/pixify?user=${encodeURIComponent(p.slack_id)}&size=48`);
+  if (p.id && p.card_pixelate !== false)
+    src = Pixl.apiUrl(`/api/pixify?user=${encodeURIComponent(p.id)}&size=48`);
   else if (p.avatar_url) src = String(p.avatar_url);
   if (!src) return `<div class="avatar">${letter}</div>`;
   return `<div class="avatar"><img src="${Pixl.esc(src)}" alt="" loading="lazy" onerror="this.parentNode.textContent='${letter}'"></div>`;
@@ -179,7 +179,7 @@ function statusChip(p) {
 
 function projCard(p) {
   return `
-    <a class="card panel proj-card" href="#project=${p.id}">
+    <a class="card panel proj-card" href="#project=${Pixl.esc(p.id)}">
       <div class="proj-thumb">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>
       <div class="proj-name">${Pixl.esc(p.name)}</div>
       <div class="proj-meta">
@@ -195,12 +195,12 @@ function projCard(p) {
 
 // Upvote pill. Permanent — once cast it disables and stays lit.
 function upvoteBtn(p) {
-  return `<button class="upvote-btn${p.has_upvoted ? " on" : ""}" onclick="return castVote(event,${p.id},'up')"${p.has_upvoted || p.has_downvoted ? " disabled" : ""} aria-label="Upvote this project" title="${p.has_upvoted ? "You upvoted this" : "Upvote this project"}">▲ <span class="uv-count">${p.upvotes || 0}</span></button>`;
+  return `<button class="upvote-btn${p.has_upvoted ? " on" : ""}" onclick="return castVote(event,${Number(p.id)},'up')"${p.has_upvoted || p.has_downvoted ? " disabled" : ""} aria-label="Upvote this project" title="${p.has_upvoted ? "You upvoted this" : "Upvote this project"}">▲ <span class="uv-count">${p.upvotes || 0}</span></button>`;
 }
 
 // Downvote pill. Same permanent, one-shot behaviour as upvote.
 function downvoteBtn(p) {
-  return `<button class="downvote-btn${p.has_downvoted ? " on" : ""}" onclick="return castVote(event,${p.id},'down')"${p.has_upvoted || p.has_downvoted ? " disabled" : ""} aria-label="Downvote this project" title="${p.has_downvoted ? "You downvoted this" : "Downvote this project"}">▼ <span class="dv-count">${p.downvotes || 0}</span></button>`;
+  return `<button class="downvote-btn${p.has_downvoted ? " on" : ""}" onclick="return castVote(event,${Number(p.id)},'down')"${p.has_upvoted || p.has_downvoted ? " disabled" : ""} aria-label="Downvote this project" title="${p.has_downvoted ? "You downvoted this" : "Downvote this project"}">▼ <span class="dv-count">${p.downvotes || 0}</span></button>`;
 }
 
 // Cast a permanent up/downvote without following the card link. Updates both

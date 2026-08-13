@@ -66,9 +66,9 @@
         const affordable = !c.owned && balance >= c.cost;
         const btn = c.owned
           ? `<span class="owned-tag">OWNED</span>`
-          : `<button class="btn${affordable ? "" : " dark"}" onclick="buy(${c.id})"${affordable ? "" : " disabled"}>BUY</button>`;
+          : `<button class="btn${affordable ? "" : " dark"}" onclick="buy(${Number(c.id)})"${affordable ? "" : " disabled"}>BUY</button>`;
         return `
-          <div class="col-card card panel" id="c-${c.id}">
+          <div class="col-card card panel" id="c-${Pixl.esc(c.id)}">
             <div class="col-thumb">${c.image_url ? `<img src="${Pixl.esc(c.image_url)}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>NO IMAGE</span>'">` : `<span class="ph">NO IMAGE</span>`}</div>
             <div class="col-name">${Pixl.esc(c.name)}</div>
             <div class="col-desc">${Pixl.esc(c.description || "")}</div>

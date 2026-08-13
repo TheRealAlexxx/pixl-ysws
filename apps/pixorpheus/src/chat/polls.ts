@@ -1,5 +1,6 @@
 import { app } from "../slack/app.js";
 import { db, tsStr } from "../db/client.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 const EMOJI_NAMES = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 const EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"];
@@ -28,11 +29,11 @@ export function schedulePollClose(
       const lines = options.map((opt, i) => {
         const r = reactions.find((r: any) => r.name === EMOJI_NAMES[i]);
         const count = r ? r.count - 1 : 0;
-        return `${EMOJIS[i]} ${opt} — *${count}* vote${count !== 1 ? "s" : ""}`;
+        return `${EMOJIS[i]} ${escapeMrkdwn(opt)} — *${count}* vote${count !== 1 ? "s" : ""}`;
       });
       await app.client.chat.postMessage({
         channel,
-        text: `*📊 Poll closed: ${question}*\n${lines.join("\n")}\n\n🏆 *${winner.opt}* wins with ${winner.count} vote${winner.count !== 1 ? "s" : ""}!`,
+        text: `*📊 Poll closed: ${escapeMrkdwn(question)}*\n${lines.join("\n")}\n\n🏆 *${escapeMrkdwn(winner.opt)}* wins with ${winner.count} vote${winner.count !== 1 ? "s" : ""}!`,
       });
       if (pollId != null) await db().from("polls").delete().eq("id", pollId);
     } catch (e: any) {
@@ -104,12 +105,12 @@ app.command("/pixl-poll", async ({ command, ack, client }) => {
     return;
   }
 
-  const body = options.map((o, i) => `${EMOJIS[i]} ${o}`).join("\n");
+  const body = options.map((o, i) => `${EMOJIS[i]} ${escapeMrkdwn(o)}`).join("\n");
   const timerNote = durationLabel ? ` — closes in ${durationLabel}` : "";
 
   const msg = await client.chat.postMessage({
     channel: command.channel_id,
-    text: `*📊 ${question}*\n${body}\n_poll by <@${command.user_id}>${timerNote}_`,
+    text: `*📊 ${escapeMrkdwn(question)}*\n${body}\n_poll by <@${command.user_id}>${timerNote}_`,
   });
 
   for (let i = 0; i < Math.min(options.length, 9); i++) {

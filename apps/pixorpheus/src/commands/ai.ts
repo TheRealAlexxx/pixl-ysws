@@ -1,6 +1,7 @@
 import { app } from "../slack/app.js";
 import { streamedAICall } from "../ai/client.js";
 import { checkAiRateLimit, AI_RATE_LIMIT_MESSAGE } from "../ai/rateLimit.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 app.command("/pixl-ask", async ({ command, ack, client }) => {
   await ack();
@@ -35,10 +36,10 @@ app.command("/pixl-ask", async ({ command, ack, client }) => {
         ],
         max_tokens: 150,
       },
-      { format: (t) => `<@${command.user_id}> asked: _${question}_\n> ${t}` },
+      { format: (t) => `<@${command.user_id}> asked: _${escapeMrkdwn(question)}_\n> ${escapeMrkdwn(t)}` },
     );
     const reply = stream.rawContent.trim() || "idk tbh";
-    await stream.finalize(`<@${command.user_id}> asked: _${question}_\n> ${reply}`);
+    await stream.finalize(`<@${command.user_id}> asked: _${escapeMrkdwn(question)}_\n> ${escapeMrkdwn(reply)}`);
   } catch (e) {
     await client.chat.postEphemeral({
       channel: command.channel_id,

@@ -234,14 +234,16 @@ export function censorChat(text: string): string {
 const WARN_AFTER = 3;
 const BAN_AFTER = 7;
 
-const EXTERNAL_DM_URL =
-  process.env.EXTERNAL_DM_URL ?? "https://dashboard.gabintavernier.com/api/external/dm";
+// No fallback here on purpose — a hardcoded default would silently route
+// player Slack IDs and violation text to whatever domain happens to be
+// baked in if the env var is ever unset, rather than failing closed.
+const EXTERNAL_DM_URL = process.env.EXTERNAL_DM_URL;
 
 // Slack DM as Pixo (same external API the dashboard uses). Fire-and-forget:
 // moderation must never fail because the DM did.
 async function dmSlack(userId: string, text: string): Promise<void> {
   const key = process.env.EXTERNAL_API_KEY;
-  if (!key) return;
+  if (!key || !EXTERNAL_DM_URL) return;
   const { data: user } = await supabase
     .from("users")
     .select("slack_id")

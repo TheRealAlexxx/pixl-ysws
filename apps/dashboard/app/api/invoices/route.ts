@@ -18,7 +18,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const end = new Date(Date.UTC(year, month, 1));
 
   const rows = await payoutInvoice(start, end);
-  const esc = (s: string) => `"${s.replaceAll('"', '""')}"`;
+  // See app/api/projects/export/route.ts's esc() — same CSV formula
+  // injection guard for a cell that starts with =, +, -, or @.
+  const esc = (s: string) => {
+    const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+    return `"${safe.replaceAll('"', '""')}"`;
+  };
   const lines = [
     "reviewer,slack_id,reviews_paid,pixels_paid,pixels_full,usd_owed,cut_payouts,uncredited_payouts",
     ...rows.map((r) =>

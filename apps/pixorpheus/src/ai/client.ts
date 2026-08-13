@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { WebClient } from "@slack/web-api";
 import type { AIRequestBody, AIResponse, SlackPostParams } from "./types.js";
+import { sanitizeAIOutput } from "./outputFilter.js";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -149,7 +150,7 @@ export function safeDisplayText(raw: string, { stripSkip = false }: { stripSkip?
   const reactIdx = t.search(/\n\s*REACT\s*:/i);
   if (reactIdx !== -1) t = t.slice(0, reactIdx);
   if (stripSkip) t = t.replace(/^skip\b\s*\n?/i, "");
-  return t.trim();
+  return sanitizeAIOutput(t.trim());
 }
 
 const STREAM_UPDATE_INTERVAL_MS = 900;
@@ -233,15 +234,16 @@ export async function streamedAICall(
   return {
     rawContent,
     async finalize(finalText) {
+      const safeText = finalText ? sanitizeAIOutput(finalText) : finalText;
       if (!ts) {
-        if (finalText) await client.chat.postMessage({ ...postParams, text: finalText });
+        if (safeText) await client.chat.postMessage({ ...postParams, text: safeText });
         return;
       }
-      if (!finalText) {
+      if (!safeText) {
         await client.chat.delete({ channel: postParams.channel, ts }).catch(() => {});
         return;
       }
-      await client.chat.update({ channel: postParams.channel, ts, text: finalText }).catch(() => {});
+      await client.chat.update({ channel: postParams.channel, ts, text: safeText }).catch(() => {});
     },
     async discard() {
       if (ts) await client.chat.delete({ channel: postParams.channel, ts }).catch(() => {});

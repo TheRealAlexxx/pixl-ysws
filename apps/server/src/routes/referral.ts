@@ -142,6 +142,13 @@ router.post("/api/referral/apply", async (req, res) => {
     .from("referrals")
     .insert({ referrer_id: referrer.id, referred_id: session.userId });
   if (error) {
+    // 23505 = unique_violation on referrals.referred_id (see
+    // drizzle/0073_referrals.sql) — two concurrent applies both passed the
+    // alreadyReferred check above and raced to insert; the DB constraint is
+    // the actual guard, this just turns the loser's error into the same
+    // response the check above would've given it.
+    if (error.code === "23505")
+      return res.status(400).json({ ok: false, reason: "You've already used a referral code." });
     console.error("[referral] apply failed", error);
     return res.status(500).json({ ok: false, reason: "Couldn't apply that code, try again." });
   }

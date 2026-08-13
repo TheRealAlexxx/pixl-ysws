@@ -2,6 +2,7 @@ import axios from "axios";
 import { app } from "../slack/app.js";
 import { logEvent } from "../slack/logs.js";
 import { botStats } from "../stats.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 app.command("/pixl-ship", async ({ command, ack, client }) => {
   await ack();
@@ -14,20 +15,21 @@ app.command("/pixl-ship", async ({ command, ack, client }) => {
     });
     return;
   }
+  const safeDesc = escapeMrkdwn(desc);
   await client.chat.postMessage({
     channel: command.channel_id,
-    text: `🚀 <@${command.user_id}> just shipped: *${desc}* — let's go!!`,
+    text: `🚀 <@${command.user_id}> just shipped: *${safeDesc}* — let's go!!`,
     blocks: [
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `🚀 *<@${command.user_id}> just shipped something!*\n\n> ${desc}\n\ngo hype them up 👇`,
+          text: `🚀 *<@${command.user_id}> just shipped something!*\n\n> ${safeDesc}\n\ngo hype them up 👇`,
         },
       },
     ],
   });
-  logEvent(client, `🚀 new ship from <@${command.user_id}>: ${desc.slice(0, 140)}`);
+  logEvent(client, `🚀 new ship from <@${command.user_id}>: ${escapeMrkdwn(desc.slice(0, 140))}`);
   botStats.aiReplies++;
 });
 
@@ -67,11 +69,11 @@ app.command("/pixl-lastship", async ({ command, ack, client }) => {
     entries.sort((a: any, b: any) => b.approved_at - a.approved_at);
     const e = entries[0];
 
-    const lines = [`🚀 *Last ship by ${e.github_username}* (via <@${command.user_id}>)`];
-    if (e.ysws) lines.push(`📦 Program: ${e.ysws}`);
-    if (e.description) lines.push(`> ${e.description}`);
-    if (e.code_url) lines.push(`💻 Code: ${e.code_url}`);
-    if (e.demo_url) lines.push(`🌐 Demo: ${e.demo_url}`);
+    const lines = [`🚀 *Last ship by ${escapeMrkdwn(String(e.github_username))}* (via <@${command.user_id}>)`];
+    if (e.ysws) lines.push(`📦 Program: ${escapeMrkdwn(String(e.ysws))}`);
+    if (e.description) lines.push(`> ${escapeMrkdwn(String(e.description))}`);
+    if (e.code_url) lines.push(`💻 Code: ${escapeMrkdwn(String(e.code_url))}`);
+    if (e.demo_url) lines.push(`🌐 Demo: ${escapeMrkdwn(String(e.demo_url))}`);
     if (e.hours) lines.push(`⏱️ ${e.hours}h spent`);
 
     await client.chat.postMessage({

@@ -23,14 +23,16 @@ router.get("/api/explore/players", async (req, res) => {
     return query;
   };
   // card_pixelate arrives with migration 0030 — fall back gracefully before it.
+  // slack_id is deliberately not selected — /api/pixify takes our internal
+  // user id now, so player Slack member IDs never need to reach the client.
   const first = await buildQuery(
-    "id, display_name, skin, created_at, avatar_url, card_pixelate, slack_id",
+    "id, display_name, skin, created_at, avatar_url, card_pixelate",
   );
   let users = (first.data ?? null) as Record<string, unknown>[] | null;
   let error = first.error;
   if (error) {
     const second = await buildQuery(
-      "id, display_name, skin, created_at, avatar_url, slack_id",
+      "id, display_name, skin, created_at, avatar_url",
     );
     users = (second.data ?? null) as Record<string, unknown>[] | null;
     error = second.error;
@@ -235,21 +237,27 @@ router.get("/api/explore/leaderboard/upvotes", async (req, res) => {
 
 // Proxy to Pixo's avatar pixelator so the API key never reaches the client.
 // Returns the player's Slack avatar as an already-pixelated PNG.
-const EXTERNAL_PIXIFY_URL =
-  process.env.EXTERNAL_PIXIFY_URL ??
-  "https://dashboard.gabintavernier.com/api/external/pixify";
+// No fallback domain here on purpose — see the same call in moderation.ts;
+// player Slack IDs and avatar traffic must never silently route to whatever
+// domain happens to be baked in as a default.
+const EXTERNAL_PIXIFY_URL = process.env.EXTERNAL_PIXIFY_URL;
 
 router.get("/api/pixify", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";
   const session = token ? verifySessionToken(token) : null;
   if (!session) return res.status(401).json({ ok: false });
 
-  const slackId = typeof req.query.user === "string" ? req.query.user : "";
+  // Takes our own internal user id, not a raw Slack member ID — the client
+  // never needs to see anyone's slack_id, this route resolves it itself.
+  const userId = typeof req.query.user === "string" ? req.query.user : "";
   const size = Math.min(Math.max(Number(req.query.size) || 32, 2), 64);
   const key = process.env.EXTERNAL_API_KEY;
-  if (!slackId || !/^[A-Z0-9]{5,20}$/.test(slackId))
-    return res.status(400).json({ ok: false });
-  if (!key) return res.status(503).json({ ok: false, error: "pixify_not_configured" });
+  if (!userId) return res.status(400).json({ ok: false });
+  if (!key || !EXTERNAL_PIXIFY_URL) return res.status(503).json({ ok: false, error: "pixify_not_configured" });
+
+  const { data: target } = await supabase.from("users").select("slack_id").eq("id", userId).maybeSingle();
+  const slackId = (target?.slack_id as string) ?? "";
+  if (!slackId || !/^[A-Z0-9]{5,20}$/.test(slackId)) return res.status(400).json({ ok: false });
 
   try {
     const r = await fetch(
@@ -314,8 +322,8 @@ router.get("/api/explore/players/:id", async (req, res) => {
   const userQuery = (fields: string) =>
     supabase.from("users").select(fields).eq("id", id).maybeSingle();
   const [user, fallbackUser, projects, owned] = await Promise.all([
-    userQuery("id, display_name, skin, created_at, pixels, avatar_url, card_pixelate, slack_id"),
-    userQuery("id, display_name, skin, created_at, pixels, avatar_url, slack_id"),
+    userQuery("id, display_name, skin, created_at, pixels, avatar_url, card_pixelate"),
+    userQuery("id, display_name, skin, created_at, pixels, avatar_url"),
     supabase
       .from("projects")
       .select("*")

@@ -1,6 +1,7 @@
 import { app } from "../slack/app.js";
 import { PIXL_CHANNELS, PIXL_PROMO } from "../constants.js";
 import { botStats } from "../stats.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 app.command("/pixl-ping", async ({ command, ack, respond }) => {
   const start = Date.now();
@@ -74,13 +75,13 @@ app.command("/pixl-remind", async ({ command, ack, respond, client }) => {
   }
   botStats.reminders++;
   await respond({
-    text: `got it, reminding you in ${amount}${unit}: _${msg}_`,
+    text: `got it, reminding you in ${amount}${unit}: _${escapeMrkdwn(msg)}_`,
   });
   setTimeout(async () => {
     try {
       await client.chat.postMessage({
         channel: command.channel_id,
-        text: `<@${command.user_id}> reminder: ${msg}`,
+        text: `<@${command.user_id}> reminder: ${escapeMrkdwn(msg)}`,
       });
     } catch (e) {}
   }, ms);
@@ -103,13 +104,13 @@ app.command("/pixl-countdown", async ({ command, ack, respond, client }) => {
     return;
   }
   await respond({
-    text: `⏳ countdown started: *${label}* in ${amount}${unit}`,
+    text: `⏳ countdown started: *${escapeMrkdwn(label)}* in ${amount}${unit}`,
   });
   setTimeout(async () => {
     try {
       await client.chat.postMessage({
         channel: command.channel_id,
-        text: `⏰ <@${command.user_id}> *${label}* — time's up!`,
+        text: `⏰ <@${command.user_id}> *${escapeMrkdwn(label)}* — time's up!`,
       });
     } catch (_) {}
   }, ms);

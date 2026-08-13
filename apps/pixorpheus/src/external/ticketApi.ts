@@ -31,6 +31,7 @@ receiver.app.post("/api/external/tickets/:ts/resolve", express.json(), requireEx
     if (result === "already_closed") return res.json({ ok: true, alreadyClosed: true });
     res.json({ ok: true });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    console.error("[ticketApi] resolve failed:", e?.message ?? e);
+    res.status(500).json({ error: "internal_error" });
   }
 });

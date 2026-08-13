@@ -1,5 +1,6 @@
 import type { KnownBlock } from "@slack/types";
 import type { TicketRow } from "./types.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 export function ticketBlocks(ticket: TicketRow): KnownBlock[] {
   const {
@@ -14,11 +15,10 @@ export function ticketBlocks(ticket: TicketRow): KnownBlock[] {
   } = ticket;
   // Slack requires button `value` to be a string; DB may hand back msg_ts as a number.
   const msg_ts = ticket.msg_ts == null ? "" : String(ticket.msg_ts);
-  const safeDescription = description || "";
-  const displayTitle =
-    title ||
-    (safeDescription.length > 80 ? safeDescription.substring(0, 80) + "..." : safeDescription) ||
-    "(no description)";
+  const rawDescription = description || "";
+  const safeDescription = escapeMrkdwn(rawDescription);
+  const truncatedDescription = rawDescription.length > 80 ? rawDescription.substring(0, 80) + "..." : rawDescription;
+  const displayTitle = escapeMrkdwn(title || truncatedDescription || "(no description)");
 
   let statusText: string;
   if (status === "closed")
@@ -76,7 +76,7 @@ export function ticketBlocks(ticket: TicketRow): KnownBlock[] {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `>${(description || "").slice(0, 2900).replace(/\n/g, "\n>")}`,
+        text: `>${safeDescription.slice(0, 2900).replace(/\n/g, "\n>")}`,
       },
     },
   ];

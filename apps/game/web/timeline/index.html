@@ -237,6 +237,14 @@ const NODES = [
 
 function kindClass(k) { return k === "operation" || k === "op" ? "op" : k === "prologue" ? "prologue" : "chapter"; }
 
+// outcome comes from the dashboard-authored /api/story table, not just the
+// hardcoded seed above — escape it fully, then re-open only <b></b> so a
+// compromised/malicious editor account can't inject a script tag or event
+// handler through it.
+function escOutcome(s) {
+  return Pixl.esc(s).replace(/&lt;(\/?)b&gt;/g, "<$1b>");
+}
+
 const LOCKED_CARD = `
   <div class="node locked">
     <div class="seal"><span></span></div>
@@ -271,7 +279,7 @@ function renderNodes(nodes) {
         <div class="card-body">
           <h2>${Pixl.esc(n.title)}</h2>
           <p>${(n.quote || n.q) ? `<span class="q">“${Pixl.esc(n.quote || n.q)}”</span> ` : ""}${Pixl.esc(n.body)}</p>
-          ${n.outcome ? `<div class="outcome"><span class="lbl">OUTCOME</span><span>${n.outcome}</span></div>` : ""}
+          ${n.outcome ? `<div class="outcome"><span class="lbl">OUTCOME</span><span>${escOutcome(n.outcome)}</span></div>` : ""}
         </div>
       </div>
     </div>`).join("");

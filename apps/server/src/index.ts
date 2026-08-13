@@ -26,6 +26,13 @@ import { rateLimit } from "./rateLimit.js";
 import { attachWebSocketServer } from "./ws/gameServer.js";
 
 const app = express();
+app.disable("x-powered-by");
+
+// Trust exactly one hop (the platform's ingress/edge proxy) so req.ip is the
+// proxy-appended real client address, not whatever a client stuffs into its
+// own X-Forwarded-For — Express reads XFF from the right by this many hops,
+// so a spoofed prefix a client sends is ignored rather than trusted.
+app.set("trust proxy", 1);
 
 // CORS: the web export (served from another origin, with COEP require-corp)
 // reaches us via the browser's fetch, which enforces CORS. Tokens travel in the
@@ -39,6 +46,13 @@ app.use((req, res, next) => {
   // same-origin navigation would otherwise forward the full URL — token
   // included — as the Referer header on any subresource request it makes.
   res.header("Referrer-Policy", "no-referrer");
+  // This is a pure JSON API, never HTML — a locked-down CSP/frame policy
+  // costs nothing and closes off any accidental HTML error response as an
+  // XSS/clickjacking vector.
+  res.header("X-Content-Type-Options", "nosniff");
+  res.header("X-Frame-Options", "DENY");
+  res.header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+  res.header("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
   if (req.method === "OPTIONS") {
     res.sendStatus(204);
     return;

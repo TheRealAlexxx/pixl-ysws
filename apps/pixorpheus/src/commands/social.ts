@@ -6,6 +6,7 @@ import { getAIReply } from "../ai/persona.js";
 import { checkAiRateLimit, AI_RATE_LIMIT_MESSAGE } from "../ai/rateLimit.js";
 import { userMemory, parseFacts } from "../memory/users.js";
 import { botStats } from "../stats.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 app.command("/pixl-joke", async ({ command, ack, respond }) => {
   await ack();
@@ -103,7 +104,7 @@ app.command("/pixl-urban", async ({ command, ack, respond }) => {
     if (!picked || picked.toUpperCase() === "TOO_SPICY") {
       await respond({ text: `too spicy for this server ngl` });
     } else {
-      await respond({ text: `*${term}*\n${picked}` });
+      await respond({ text: `*${escapeMrkdwn(term)}*\n${escapeMrkdwn(picked)}` });
     }
   } catch (e) {
     await respond({ text: "Urban Dictionary is being dumb, try again." });

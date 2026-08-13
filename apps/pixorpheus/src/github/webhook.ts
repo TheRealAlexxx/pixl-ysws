@@ -1,27 +1,34 @@
 import crypto from "crypto";
 import express from "express";
 import { app, receiver } from "../slack/app.js";
+import { escapeMrkdwn } from "../slack/escape.js";
 
 async function handleGitHubEvent(event: string, payload: any): Promise<void> {
   const channel = process.env.GITHUB_NOTIFY_CHANNEL;
   if (!channel) return;
 
+  // Signature verification (below) proves the request came from GitHub, but
+  // commit messages/PR titles/usernames are still attacker-controlled —
+  // anyone who can push a commit or open a PR sets these — so they go
+  // through escapeMrkdwn before landing in a bot-posted Slack message.
   if (event === "push" && payload.ref === "refs/heads/main" && payload.commits?.length) {
-    const repo = payload.repository.full_name;
-    const commits = payload.commits.map((c: any) => `> ${c.message.split("\n")[0]} (\`${c.id.slice(0, 7)}\`)`).join("\n");
+    const repo = escapeMrkdwn(String(payload.repository.full_name));
+    const commits = payload.commits
+      .map((c: any) => `> ${escapeMrkdwn(String(c.message).split("\n")[0])} (\`${String(c.id).slice(0, 7)}\`)`)
+      .join("\n");
     const more = "";
     await app.client.chat.postMessage({
       channel,
-      text: `*${payload.pusher.name}* pushed ${payload.commits.length} commit${payload.commits.length > 1 ? "s" : ""} to \`main\` on *${repo}*\n${commits}${more}`,
+      text: `*${escapeMrkdwn(String(payload.pusher.name))}* pushed ${payload.commits.length} commit${payload.commits.length > 1 ? "s" : ""} to \`main\` on *${repo}*\n${commits}${more}`,
     });
   }
 
   if (event === "pull_request" && payload.action === "closed" && payload.pull_request?.merged && payload.pull_request.base.ref === "main") {
-    const repo = payload.repository.full_name;
+    const repo = escapeMrkdwn(String(payload.repository.full_name));
     const pr = payload.pull_request;
     await app.client.chat.postMessage({
       channel,
-      text: `*${pr.user.login}* merged PR #${pr.number} *"${pr.title}"* into \`main\` on *${repo}*`,
+      text: `*${escapeMrkdwn(String(pr.user.login))}* merged PR #${pr.number} *"${escapeMrkdwn(String(pr.title))}"* into \`main\` on *${repo}*`,
     });
   }
 }

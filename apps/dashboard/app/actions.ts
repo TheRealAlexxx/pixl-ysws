@@ -3092,19 +3092,23 @@ export async function resolveReport(formData: FormData): Promise<void> {
   revalidatePath("/reports");
 }
 
+// Grant/revoke is a super-admin-only action, distinct from being able to
+// view reports — otherwise any report viewer (a widely-granted role that
+// also includes moderators) could add or remove other viewers and widen
+// access to reports full of chat logs, addresses, and other PII.
 export async function addReportViewerAction(formData: FormData): Promise<void> {
-  const session = await requireReportViewer();
+  const access = await requireSuper();
   const slackId = String(formData.get("slackId") ?? "").trim().toUpperCase();
   if (!/^[UW][A-Z0-9]{6,}$/.test(slackId))
     redirect(`/reports?verror=${encodeURIComponent("Enter a valid Slack member ID (starts with U).")}`);
-  await addReportViewer(slackId, `${session.name} (${session.slackId})`);
+  await addReportViewer(slackId, actorName(access));
   revalidatePath("/reports");
 }
 
 export async function removeReportViewerAction(formData: FormData): Promise<void> {
-  const session = await requireReportViewer();
+  const access = await requireSuper();
   const slackId = String(formData.get("slackId") ?? "").trim();
-  if (slackId && slackId !== session.slackId) await removeReportViewer(slackId);
+  if (slackId && slackId !== access.session.slackId) await removeReportViewer(slackId);
   revalidatePath("/reports");
 }
 

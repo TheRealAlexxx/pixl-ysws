@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import express from "express";
 import { app, receiver } from "../slack/app.js";
 
@@ -223,7 +224,11 @@ receiver.app.post("/webhooks/shop", express.json({ limit: "1mb" }), (req, res) =
     return res.status(503).send("Service misconfigured");
   }
   const provided = req.headers["x-shop-webhook-secret"];
-  if (provided !== secret) return res.status(401).send("Invalid secret");
+  const providedBuf = Buffer.from(typeof provided === "string" ? provided : "");
+  const secretBuf = Buffer.from(secret);
+  if (providedBuf.length !== secretBuf.length || !crypto.timingSafeEqual(providedBuf, secretBuf)) {
+    return res.status(401).send("Invalid secret");
+  }
   res.status(200).send("ok");
   try {
     handleShopChange(req.body as WebhookPayload);

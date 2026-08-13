@@ -106,14 +106,14 @@ let q = "";
 function voteGroup(i) {
   const disabled = i.has_upvoted || i.has_downvoted;
   return `<span class="vote-group">
-    <button class="upvote-btn${i.has_upvoted ? " on" : ""}" onclick="return castVote(event,${i.id},'up')"${disabled ? " disabled" : ""} aria-label="Upvote this idea" title="${i.has_upvoted ? "You upvoted this" : "Upvote this idea"}">▲ <span class="uv-count">${i.upvotes || 0}</span></button>
-    <button class="downvote-btn${i.has_downvoted ? " on" : ""}" onclick="return castVote(event,${i.id},'down')"${disabled ? " disabled" : ""} aria-label="Downvote this idea" title="${i.has_downvoted ? "You downvoted this" : "Downvote this idea"}">▼ <span class="dv-count">${i.downvotes || 0}</span></button>
+    <button class="upvote-btn${i.has_upvoted ? " on" : ""}" onclick="return castVote(event,${Number(i.id)},'up')"${disabled ? " disabled" : ""} aria-label="Upvote this idea" title="${i.has_upvoted ? "You upvoted this" : "Upvote this idea"}">▲ <span class="uv-count">${i.upvotes || 0}</span></button>
+    <button class="downvote-btn${i.has_downvoted ? " on" : ""}" onclick="return castVote(event,${Number(i.id)},'down')"${disabled ? " disabled" : ""} aria-label="Downvote this idea" title="${i.has_downvoted ? "You downvoted this" : "Downvote this idea"}">▼ <span class="dv-count">${i.downvotes || 0}</span></button>
   </span>`;
 }
 
 function ideaCard(i) {
   return `
-    <div class="panel idea-card" data-id="${i.id}">
+    <div class="panel idea-card" data-id="${Pixl.esc(i.id)}">
       <div class="idea-meta">
         <span class="gold">${Pixl.esc(i.author_name)}</span>${i.is_mine ? ' <span class="own-badge">· YOU</span>' : ""}
         <span>${Pixl.timeAgo(i.created_at)}</span>
@@ -122,7 +122,7 @@ function ideaCard(i) {
       ${i.body ? `<div class="idea-body md">${Pixl.markdown(i.body)}</div>` : ""}
       <div class="idea-foot">
         ${voteGroup(i)}
-        ${i.is_mine ? `<button class="btn dark" onclick="return deleteIdea(${i.id})">DELETE</button>` : ""}
+        ${i.is_mine ? `<button class="btn dark" onclick="return deleteIdea(${Number(i.id)})">DELETE</button>` : ""}
       </div>
     </div>`;
 }
