@@ -17,7 +17,7 @@ FROM (VALUES
    'Build a well gauge: one sensor down the shaft, one surface readout, and a low-level warning. It has to run for weeks on battery, survive dust, and work with no laptop tether. (Minimum 12h of tracked work.)',
    'Soldering Iron Kit + Hardware Grant', 2::smallint, ARRAY['hardware']::text[], 12, 5),
   ('Two Hundred Years of Sending', 'Dustline', 'Cass',
-   'Build a repeater: two physical devices that pass a message across on radio only — no wifi, no internet, no cloud — with a screen that clicks on arrival. Software alternative: implement the protocol plus a playable packet-crossing simulator. (Minimum 40h of tracked work.)',
+   'Build a repeater: two physical devices that pass a message across on radio only — no wifi, no internet, no cloud — with a screen that clicks on arrival. (Minimum 40h of tracked work.)',
    'Flipper Zero', 3::smallint, ARRAY['hardware']::text[], 40, 6)
 ) AS v(name, region, npc, description, reward, difficulty, tags, min_hours, position)
 WHERE NOT EXISTS (
