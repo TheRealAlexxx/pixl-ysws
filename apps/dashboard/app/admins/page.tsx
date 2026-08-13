@@ -333,7 +333,11 @@ export default async function AdminsPage({
                     </form>
                   </div>
 
-                  <form action={updateAdminPerms} className="mt-4">
+                  <form
+                    key={a.permissions.join(",")}
+                    action={updateAdminPerms}
+                    className="mt-4"
+                  >
                     <input type="hidden" name="slackId" value={a.slack_id} />
                     <PermToggles name="perms" checked={(p) => a.permissions.includes(p)} />
                     <div className="flex justify-end mt-3">
