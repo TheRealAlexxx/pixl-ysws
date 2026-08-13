@@ -6,6 +6,7 @@ import { OptionsEditor } from "@/app/_components/OptionsEditor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SHOP_REGIONS, SHOP_REGION_LABELS, type ShopRegion } from "@/lib/shopRegions";
+import { SHOP_CATEGORIES, SHOP_CATEGORY_LABELS } from "@/lib/shopCategories";
 
 const FILE_INPUT =
   "block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary-foreground hover:file:bg-secondary/80";
@@ -58,20 +59,37 @@ export function AddShopItemForm({
           </Label>
         </div>
 
-        <Label className="block font-normal">
-          <span className="block text-sm font-medium mb-1.5">Region</span>
-          <select
-            name="region"
-            defaultValue={region}
-            className="w-full h-9 text-sm rounded-md border border-border bg-background px-3"
-          >
-            {SHOP_REGIONS.map((r) => (
-              <option key={r} value={r}>
-                {SHOP_REGION_LABELS[r]}
-              </option>
-            ))}
-          </select>
-        </Label>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Label className="block font-normal">
+            <span className="block text-sm font-medium mb-1.5">Region</span>
+            <select
+              name="region"
+              defaultValue={region}
+              className="w-full h-9 text-sm rounded-md border border-border bg-background px-3"
+            >
+              {SHOP_REGIONS.map((r) => (
+                <option key={r} value={r}>
+                  {SHOP_REGION_LABELS[r]}
+                </option>
+              ))}
+            </select>
+          </Label>
+
+          <Label className="block font-normal">
+            <span className="block text-sm font-medium mb-1.5">Category</span>
+            <select
+              name="category"
+              defaultValue="other"
+              className="w-full h-9 text-sm rounded-md border border-border bg-background px-3"
+            >
+              {SHOP_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {SHOP_CATEGORY_LABELS[c]}
+                </option>
+              ))}
+            </select>
+          </Label>
+        </div>
 
         <Label className="block font-normal">
           <span className="block text-sm font-medium mb-1.5">Description</span>

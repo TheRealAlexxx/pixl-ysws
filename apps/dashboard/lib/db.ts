@@ -1711,6 +1711,9 @@ export async function countOpenReports(): Promise<number> {
 export { SHOP_REGIONS, SHOP_REGION_LABELS } from "./shopRegions";
 export type { ShopRegion } from "./shopRegions";
 import type { ShopRegion } from "./shopRegions";
+export { SHOP_CATEGORIES, SHOP_CATEGORY_LABELS } from "./shopCategories";
+import type { ShopCategory } from "./shopCategories";
+export type { ShopCategory } from "./shopCategories";
 
 export interface ShopItemRow {
   id: number;
@@ -1725,6 +1728,7 @@ export interface ShopItemRow {
   created_at: string;
   region: ShopRegion;
   unlock_xp: number;
+  category: ShopCategory;
 }
 
 export interface ShopOptionStockRow {

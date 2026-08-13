@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePagePerm } from "@/lib/guard";
-import { listShopItems, listShopOptionStock, SHOP_REGIONS, SHOP_REGION_LABELS, type ShopRegion } from "@/lib/db";
+import { listShopItems, listShopOptionStock, SHOP_REGIONS, SHOP_REGION_LABELS, SHOP_CATEGORIES, SHOP_CATEGORY_LABELS, type ShopRegion } from "@/lib/db";
 import { addShopItem, toggleShopItem, deleteShopItem, updateShopItem } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
 import { Disclosure } from "@/app/_components/Disclosure";
@@ -165,6 +165,9 @@ export default async function ShopPage({
                     <Badge variant="success" className="tabular-nums">
                       {item.price} px
                     </Badge>
+                    <Badge variant="secondary">
+                      {SHOP_CATEGORY_LABELS[item.category] ?? SHOP_CATEGORY_LABELS.other}
+                    </Badge>
                     {!item.active && <Badge variant="secondary">hidden</Badge>}
                   </div>
                   {item.description && (
@@ -248,20 +251,36 @@ export default async function ShopPage({
                           />
                         </Label>
                       </div>
-                      <Label className="block font-normal">
-                        <span className="block text-xs font-medium text-muted-foreground mb-1">Region</span>
-                        <select
-                          name="region"
-                          defaultValue={item.region}
-                          className="w-full text-sm h-9 rounded-md border border-border bg-background px-3"
-                        >
-                          {SHOP_REGIONS.map((r) => (
-                            <option key={r} value={r}>
-                              {SHOP_REGION_LABELS[r]}
-                            </option>
-                          ))}
-                        </select>
-                      </Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Label className="block font-normal">
+                          <span className="block text-xs font-medium text-muted-foreground mb-1">Region</span>
+                          <select
+                            name="region"
+                            defaultValue={item.region}
+                            className="w-full text-sm h-9 rounded-md border border-border bg-background px-3"
+                          >
+                            {SHOP_REGIONS.map((r) => (
+                              <option key={r} value={r}>
+                                {SHOP_REGION_LABELS[r]}
+                              </option>
+                            ))}
+                          </select>
+                        </Label>
+                        <Label className="block font-normal">
+                          <span className="block text-xs font-medium text-muted-foreground mb-1">Category</span>
+                          <select
+                            name="category"
+                            defaultValue={item.category}
+                            className="w-full text-sm h-9 rounded-md border border-border bg-background px-3"
+                          >
+                            {SHOP_CATEGORIES.map((c) => (
+                              <option key={c} value={c}>
+                                {SHOP_CATEGORY_LABELS[c]}
+                              </option>
+                            ))}
+                          </select>
+                        </Label>
+                      </div>
                       <Label className="block font-normal">
                         <span className="block text-xs font-medium text-muted-foreground mb-1">Description</span>
                         <Input
@@ -294,7 +313,7 @@ export default async function ShopPage({
                           className="mt-0.5 h-4 w-4 rounded border-border accent-brand"
                         />
                         <span>
-                          Apply <span className="font-medium text-foreground">name &amp; description</span> to
+                          Apply <span className="font-medium text-foreground">name, description &amp; category</span> to
                           this item in every region (price, options &amp; image stay per-region)
                         </span>
                       </label>

@@ -50,8 +50,10 @@ import { buildAuditNote, TECHNICAL_FEATURES_MIN } from "@/lib/auditNote";
 import { slackHandle, dmUser, slackAvatars } from "@/lib/slack";
 import { serializeGroups } from "@/lib/shopOptions";
 import { SHOP_REGIONS, type ShopRegion } from "@/lib/shopRegions";
+import { SHOP_CATEGORIES, type ShopCategory } from "@/lib/shopCategories";
 import { kickOnlinePlayer } from "@/lib/gameServer";
 import { dmOrEmail } from "@/lib/notify";
+import { assertSafeExternalUrl } from "@/lib/urlSafety";
 import {
   requirePerm,
   requireSuper,
@@ -674,6 +676,8 @@ export async function reviewProject(formData: FormData): Promise<void> {
     redirect(
       `${back}?error=${encodeURIComponent("This submitter turns 19 between shipping and review , document that before deciding.")}`,
     );
+  const notes = String(formData.get("notes") ?? "").trim();
+  if (!notes) redirect(`${back}?error=${encodeURIComponent("Additional notes are required.")}`);
   formData.set(
     "auditNote",
     buildAuditNote({
@@ -681,7 +685,7 @@ export async function reviewProject(formData: FormData): Promise<void> {
       "HACKATIME EVIDENCE": String(formData.get("hackatimeEvidence") ?? "").trim(),
       "DEFLATION REASON": deflationReason,
       "AGE JUSTIFICATION": ageJustification,
-      NOTES: String(formData.get("notes") ?? "").trim(),
+      NOTES: notes,
     }),
   );
 
@@ -2431,6 +2435,7 @@ async function uploadShopImage(file: File): Promise<string> {
 }
 
 async function uploadShopImageFromUrl(url: string): Promise<string> {
+  await assertSafeExternalUrl(url);
   const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`image fetch failed (${res.status})`);
   return uploadShopImageBuffer(Buffer.from(await res.arrayBuffer()));
@@ -2438,6 +2443,10 @@ async function uploadShopImageFromUrl(url: string): Promise<string> {
 
 function readRegion(raw: string): ShopRegion {
   return (SHOP_REGIONS as readonly string[]).includes(raw) ? (raw as ShopRegion) : "US";
+}
+
+function readCategory(raw: string): ShopCategory {
+  return (SHOP_CATEGORIES as readonly string[]).includes(raw) ? (raw as ShopCategory) : "other";
 }
 
 function readOptions(raw: string): string[] {
@@ -2470,6 +2479,7 @@ export async function addShopItem(formData: FormData): Promise<void> {
   const price = Math.max(0, Math.round(Number(formData.get("price") ?? 0)));
   const options = readOptions(String(formData.get("options") ?? ""));
   const region = readRegion(String(formData.get("region") ?? ""));
+  const category = readCategory(String(formData.get("category") ?? ""));
   if (!name) return;
   // Double-submit guard: an identical name created in the last minute is the
   // same click arriving twice, not a new item.
@@ -2497,6 +2507,7 @@ export async function addShopItem(formData: FormData): Promise<void> {
     image_url: imageUrl,
     options,
     region,
+    category,
     created_by: actorName(access),
   });
   if (error) throw new Error(error.message);
@@ -2511,8 +2522,9 @@ export async function updateShopItem(formData: FormData): Promise<void> {
   const price = Math.max(0, Math.round(Number(formData.get("price") ?? 0)));
   const options = readOptions(String(formData.get("options") ?? ""));
   const region = readRegion(String(formData.get("region") ?? ""));
+  const category = readCategory(String(formData.get("category") ?? ""));
   if (!id || !name) return;
-  const patch: Record<string, unknown> = { name, description, price, options, region };
+  const patch: Record<string, unknown> = { name, description, price, options, region, category };
   const image = formData.get("image");
   if (image instanceof File && image.size > 0) {
     if (image.size > 4 * 1024 * 1024) throw new Error("Image too big (max 4 MB).");
@@ -2531,7 +2543,7 @@ export async function updateShopItem(formData: FormData): Promise<void> {
     if (originalName) {
       const { error: propErr } = await db
         .from("shop_items")
-        .update({ name, description })
+        .update({ name, description, category })
         .eq("name", originalName)
         .eq("unlock_xp", 0)
         .neq("id", id);

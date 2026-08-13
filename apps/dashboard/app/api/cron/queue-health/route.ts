@@ -11,7 +11,9 @@ function daysWaiting(iso: string | null): number {
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`)
+  if (!secret)
+    return NextResponse.json({ ok: false, error: "CRON_SECRET is not set" }, { status: 500 });
+  if (req.headers.get("authorization") !== `Bearer ${secret}`)
     return NextResponse.json({ ok: false }, { status: 401 });
 
   const channel = process.env.REVIEW_ALERT_CHANNEL;

@@ -467,10 +467,11 @@ export function ReviewForm({
         )}
         <div>
           <Label className="text-xs font-normal text-muted-foreground mb-1.5 block">
-            Additional notes (optional)
+            Additional notes
           </Label>
           <Textarea
             name="notes"
+            required
             placeholder="Anything else , suspicious commits, AI usage, experience mismatch…"
             className="w-full text-sm"
             rows={3}
