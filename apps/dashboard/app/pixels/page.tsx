@@ -65,8 +65,14 @@ export default async function PixelsPage({
   const { page, filter, user, error, adjusted } = await searchParams;
   const all = await listPixelTransactions(1000);
 
-  const issued = all.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
-  const spent = all.filter((t) => t.amount < 0).reduce((s, t) => s + t.amount, 0);
+  // amount is bigint in Postgres, which the driver hands back as a string , summing
+  // it with plain `+` silently does string concatenation instead of addition.
+  const issued = all
+    .filter((t) => Number(t.amount) > 0)
+    .reduce((s, t) => s + Number(t.amount), 0);
+  const spent = all
+    .filter((t) => Number(t.amount) < 0)
+    .reduce((s, t) => s + Number(t.amount), 0);
   const net = issued + spent;
 
   const activeFilter = filter === "given" || filter === "spent" ? filter : "all";
