@@ -4,6 +4,7 @@ import { supabase, type UserRow } from "../db/client.js";
 import { issueSessionToken } from "../auth/session.js";
 import { activeBan } from "../moderation.js";
 import { fetchSlackAvatar, fetchSlackDisplayName } from "../slackAvatar.js";
+import { config } from "../config.generated.js";
 
 const router = Router();
 
@@ -87,10 +88,61 @@ const REDIRECT_URI = process.env.HCA_REDIRECT_URI!;
 const HCA_SCOPES =
   "openid profile slack_id phone birthdate address basic_info";
 
-const pendingStates = new Set<string>();
-// Maps OAuth `state` -> the web game's URL to redirect back to after login,
-// only populated when the login was initiated from a web (HTML5) export.
-const pendingWebRedirects = new Map<string, string>();
+// Maps OAuth `state` -> when it stops being valid, plus the web game's URL to
+// redirect back to after login (only set when the login was started from a web
+// export). Abandoned logins are never claimed, so they're swept on a timer.
+interface PendingLogin {
+  expiresAt: number;
+  webRedirect?: string;
+}
+const PENDING_LOGIN_TTL_MS = 10 * 60_000;
+const pendingLogins = new Map<string, PendingLogin>();
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [state, pending] of pendingLogins) {
+    if (pending.expiresAt <= now) pendingLogins.delete(state);
+  }
+}, 60_000).unref();
+
+// The session JWT is handed to whatever web_redirect points at, so an
+// unrestricted value is an account takeover: a link with someone else's host
+// logs the attacker into the victim's account. Only origins we serve the game
+// from are allowed.
+const ALLOWED_REDIRECT_HOSTS = new Set(
+  [
+    new URL(config.urls.site).hostname,
+    new URL(config.urls.play).hostname,
+    "pixl.rsvp",
+    "www.pixl.rsvp",
+    "play.pixl.rsvp",
+    ...(process.env.WEB_REDIRECT_HOSTS ?? "")
+      .split(",")
+      .map((h) => h.trim())
+      .filter(Boolean),
+  ].map((h) => h.toLowerCase()),
+);
+
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+// Returns the redirect stripped down to origin + path (the game only ever sends
+// that much), or null if it isn't one of ours.
+function safeWebRedirect(raw: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase();
+  const isLocal =
+    process.env.NODE_ENV !== "production" && LOCAL_HOSTS.has(host);
+  if (!isLocal) {
+    if (url.protocol !== "https:") return null;
+    if (!ALLOWED_REDIRECT_HOSTS.has(host)) return null;
+  }
+  return `${url.origin}${url.pathname}`;
+}
 
 interface HackClubTokenResponse {
   access_token: string;
@@ -113,13 +165,21 @@ interface HackClubMeResponse {
 }
 
 router.get("/auth/hackclub", (req, res) => {
-  const state = crypto.randomBytes(16).toString("hex");
-  pendingStates.add(state);
-
-  const webRedirect = req.query.web_redirect as string | undefined;
-  if (webRedirect) {
-    pendingWebRedirects.set(state, webRedirect);
+  const requestedRedirect = req.query.web_redirect as string | undefined;
+  let webRedirect: string | null = null;
+  if (requestedRedirect) {
+    webRedirect = safeWebRedirect(requestedRedirect);
+    if (!webRedirect) {
+      console.warn("Rejected web_redirect", requestedRedirect);
+      return res.status(400).send("Invalid redirect target");
+    }
   }
+
+  const state = crypto.randomBytes(16).toString("hex");
+  pendingLogins.set(state, {
+    expiresAt: Date.now() + PENDING_LOGIN_TTL_MS,
+    webRedirect: webRedirect ?? undefined,
+  });
 
   const url = new URL(`${HCA_BASE_URL}/oauth/authorize`);
   url.searchParams.set("client_id", CLIENT_ID);
@@ -138,13 +198,16 @@ router.get("/auth/hackclub/callback", async (req, res) => {
   const code = req.query.code as string | undefined;
   const state = req.query.state as string | undefined;
 
-  if (!code || !state || !pendingStates.has(state)) {
+  const pending = state ? pendingLogins.get(state) : undefined;
+  if (state) pendingLogins.delete(state);
+  if (!code || !pending) {
     return res.status(400).send("Invalid OAuth state");
   }
-  pendingStates.delete(state);
+  if (pending.expiresAt <= Date.now()) {
+    return res.status(400).send("Login took too long, please try again");
+  }
 
-  const webRedirect = pendingWebRedirects.get(state);
-  pendingWebRedirects.delete(state);
+  const webRedirect = pending.webRedirect;
 
   const tokenRes = await fetch(`${HCA_BASE_URL}/oauth/token`, {
     method: "POST",
@@ -296,9 +359,12 @@ router.get("/auth/hackclub/callback", async (req, res) => {
 
   const sessionToken = issueSessionToken({ userId, displayName });
 
-  const localCallback = new URL(
-    webRedirect ?? "http://localhost:7777/callback",
-  );
+  const target = webRedirect ? safeWebRedirect(webRedirect) : null;
+  if (webRedirect && !target) {
+    return res.status(400).send("Invalid redirect target");
+  }
+
+  const localCallback = new URL(target ?? "http://localhost:7777/callback");
   localCallback.searchParams.set("token", sessionToken);
   localCallback.searchParams.set("name", displayName);
   if (isNewUser) localCallback.searchParams.set("new", "1");
