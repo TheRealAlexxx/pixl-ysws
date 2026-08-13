@@ -3,14 +3,18 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: Request) {
   const { email } = await req.json();
   if (!email) return Response.json({ error: "No email" }, { status: 400 });
-  if (!EMAIL_RE.test(email)) {
+  if (typeof email !== "string" || email.length > 254 || !EMAIL_RE.test(email)) {
     return Response.json({ error: "Invalid email" }, { status: 400 });
   }
 
   const baseUrl = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Signups`;
   const authHeader = `Bearer ${process.env.AIRTABLE_TOKEN}`;
 
-  const filter = encodeURIComponent(`{Email} = "${email.replace(/"/g, '\\"')}"`);
+  // Escape backslashes before quotes , escaping quotes alone lets a
+  // "\" + '"' pair in the input smuggle an unescaped quote through and
+  // close the formula string literal early (Airtable formula injection).
+  const escapedEmail = email.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  const filter = encodeURIComponent(`{Email} = "${escapedEmail}"`);
   const existing = await fetch(
     `${baseUrl}?filterByFormula=${filter}&maxRecords=1`,
     { headers: { Authorization: authHeader }, signal: AbortSignal.timeout(10_000) },

@@ -33,7 +33,7 @@ export interface CommitResult {
 function parseRepo(url: string): { owner: string; repo: string } | null {
   try {
     const u = new URL(url);
-    if (!u.hostname.endsWith("github.com")) return null;
+    if (u.hostname !== "github.com" && !u.hostname.endsWith(".github.com")) return null;
     const parts = u.pathname.split("/").filter(Boolean);
     if (parts.length < 2) return null;
     return { owner: parts[0], repo: parts[1].replace(/\.git$/, "") };

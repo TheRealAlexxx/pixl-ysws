@@ -9,7 +9,7 @@ export async function checkImageSafe(
   mime: string,
 ): Promise<{ safe: boolean; reason: string }> {
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key || buf.length === 0 || buf.length > MAX_MODERATE_BYTES) {
+  if (!key || !Buffer.isBuffer(buf) || buf.length === 0 || buf.length > MAX_MODERATE_BYTES) {
     return { safe: true, reason: "" };
   }
   const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;

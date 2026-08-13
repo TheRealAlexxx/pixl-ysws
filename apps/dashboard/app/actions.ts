@@ -2436,7 +2436,13 @@ async function uploadShopImage(file: File): Promise<string> {
 
 async function uploadShopImageFromUrl(url: string): Promise<string> {
   await assertSafeExternalUrl(url);
-  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+  // redirect: "manual" so a validated hostname can't hand back a 3xx to an
+  // internal address (e.g. the cluster metadata IP) and have fetch silently
+  // follow it past the check above.
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000), redirect: "manual" });
+  if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+    throw new Error("image URL redirected, refusing to follow");
+  }
   if (!res.ok) throw new Error(`image fetch failed (${res.status})`);
   return uploadShopImageBuffer(Buffer.from(await res.arrayBuffer()));
 }

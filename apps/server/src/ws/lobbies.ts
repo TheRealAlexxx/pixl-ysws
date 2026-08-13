@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { supabase } from "../db/client.js";
 
 export interface Lobby {
@@ -108,7 +109,7 @@ function persistLobby(l: Lobby) {
 }
 
 function gen4DigitPassword(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return randomInt(1000, 10000).toString();
 }
 
 function genLobbyCode(len = 5): string {
@@ -116,8 +117,7 @@ function genLobbyCode(len = 5): string {
   let code: string;
   do {
     code = "";
-    for (let i = 0; i < len; i++)
-      code += alphabet[Math.floor(Math.random() * alphabet.length)];
+    for (let i = 0; i < len; i++) code += alphabet[randomInt(alphabet.length)];
   } while (lobbies.has(code));
   return code;
 }

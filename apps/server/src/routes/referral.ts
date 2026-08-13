@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomInt } from "crypto";
 import { Router } from "express";
 import { verifySessionToken } from "../auth/session.js";
 import { supabase } from "../db/client.js";
@@ -21,9 +21,8 @@ const BOOST_SHIP_CAP = 1;
 const REFERRAL_WINDOW_DAYS = 2;
 
 function randomCode(): string {
-  const bytes = randomBytes(CODE_LENGTH);
   let out = "";
-  for (let i = 0; i < CODE_LENGTH; i++) out += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+  for (let i = 0; i < CODE_LENGTH; i++) out += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
   return out;
 }
 
