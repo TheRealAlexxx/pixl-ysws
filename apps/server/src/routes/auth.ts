@@ -123,6 +123,9 @@ const ALLOWED_REDIRECT_HOSTS = new Set(
   ].map((h) => h.toLowerCase()),
 );
 
+// Opt-in, not NODE_ENV based: prod doesn't set NODE_ENV, so keying off it would
+// leave localhost redirects allowed on the live server.
+const ALLOW_LOCAL_REDIRECT = process.env.ALLOW_LOCAL_REDIRECT === "true";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 // Returns the redirect stripped down to origin + path (the game only ever sends
@@ -135,8 +138,7 @@ function safeWebRedirect(raw: string): string | null {
     return null;
   }
   const host = url.hostname.toLowerCase();
-  const isLocal =
-    process.env.NODE_ENV !== "production" && LOCAL_HOSTS.has(host);
+  const isLocal = ALLOW_LOCAL_REDIRECT && LOCAL_HOSTS.has(host);
   if (!isLocal) {
     if (url.protocol !== "https:") return null;
     if (!ALLOWED_REDIRECT_HOSTS.has(host)) return null;
