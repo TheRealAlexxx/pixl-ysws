@@ -6,6 +6,7 @@ import { aiPost } from "../ai/client.js";
 import { getAIReply } from "../ai/persona.js";
 import { streamedAICall, NO_CREDITS } from "../ai/client.js";
 import { shouldChimeIn, extractSearchQuery, braveSearch } from "../ai/search.js";
+import { checkAiRateLimit, AI_RATE_LIMIT_MESSAGE } from "../ai/rateLimit.js";
 import { extractStyle } from "../memory/style.js";
 import { saveStyleMemory } from "../memory/style.js";
 import { programMemory } from "../memory/program.js";
@@ -341,6 +342,10 @@ app.message(async ({ message, client }) => {
   }
 
   if (isDM) {
+    if (!checkAiRateLimit(m.user)) {
+      await client.chat.postMessage({ channel: m.channel, text: AI_RATE_LIMIT_MESSAGE });
+      return;
+    }
     const dmKey = m.channel;
     if (!dmHistory.has(dmKey)) await seedDMHistory(dmKey, client);
     if (!dmHistory.has(dmKey)) dmHistory.set(dmKey, []);
@@ -510,6 +515,18 @@ app.message(async ({ message, client }) => {
 
       if (mutedThreads.has(threadKey)) return;
 
+      const replyPostParams: { channel: string; thread_ts?: string } = { channel: entry.channel };
+      if (!isDM) replyPostParams.thread_ts = threadKey;
+
+      if (!checkAiRateLimit(entry.userId)) {
+        // Only speak up when the bot was actually addressed — a passive
+        // chime-in eval that gets rate-limited should just stay quiet.
+        if (entry.isMention) {
+          await client.chat.postMessage({ ...replyPostParams, text: AI_RATE_LIMIT_MESSAGE });
+        }
+        return;
+      }
+
       let chimeMode = false;
       if (!entry.isMention) {
         const tmCurrent = threadMemory.get(threadKey);
@@ -533,8 +550,6 @@ app.message(async ({ message, client }) => {
           if (query) searchResults = await braveSearch(query);
         }
       }
-      const replyPostParams: { channel: string; thread_ts?: string } = { channel: entry.channel };
-      if (!isDM) replyPostParams.thread_ts = threadKey;
       const result = await getAIReply(history.slice(-12), entry.userId, threadMemory.get(threadKey) ?? null, chimeMode, searchResults, {
         client,
         postParams: replyPostParams,

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { app, receiver } from "../slack/app.js";
@@ -10,7 +11,12 @@ import { resolveTicket } from "../tickets/service.js";
 function requireExternalApiKey(req: Request, res: Response, next: NextFunction) {
   const key = process.env.EXTERNAL_API_KEY;
   if (!key) return res.status(503).json({ error: "API key not configured" });
-  if (req.headers["x-api-key"] !== key) return res.status(401).json({ error: "Invalid API key" });
+
+  const provided = req.headers["x-api-key"];
+  const providedBuf = Buffer.from(typeof provided === "string" ? provided : "");
+  const keyBuf = Buffer.from(key);
+  const valid = providedBuf.length === keyBuf.length && crypto.timingSafeEqual(providedBuf, keyBuf);
+  if (!valid) return res.status(401).json({ error: "Invalid API key" });
   next();
 }
 

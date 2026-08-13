@@ -3,6 +3,7 @@ import { app } from "../slack/app.js";
 import { PIXL_CHANNELS, PIXL_PROMO } from "../constants.js";
 import { aiPost, streamedAICall } from "../ai/client.js";
 import { getAIReply } from "../ai/persona.js";
+import { checkAiRateLimit, AI_RATE_LIMIT_MESSAGE } from "../ai/rateLimit.js";
 import { userMemory, parseFacts } from "../memory/users.js";
 import { botStats } from "../stats.js";
 
@@ -23,6 +24,14 @@ app.command("/pixl-joke", async ({ command, ack, respond }) => {
 
 app.command("/pixl-roast", async ({ command, ack, client }) => {
   await ack();
+  if (!checkAiRateLimit(command.user_id)) {
+    await client.chat.postEphemeral({
+      channel: command.channel_id,
+      user: command.user_id,
+      text: AI_RATE_LIMIT_MESSAGE,
+    });
+    return;
+  }
   const mention = command.text?.trim();
   const match = mention?.match(/<@([A-Za-z0-9]+)(?:\|[^>]+)?>/);
   const targetId = match?.[1] || command.user_id;
@@ -53,6 +62,10 @@ app.command("/pixl-roast", async ({ command, ack, client }) => {
 
 app.command("/pixl-urban", async ({ command, ack, respond }) => {
   await ack();
+  if (!checkAiRateLimit(command.user_id)) {
+    await respond({ text: AI_RATE_LIMIT_MESSAGE });
+    return;
+  }
   const term = command.text?.trim();
   if (!term) {
     await respond({ text: "Usage: `/pixl-urban yolo`" });
@@ -100,6 +113,14 @@ app.command("/pixl-urban", async ({ command, ack, respond }) => {
 // /pixl-fact — random interesting fact
 app.command("/pixl-fact", async ({ command, ack, client }) => {
   await ack();
+  if (!checkAiRateLimit(command.user_id)) {
+    await client.chat.postEphemeral({
+      channel: command.channel_id,
+      user: command.user_id,
+      text: AI_RATE_LIMIT_MESSAGE,
+    });
+    return;
+  }
   try {
     const stream = await streamedAICall(
       client,

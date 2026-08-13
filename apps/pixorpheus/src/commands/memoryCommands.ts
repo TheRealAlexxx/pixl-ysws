@@ -2,6 +2,7 @@ import { app } from "../slack/app.js";
 import { db } from "../db/client.js";
 import { GABIN_ID } from "../constants.js";
 import { aiPost, streamedAICall } from "../ai/client.js";
+import { checkAiRateLimit, AI_RATE_LIMIT_MESSAGE } from "../ai/rateLimit.js";
 import { userMemory, personalityMemory, parseFacts, getDisplayName, GARBAGE_PATTERNS } from "../memory/users.js";
 import { programMemory, addProgramFact, removeProgramFact } from "../memory/program.js";
 import { checkIsHelper, checkIsInTicketChannel } from "../tickets/service.js";
@@ -71,6 +72,10 @@ app.command("/pixl-memories", async ({ command, ack, respond, client }) => {
 // /pixl-mymemory [@user] — shows what pixorpheus remembers about you or someone else
 app.command("/pixl-mymemory", async ({ command, ack, respond, client }) => {
   await ack();
+  if (!checkAiRateLimit(command.user_id)) {
+    await respond({ text: AI_RATE_LIMIT_MESSAGE, response_type: "ephemeral" });
+    return;
+  }
   const mentionMatch = command.text?.trim().match(/^<@([A-Z0-9]+)(?:\|[^>]+)?>/);
   const targetId = mentionMatch ? mentionMatch[1] : command.user_id;
   const isSelf = targetId === command.user_id;

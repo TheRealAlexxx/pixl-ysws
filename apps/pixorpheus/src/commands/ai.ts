@@ -1,8 +1,17 @@
 import { app } from "../slack/app.js";
 import { streamedAICall } from "../ai/client.js";
+import { checkAiRateLimit, AI_RATE_LIMIT_MESSAGE } from "../ai/rateLimit.js";
 
 app.command("/pixl-ask", async ({ command, ack, client }) => {
   await ack();
+  if (!checkAiRateLimit(command.user_id)) {
+    await client.chat.postEphemeral({
+      channel: command.channel_id,
+      user: command.user_id,
+      text: AI_RATE_LIMIT_MESSAGE,
+    });
+    return;
+  }
   const question = command.text?.trim();
   if (!question) {
     await client.chat.postEphemeral({

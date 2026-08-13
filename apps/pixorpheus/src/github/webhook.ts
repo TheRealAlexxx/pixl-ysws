@@ -28,11 +28,17 @@ async function handleGitHubEvent(event: string, payload: any): Promise<void> {
 
 receiver.app.post("/webhooks/github", express.raw({ type: "application/json" }), (req, res) => {
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
-  if (secret) {
-    const sig = req.headers["x-hub-signature-256"] as string | undefined;
-    if (!sig) return res.status(401).send("Missing signature");
-    const expected = "sha256=" + crypto.createHmac("sha256", secret).update(req.body).digest("hex");
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return res.status(401).send("Invalid signature");
+  if (!secret) {
+    console.error("[github-webhook] GITHUB_WEBHOOK_SECRET is not set; refusing request");
+    return res.status(503).send("Service misconfigured");
+  }
+  const sig = req.headers["x-hub-signature-256"] as string | undefined;
+  if (!sig) return res.status(401).send("Missing signature");
+  const expected = "sha256=" + crypto.createHmac("sha256", secret).update(req.body).digest("hex");
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+    return res.status(401).send("Invalid signature");
   }
   let payload;
   try {

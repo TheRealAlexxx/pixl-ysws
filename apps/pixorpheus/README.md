@@ -352,8 +352,10 @@ Tables (`tickets`, `helpers`, `user_memory`, `user_personality`, `program_memory
 | `PIXO_MODEL` | Overrides the default OpenRouter model (`google/gemini-3.1-flash-lite:nitro`) |
 | `BRAVE_SEARCH_KEY` | Brave Search API key (auto web search in replies) |
 | `PIXL_LOGS_CHANNEL_ID` | Skips the `#pixl-logs` channel-name scan (see `src/slack/logs.ts`) |
-| `GITHUB_WEBHOOK_SECRET` | HMAC secret for the `/webhooks/github` route |
+| `GITHUB_WEBHOOK_SECRET` | HMAC secret for the `/webhooks/github` route. **Required** - without it the route returns 503 and processes nothing |
 | `GITHUB_NOTIFY_CHANNEL` | Channel ID to post GitHub push/merge notifications to |
+| `SHOP_WEBHOOK_SECRET` | Shared secret for the `/webhooks/shop` route, sent by Supabase as the `x-shop-webhook-secret` header. **Required** - without it the route returns 503 and processes nothing |
+| `SHOP_NOTIFY_CHANNEL` | Channel ID to post shop item change notifications to (defaults to `#shop-changes`) |
 | `EXTERNAL_API_KEY` | API key `apps/dashboard` uses to call `/api/external/tickets/:ts/resolve` |
 | `PORT` | Port for the Bolt HTTP receiver (default 3000) |
 

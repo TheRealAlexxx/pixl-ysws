@@ -16,9 +16,11 @@ COPY package.json ./
 RUN bun install --production
 
 COPY . .
+RUN chown -R bun:bun /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
+USER bun
 EXPOSE 3000
 CMD ["bun", "run", "src/index.ts"]
