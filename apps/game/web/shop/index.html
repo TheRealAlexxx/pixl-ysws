@@ -347,10 +347,13 @@
 
       <div class="tiers" id="tiers">
         <button class="tier on" data-tier="all">ALL</button>
-        <button class="tier" data-tier="afford">CAN AFFORD</button>
+        <button class="tier" data-tier="afford">AFFORDABLE NOW</button>
         <button class="tier" data-tier="under">UNDER 500</button>
         <button class="tier" data-tier="over">500+</button>
+        <button class="tier" id="unlocked-toggle">UNLOCKED ONLY</button>
       </div>
+
+      <div class="tiers" id="categories"></div>
 
       <div class="spin" id="loading"></div>
       <div id="trophies"></div>
@@ -378,7 +381,24 @@
       let xp = 0;
       let claimedIds = new Set();
       let activeTier = "all";
+      let activeCategory = "all";
+      let unlockedOnly = false;
       let loadingRegion = false;
+
+      const CATEGORIES = [
+        ["all", "ALL"],
+        ["grants", "GRANTS"],
+        ["merch", "MERCH"],
+        ["tech", "TECH"],
+        ["printers", "3D PRINTERS"],
+        ["software", "SOFTWARE & LICENSES"],
+        ["kits", "DIY KITS"],
+        ["other", "OTHER"],
+      ];
+      $("categories").innerHTML = CATEGORIES.map(
+        ([v, l]) =>
+          `<button class="tier ${v === "all" ? "on" : ""}" data-cat="${v}">${l}</button>`,
+      ).join("");
 
       function basePrice(item) {
         return item.config_options ? Number(item.config_options.base_price) : Number(item.price);
@@ -435,6 +455,10 @@
         return true;
       }
 
+      function categoryMatch(item) {
+        return activeCategory === "all" || (item.category || "other") === activeCategory;
+      }
+
       function imgHtml(item, big = false) {
         const url = String(item.image_url || "");
         if (!url) return `<span class="ph"></span>`;
@@ -478,8 +502,12 @@
             .toLowerCase()
             .includes(q);
 
-        const trophies = items.filter((i) => isTrophy(i) && match(i));
-        let list = items.filter((i) => !isTrophy(i) && match(i) && tierMatch(i));
+        const trophies = items
+          .filter((i) => isTrophy(i) && match(i))
+          .filter((i) => !unlockedOnly || trophyState(i) !== "locked");
+        let list = items.filter(
+          (i) => !isTrophy(i) && match(i) && tierMatch(i) && categoryMatch(i),
+        );
         if (sort === "cheap")
           list = [...list].sort((a, b) => basePrice(a) - basePrice(b));
         else if (sort === "pricey")
@@ -567,8 +595,23 @@
       $("tiers").addEventListener("click", (e) => {
         const b = e.target.closest(".tier");
         if (!b) return;
+        if (b.id === "unlocked-toggle") {
+          unlockedOnly = !unlockedOnly;
+          b.classList.toggle("on", unlockedOnly);
+          render();
+          return;
+        }
         activeTier = b.dataset.tier;
-        for (const t of $("tiers").querySelectorAll(".tier"))
+        for (const t of $("tiers").querySelectorAll(".tier[data-tier]"))
+          t.classList.toggle("on", t === b);
+        render();
+      });
+
+      $("categories").addEventListener("click", (e) => {
+        const b = e.target.closest(".tier");
+        if (!b) return;
+        activeCategory = b.dataset.cat;
+        for (const t of $("categories").querySelectorAll(".tier"))
           t.classList.toggle("on", t === b);
         render();
       });

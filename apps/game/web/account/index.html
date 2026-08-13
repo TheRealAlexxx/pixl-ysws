@@ -29,68 +29,44 @@
   .card { border: 1px solid var(--stroke); border-radius: var(--radius); background: var(--panel); padding: 20px; margin-top: 22px; }
   .card-h { font-size: 16px; color: var(--gold); letter-spacing: 1px; margin-bottom: 6px; }
   .card-sub { font-size: 13px; color: var(--faint); margin-bottom: 16px; line-height: 1.5; }
-  .form-row { margin-top: 14px; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .lbl { font-size: 13px; color: var(--faint); margin-bottom: 6px; }
-  .field { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--stroke); border-radius: var(--radius-sm); background: var(--panel-deep); color: var(--ink); }
-  .actions { margin-top: 18px; display: flex; gap: 10px; align-items: center; }
+  .readout { padding: 10px 12px; border: 1px solid var(--stroke); border-radius: var(--radius-sm); background: var(--panel-deep); color: var(--ink); margin-top: 6px; }
+  .readout.empty { color: var(--faint); font-style: italic; }
+  .field-row { margin-top: 14px; }
+  .note { font-size: 12px; color: var(--faint); margin-top: 10px; line-height: 1.5; }
+  .not-eligible {
+    border: 1px solid color-mix(in srgb, var(--bad) 55%, var(--stroke));
+    background: color-mix(in srgb, var(--bad) 12%, var(--panel));
+    border-radius: var(--radius); padding: 16px 18px; margin-top: 22px;
+  }
+  .not-eligible .card-h { color: var(--bad); }
 </style>
 </head>
 <body>
 <main class="wrap">
   <section class="hero">
     <h1 class="page-title">ACCOUNT</h1>
-    <div class="page-sub" style="color:var(--dim)">YOUR BIRTHDAY AND MAILING ADDRESS — HACK CLUB NEEDS THESE ON FILE FOR SHIPPED PROJECTS AND SHOP ORDERS.</div>
+    <div class="page-sub" style="color:var(--dim)">YOUR BIRTHDAY AND MAILING ADDRESS, PULLED FROM YOUR HACK CLUB IDENTITY. HACK CLUB NEEDS THESE ON FILE FOR SHIPPED PROJECTS AND SHOP ORDERS.</div>
   </section>
+
+  <div class="not-eligible" id="ineligible-notice" hidden>
+    <div class="card-h">NOT ELIGIBLE FOR YSWS PROGRAMS</div>
+    <div class="card-sub" id="ineligible-copy" style="margin-bottom:0"></div>
+  </div>
 
   <div class="card">
     <div class="card-h">BIRTHDAY</div>
-    <div class="card-sub">Saved once — you won't be asked again.</div>
-    <div class="form-row">
-      <input class="field" type="date" id="birthday">
-    </div>
-    <div class="actions">
-      <button class="btn" id="save-birthday">SAVE</button>
-      <span class="faint" id="birthday-status" style="font-size:12px"></span>
-    </div>
+    <div class="card-sub">Comes from your Hack Club identity , re-synced every time you log in.</div>
+    <div class="readout" id="birthday-readout">—</div>
   </div>
 
   <div class="card">
     <div class="card-h">MAILING ADDRESS</div>
-    <div class="card-sub">Where we'd ship a physical shop order or prize. You'll be asked to confirm this before every order — update it here any time it changes.</div>
-    <div class="form-row">
-      <div class="lbl">Address line 1</div>
-      <input class="field" id="line1" maxlength="200" placeholder="123 Main St">
-    </div>
-    <div class="form-row">
-      <div class="lbl">Address line 2 (optional)</div>
-      <input class="field" id="line2" maxlength="200" placeholder="Apt, suite, etc.">
-    </div>
-    <div class="form-row two-col">
-      <div>
-        <div class="lbl">City</div>
-        <input class="field" id="city" maxlength="100">
-      </div>
-      <div>
-        <div class="lbl">State / Province</div>
-        <input class="field" id="state" maxlength="100">
-      </div>
-    </div>
-    <div class="form-row two-col">
-      <div>
-        <div class="lbl">Country</div>
-        <input class="field" id="country" maxlength="100">
-      </div>
-      <div>
-        <div class="lbl">ZIP / Postal code</div>
-        <input class="field" id="postal" maxlength="20">
-      </div>
-    </div>
-    <div class="actions">
-      <button class="btn" id="save-address">SAVE ADDRESS</button>
-      <span class="faint" id="address-status" style="font-size:12px"></span>
-    </div>
+    <div class="card-sub">Where we'd ship a physical shop order or prize, also from your Hack Club identity. You'll get a chance to verify it's current right before you order.</div>
+    <div class="readout" id="address-readout">—</div>
   </div>
+
+  <div class="note">Something wrong here? Update it on <a href="https://auth.hackclub.com" target="_blank" rel="noopener">Hack Club Auth</a>, then log out and back in to Pixl to re-sync.</div>
 </main>
 
 <script src="/pixl.js"></script>
@@ -99,52 +75,46 @@ Pixl.mountTopbar("account");
 Pixl.loadWallet();
 
 const $ = (id) => document.getElementById(id);
-const returnTo = new URLSearchParams(location.search).get("return");
+
+function fmtBirthday(iso) {
+  const d = new Date(iso + "T00:00:00Z");
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+}
 
 async function load() {
   let data = null;
   try { data = await Pixl.api("/api/profile/eligibility"); } catch { return; }
   if (!data || !data.ok) return;
-  if (data.birthday) $("birthday").value = data.birthday;
-  $("line1").value = data.addressLine1 || "";
-  $("line2").value = data.addressLine2 || "";
-  $("city").value = data.addressCity || "";
-  $("state").value = data.addressState || "";
-  $("country").value = data.addressCountry || "";
-  $("postal").value = data.addressPostal || "";
+
+  if (data.birthday) {
+    $("birthday-readout").textContent = fmtBirthday(data.birthday) + (data.age != null ? ` (age ${data.age})` : "");
+    $("birthday-readout").classList.remove("empty");
+  } else {
+    $("birthday-readout").textContent = "Not on file yet , log out and back in to sync it from Hack Club Auth.";
+    $("birthday-readout").classList.add("empty");
+  }
+
+  const addrParts = [
+    data.addressLine1,
+    data.addressLine2,
+    [data.addressCity, data.addressState].filter(Boolean).join(", "),
+    [data.addressCountry, data.addressPostal].filter(Boolean).join(" "),
+  ].filter(Boolean);
+  if (addrParts.length) {
+    $("address-readout").innerHTML = addrParts.map(Pixl.esc).join("<br>");
+    $("address-readout").classList.remove("empty");
+  } else {
+    $("address-readout").textContent = "Not on file yet , log out and back in to sync it from Hack Club Auth.";
+    $("address-readout").classList.add("empty");
+  }
+
+  if (data.birthday && data.yswsEligible === false) {
+    $("ineligible-notice").hidden = false;
+    $("ineligible-copy").textContent =
+      `You're ${data.age}, and Hack Club's YSWS programs (including Pixl) are for people under 19. You can still explore Pixl, but shipped projects won't be eligible for review or shop rewards.`;
+  }
 }
-
-$("save-birthday").addEventListener("click", async () => {
-  $("save-birthday").disabled = true;
-  const r = await Pixl.send("POST", "/api/profile/eligibility", { birthday: $("birthday").value });
-  $("save-birthday").disabled = false;
-  if (r.ok) {
-    Pixl.toast("Birthday saved.");
-    $("birthday-status").textContent = "Saved.";
-  } else {
-    Pixl.toast(r.reason || "Couldn't save that.", true);
-  }
-});
-
-$("save-address").addEventListener("click", async () => {
-  $("save-address").disabled = true;
-  const r = await Pixl.send("POST", "/api/profile/eligibility", {
-    addressLine1: $("line1").value,
-    addressLine2: $("line2").value,
-    addressCity: $("city").value,
-    addressState: $("state").value,
-    addressCountry: $("country").value,
-    addressPostal: $("postal").value,
-  });
-  $("save-address").disabled = false;
-  if (r.ok) {
-    Pixl.toast("Address saved.");
-    $("address-status").textContent = "Saved.";
-    if (returnTo === "shop") location.href = "/shop";
-  } else {
-    Pixl.toast(r.reason || "Couldn't save that address.", true);
-  }
-});
 
 if (Pixl.hasToken) load();
 </script>

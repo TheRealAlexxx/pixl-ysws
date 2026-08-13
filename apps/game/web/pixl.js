@@ -1018,12 +1018,25 @@ const Pixl = (() => {
       .pxl-dialog button{border-radius:8px;padding:9px 16px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid var(--stroke,#2a2a35);background:none;color:var(--dim,#cfcfd6)}
       .pxl-dialog .pxl-ok{background:var(--gold,#ec4899);color:var(--btn-ink,#241710);border-color:transparent}
       .pxl-dialog .pxl-ok.danger{background:var(--bad,#a02a2a);color:#fff}
+      .pxl-dialog .pxl-mid{color:var(--teal,#4f8f7a);border-color:var(--teal,#4f8f7a)}
     `;
     document.head.appendChild(s);
   }
 
   function confirmDialog(opts = {}) {
-    const { title = "Are you sure?", body = "", confirmText = "Confirm", cancelText = "Cancel", danger = false } = opts;
+    const {
+      title = "Are you sure?",
+      body = "",
+      confirmText = "Confirm",
+      cancelText = "Cancel",
+      danger = false,
+      // Optional third button (e.g. "Verify address") for a side action that
+      // isn't a plain yes/no. Clicking it runs onMiddle() and closes the
+      // dialog as if cancelled — callers doing something like a page
+      // navigation in onMiddle don't need the promise to resolve true.
+      middleText = "",
+      onMiddle = null,
+    } = opts;
     injectDialogCSS();
     return new Promise((resolve) => {
       const root = document.createElement("div");
@@ -1036,6 +1049,7 @@ const Pixl = (() => {
           ${body ? `<div class="pxl-b">${esc(body)}</div>` : ""}
           <div class="pxl-acts">
             <button class="pxl-cancel">${esc(cancelText)}</button>
+            ${middleText ? `<button class="pxl-mid">${esc(middleText)}</button>` : ""}
             <button class="pxl-ok ${danger ? "danger" : ""}">${esc(confirmText)}</button>
           </div>
         </div>`;
@@ -1044,6 +1058,8 @@ const Pixl = (() => {
       root.querySelector(".pxl-veil").onclick = () => done(false);
       root.querySelector(".pxl-cancel").onclick = () => done(false);
       root.querySelector(".pxl-ok").onclick = () => done(true);
+      const mid = root.querySelector(".pxl-mid");
+      if (mid) mid.onclick = () => { if (onMiddle) onMiddle(); done(false); };
       root.addEventListener("keydown", (e) => {
         if (e.key === "Escape") done(false);
         if (e.key === "Enter") done(true);

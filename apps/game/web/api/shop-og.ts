@@ -5,6 +5,7 @@
 // dependency to pull in the types for either - this form has worked
 // unchanged since Vercel's very first Node runtime.
 import { renderItemCard } from "./_lib/shopCard.ts";
+import { safeFetch } from "./_lib/safeFetch.ts";
 
 import pixl from "../../pixl.json" with { type: "json" };
 
@@ -53,7 +54,10 @@ export default async function handler(req: MinimalReq, res: MinimalRes): Promise
     let imageBytes: Uint8Array | null = null;
     if (body.item.image_url) {
       try {
-        const imgRes = await fetch(body.item.image_url);
+        // image_url comes from the DB record, not a literal in this repo, so
+        // it's validated against SSRF (private/loopback targets) before we
+        // ever fetch it - see _lib/safeFetch.ts.
+        const imgRes = await safeFetch(body.item.image_url);
         if (imgRes.ok) imageBytes = new Uint8Array(await imgRes.arrayBuffer());
       } catch (err) {
         console.error("[shop-og] image fetch failed", err);

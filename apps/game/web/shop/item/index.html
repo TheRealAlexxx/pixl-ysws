@@ -661,13 +661,32 @@
         }
       }
 
+      // Redirects through Hack Club Auth to re-fetch this player's address
+      // live (not just whatever Pixl already has cached) — only ever fired
+      // by an explicit button click, never automatically.
+      function startAddressVerification(id) {
+        const back = new URL(location.href);
+        back.searchParams.set("id", id);
+        back.searchParams.delete("addr_verified");
+        back.searchParams.set("addr_verified_return", "1");
+        location.href = Pixl.apiUrl(
+          "/auth/hackclub/verify-address?web_redirect=" + encodeURIComponent(back.toString()),
+        );
+      }
+
       // Every order ships physically, so confirm the on-file address before
       // spending pixels — same pattern as a checkout confirm step.
       async function confirmAddressThenBuy(id) {
         let elig = null;
         try { elig = await Pixl.api("/api/profile/eligibility"); } catch {}
         if (!elig || !elig.ok || !elig.hasAddress) {
-          location.href = "/account?return=shop";
+          const go = await Pixl.confirm({
+            title: "No shipping address on file",
+            body: "We need an address before you can order this. Verify it with your Hack Club identity.",
+            confirmText: "Verify address",
+            cancelText: "Cancel",
+          });
+          if (go) startAddressVerification(id);
           return;
         }
         const summary = [
@@ -680,12 +699,11 @@
           title: "Confirm shipping address",
           body: "We'll ship to: " + summary,
           confirmText: "Yes, ship here",
-          cancelText: "Change address",
+          cancelText: "Cancel",
+          middleText: "Verify address",
+          onMiddle: () => startAddressVerification(id),
         });
-        if (!ok) {
-          location.href = "/account?return=shop";
-          return;
-        }
+        if (!ok) return;
         buyItem(id);
       }
 
@@ -824,6 +842,20 @@
         }
         $("detail").hidden = false;
         renderDetail();
+
+        // Bounced back here after clicking "Verify address" mid-checkout —
+        // report the result and pick the purchase flow back up.
+        const params = new URLSearchParams(location.search);
+        if (params.has("addr_verified_return")) {
+          const verified = params.get("addr_verified") === "1";
+          history.replaceState(null, "", location.pathname + "?id=" + itemId);
+          if (verified) {
+            Pixl.toast("Address verified.");
+            confirmAddressThenBuy(itemId);
+          } else {
+            Pixl.toast("Couldn't get an address from Hack Club Auth.", true);
+          }
+        }
       }
       boot();
     </script>

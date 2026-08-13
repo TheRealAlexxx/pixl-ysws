@@ -14,6 +14,12 @@ import pixl from "../../pixl.json" with { type: "json" };
 
 const SERVER = pixl.urls.server;
 
+// Canonical host off packages/config rather than a literal - this was pinned
+// to pixl.rsvp and kept emitting URLs there after the move to
+// pixl.hackclub.com, same fix as build.ts / build-previews.ts.
+const SITE: string = pixl.urls.site;
+const SITE_HOST = SITE.replace(/^https?:\/\//, "");
+
 const OPEN = "<!-- <pixl-preview> -->";
 const CLOSE = "<!-- <pixl-preview:end> -->";
 
@@ -41,7 +47,7 @@ export default async function handler(req: MinimalReq, res: MinimalRes): Promise
   const id = url.searchParams.get("id");
 
   const proto = (req.headers?.["x-forwarded-proto"] as string) || "https";
-  const host = (req.headers?.host as string) || "www.pixl.rsvp";
+  const host = (req.headers?.host as string) || SITE_HOST;
   let html = await fetch(`${proto}://${host}/shop/item/index.html`).then((r) => r.text());
 
   if (id && /^\d+$/.test(id)) {
@@ -55,8 +61,8 @@ export default async function handler(req: MinimalReq, res: MinimalRes): Promise
           const description = item.description
             ? item.description.slice(0, 200)
             : `${item.name} — ${Math.round(item.price).toLocaleString()} px in the Pixl shop.`;
-          const pageUrl = `https://pixl.rsvp/shop/item?id=${id}`;
-          const image = `https://pixl.rsvp/api/shop-og?id=${id}`;
+          const pageUrl = `${SITE}/shop/item?id=${id}`;
+          const image = `${SITE}/api/shop-og?id=${id}`;
 
           const block = [
             OPEN,

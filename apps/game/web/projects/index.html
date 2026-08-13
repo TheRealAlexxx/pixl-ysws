@@ -549,39 +549,6 @@
           grid-template-columns: 1fr;
         }
       }
-      .level-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-      }
-      @media (max-width: 640px) {
-        .level-row {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      .level-btn {
-        border: 1px solid var(--stroke);
-        border-radius: var(--radius-sm);
-        background: var(--panel-deep);
-        color: var(--dim);
-        font-size: 15px;
-        padding: 12px 8px 10px;
-        text-align: center;
-      }
-      .level-btn small {
-        display: block;
-        font-size: 12px;
-        color: var(--faint);
-        margin-top: 5px;
-        line-height: 1.45;
-      }
-      .level-btn.sel {
-        background: var(--gold);
-        color: var(--btn-ink);
-      }
-      .level-btn.sel small {
-        color: rgba(43, 29, 18, 0.72);
-      }
       .thumb-box {
         display: flex;
         gap: 16px;
@@ -1274,15 +1241,6 @@
         </div>
       </div>
       <div class="form-row">
-        <label>COMPLEXITY</label>
-        <div class="level-row" id="f-levels">
-          ${LEVELS.map(
-            ([l, tip], i) => `
-            <button type="button" class="level-btn ${(p.level || 1) === i + 1 ? "sel" : ""}" data-level="${i + 1}">${l}<small>${tip}</small></button>`,
-          ).join("")}
-        </div>
-      </div>
-      <div class="form-row">
         <label>TYPE (helps reviewers know how to run it)</label>
         <select class="field" id="f-type">
           ${[
@@ -1354,15 +1312,7 @@
       }
 
       function bindForm(p) {
-        form = { level: p.level || 1, imageUrl: p.image_url || "" };
-        $("f-levels").addEventListener("click", (e) => {
-          const b = e.target.closest(".level-btn");
-          if (!b) return;
-          form.level = Number(b.dataset.level);
-          document
-            .querySelectorAll(".level-btn")
-            .forEach((x) => x.classList.toggle("sel", x === b));
-        });
+        form = { imageUrl: p.image_url || "" };
         $("f-ai").addEventListener("change", () => {
           $("f-ai-notes-row").hidden = !$("f-ai").checked;
         });
@@ -1414,7 +1364,6 @@
           repoUrl: $("f-repo").value.trim(),
           demoUrl: $("f-demo").value.trim(),
           imageUrl: form.imageUrl,
-          level: form.level,
           usedAi: $("f-ai").checked,
           aiNotes: $("f-ai-notes").value.trim(),
           projectType: $("f-type") ? $("f-type").value : "other",
@@ -2055,7 +2004,7 @@
       function lockForm() {
         document
           .querySelectorAll(
-            ".editor input, .editor textarea, .editor select, #f-save, #f-thumb-btn, .level-btn",
+            ".editor input, .editor textarea, .editor select, #f-save, #f-thumb-btn",
           )
           .forEach((el) => {
             if (

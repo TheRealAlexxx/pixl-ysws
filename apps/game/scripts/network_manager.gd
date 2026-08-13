@@ -75,8 +75,6 @@ func _try_auto_login() -> void:
 		emit_signal("logged_in", display_name)
 
 func _save_session() -> void:
-	if OS.has_feature("web"):
-		pass
 	var file = FileAccess.open(TOKEN_SAVE_PATH, FileAccess.WRITE)
 	if file:
 		var data = { "token": session_token, "display_name": display_name }

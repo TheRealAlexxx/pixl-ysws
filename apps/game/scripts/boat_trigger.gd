@@ -5,8 +5,13 @@ const MONOCRAFT := preload("res://assets/fonts/Monocraft.ttf")
 @export var speaker: String = "Boat"
 @export_multiline var dialogue_text: String = "Oh it has a note! It says - other regions like cyberpunk coming soon! come here again in some time and check again!"
 @export var prompt_y: float = -34.0
+## Leave empty for the "coming soon" note. Set to a Marker2D in this scene
+## (e.g. "../FarwestSpawn") to teleport the local player there on interact
+## instead of opening the dialogue.
+@export var target_marker: NodePath = NodePath("")
 
 var _player_near := false
+var _player_body: Node2D
 var _prompt: Label
 
 func _ready() -> void:
@@ -40,6 +45,7 @@ func _process(_delta: float) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body.has_method("player") and body.is_local:
 		_player_near = true
+		_player_body = body
 
 func _on_body_exited(body: Node2D) -> void:
 	if body.has_method("player") and body.is_local:
@@ -50,4 +56,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
+		if target_marker != NodePath(""):
+			_teleport()
+		else:
+			Dialogue.open(speaker, [dialogue_text])
+
+func _teleport() -> void:
+	var marker := get_node_or_null(target_marker)
+	if marker == null or not is_instance_valid(_player_body):
 		Dialogue.open(speaker, [dialogue_text])
+		return
+	_player_body.global_position = marker.global_position

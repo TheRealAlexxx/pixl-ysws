@@ -5683,12 +5683,37 @@ polygon = PackedVector2Array(0, -3, -186, -88, -264, -502, -257, -657, -33, -716
 
 [node name="BoatTrigger" type="Area2D" parent="." unique_id=511229193]
 z_index = 13
-position = Vector2(-240, -136)
+position = Vector2(-446, -318)
 collision_mask = 2
 script = ExtResource("46_boat1")
+target_marker = NodePath("../FarwestSpawn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BoatTrigger" unique_id=511229194]
 shape = SubResource("RectangleShape2D_boat1")
+
+[node name="BoatTrigger2" type="Area2D" parent="." unique_id=393268605]
+z_index = 13
+position = Vector2(-446, -318)
+collision_mask = 2
+script = ExtResource("46_boat1")
+target_marker = NodePath("../PlayerSpawn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoatTrigger2" unique_id=1472849203]
+position = Vector2(-314, 647.5)
+shape = SubResource("RectangleShape2D_boat1")
+
+[node name="BoatTrigger3" type="Area2D" parent="." unique_id=1201145161]
+z_index = 13
+position = Vector2(-446, -318)
+collision_mask = 2
+script = ExtResource("46_boat1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoatTrigger3" unique_id=778306270]
+position = Vector2(-378, 1210)
+shape = SubResource("RectangleShape2D_boat1")
+
+[node name="FarwestSpawn" type="Marker2D" parent="." unique_id=1832910447]
+position = Vector2(3600, -300)
 
 [node name="Farwest L_1" type="TileMapLayer" parent="." unique_id=632102809]
 z_index = 10
@@ -5733,3 +5758,7 @@ tile_set = SubResource("TileSet_8nchb")
 [connection signal="body_exited" from="DoorTrigger3" to="DoorTrigger3" method="_on_body_exited"]
 [connection signal="body_entered" from="BoatTrigger" to="BoatTrigger" method="_on_body_entered"]
 [connection signal="body_exited" from="BoatTrigger" to="BoatTrigger" method="_on_body_exited"]
+[connection signal="body_entered" from="BoatTrigger2" to="BoatTrigger2" method="_on_body_entered"]
+[connection signal="body_exited" from="BoatTrigger2" to="BoatTrigger2" method="_on_body_exited"]
+[connection signal="body_entered" from="BoatTrigger3" to="BoatTrigger3" method="_on_body_entered"]
+[connection signal="body_exited" from="BoatTrigger3" to="BoatTrigger3" method="_on_body_exited"]

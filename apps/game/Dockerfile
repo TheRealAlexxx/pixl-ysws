@@ -96,12 +96,13 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV SITE_ROOT=/srv/site
 
-COPY --from=assemble /site /srv/site
-COPY apps/game/serve.ts ./serve.ts
-COPY apps/game/web/api ./web/api
+COPY --from=assemble --chown=bun:bun /site /srv/site
+COPY --chown=bun:bun apps/game/serve.ts ./serve.ts
+COPY --chown=bun:bun apps/game/web/api ./web/api
 # The api handlers read the server URL from ../../pixl.json, so the layout under
 # /srv/app has to match the repo's (apps/game/pixl.json next to web/).
-COPY apps/game/pixl.json ./pixl.json
+COPY --chown=bun:bun apps/game/pixl.json ./pixl.json
 
+USER bun
 EXPOSE 3000
 CMD ["bun", "run", "serve.ts"]
