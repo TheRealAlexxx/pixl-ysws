@@ -14,11 +14,17 @@ So the RE from your projects gets counted twice, in a good way: once toward your
 
 Each chamber has an energy threshold. When the community total passes it, the chamber opens for good. It can't close again, and joining after it opened doesn't lock you out of anything. The Vault page shows the current total, the next threshold, and what's inside each chamber.
 
-## Community goals are a different thing
+## The Chapter 1 community goal
 
-Goals are timed events with a target number of ships, sometimes limited to one kind of project. If the community hits the target inside the window, every project shipped during that window gets a percentage bonus on its pixels.
+Right now the Vault holds one chamber: **7,500 RE**, community-wide. Every approved hour anyone ships, at any tier, adds to that total. Cross it, and the Core comes fully online — Chapter 1 closes and Chapter 2 opens for everyone, whether you personally shipped the RE that pushed it over or not.
 
-The difference worth remembering: the **Vault** is a permanent, ever growing total that unlocks equipment for everyone. A **goal** is a short window with a payout bonus attached.
+There's no per-player cut of that 7,500. It's the whole community pulling together inside the chapter's window, so a project doesn't have to be huge to matter: it all adds up.
+
+## Timed goals are a different thing
+
+Separately from the Vault, the team sometimes runs short timed goals: a target number of ships, sometimes limited to one kind of project, inside a fixed window. If the community hits the target before the window closes, every project shipped during that window gets a percentage bonus on its pixels.
+
+The difference worth remembering: the **Vault** is the chapter's running total that unlocks the next chapter for everyone. A **timed goal** is a short window with a payout bonus attached, and doesn't gate anything.
 
 ::: note You can't lose by other people shipping
 Neither of these can take anything away from you. Your rate comes off your own RE, and a missed goal just means no bonus, never less than you'd otherwise have earned. The community side is upside only.

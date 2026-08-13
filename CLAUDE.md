@@ -58,8 +58,9 @@ Each app has its own `.env` (see `.env.example` where present, e.g. `apps/server
 Never hardcode the launch date, the Hackatime cutoff, a pixl.rsvp URL or the
 economy rates in an app — they all live in `packages/config/pixl.json`.
 
-- **TS apps** (`server`, `landing`, `dashboard`, `pixorpheus`) `import { config, launchDate, hackatimeCutoffUnix, hasLaunched, launchDateLabel } from "@pixl/config"`. The package entry is deliberately plain `.js` + `.d.ts`, not `.ts`: `apps/server` runs its `dist/` on bare `node`, which can only load a `.ts` entry through experimental type-stripping.
-- **Godot** (`apps/game/scripts/pixl_config.gd`) and **the game's web pages** (`Pixl.config` in `apps/game/web/pixl.js`) can't import a workspace package, so they read *generated copies*. After editing `pixl.json`, run `bun run config:sync` — the copies are committed but must never be hand-edited.
+- Nothing imports `@pixl/config` at runtime, not even the TS apps — Railway/Vercel build each app from its own `/apps/<app>` root, so a workspace package outside that root doesn't resolve there. Every consumer instead reads a **generated, git-committed copy** produced by `bun run config:sync` after you edit `pixl.json` — never hand-edit the generated files, the next sync overwrites them.
+- **TS apps**: `server`/`pixorpheus` import `../config.generated.js` (the `.js` extension is required — they run as ESM); `landing`/`dashboard` import `../_generated/config` (or the `@/app/_generated/config` alias) — all expose `config`, `launchDate`, `hackatimeCutoffUnix`, `hasLaunched`, `launchDateLabel`, etc.
+- **Godot** (`apps/game/scripts/pixl_config.gd`) reads `apps/game/pixl.json`, and **the game's web pages** read `Pixl.config` in `apps/game/web/pixl.js` — both are also generated copies from the same sync.
 - Dates are ISO-8601 **UTC**. Format them with `timeZone: "UTC"`; a naive `new Date("2026-08-18T00:00:00")` means midnight in the *reader's* timezone and is the exact drift this package exists to stop.
 
 Launch-state copy (Pixo's persona/FAQ, the Slack welcome messages) switches itself

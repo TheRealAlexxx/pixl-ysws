@@ -70,7 +70,7 @@ export function renderCard({ title, eyebrow, url }: CardInput): Uint8Array {
 
   canvas.fill(left, footY, maxWidth, 2, STROKE);
   drawText(canvas, url.toUpperCase(), left, footY + 26, 3, DIM, 2);
-  canvas.fill(right - textWidth("PIXL.RSVP", 3, 2) - 24, footY + 26, 14, GLYPH_H * 3, GOLD);
+  canvas.fill(right - textWidth(url.toUpperCase(), 3, 2) - 24, footY + 26, 14, GLYPH_H * 3, GOLD);
 
   return canvas.encode();
 }

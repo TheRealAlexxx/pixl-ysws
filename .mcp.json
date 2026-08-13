@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "orchard": {
+      "type": "http",
+      "url": "https://mcp.k.hackclub.dev"
+    }
+  }
+}

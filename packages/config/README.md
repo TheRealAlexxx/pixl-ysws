@@ -6,17 +6,11 @@ every app picks it up.
 
 ## Consuming it
 
-**TypeScript apps** (`server`, `dashboard`, `landing`, `pixorpheus`) import the
-package directly, so they can never drift:
-
-```ts
-import { config, launchDate, hackatimeCutoffUnix } from "@pixl/config";
-```
-
-**The Godot game** (`res://pixl.json`) and **the game's web pages**
-(`apps/game/web/pixl.js`) cannot import a workspace package - one runs inside an
-exported PCK, the other is plain `<script>`-tag JS. Both get a *generated copy*
-instead, written by the sync script:
+Nothing imports `@pixl/config` at runtime - not even the TypeScript apps.
+Railway and Vercel both build each app from its own `/apps/<app>` root, so a
+workspace package living outside that directory doesn't exist at install
+time there. Every consumer instead gets a *generated, committed copy*,
+written by the sync script:
 
 ```bash
 bun run config:sync
@@ -26,9 +20,24 @@ Run that after editing `pixl.json`. It rewrites:
 
 - `apps/game/pixl.json` - read by `apps/game/scripts/pixl_config.gd`
 - the generated block inside `apps/game/web/pixl.js` - exposed as `Pixl.config`
+- `apps/server/src/config.generated.ts`
+- `apps/pixorpheus/src/config.generated.ts`
+- `apps/landing/app/_generated/config.ts`
+- `apps/dashboard/app/_generated/config.ts`
 
-Both are committed (the game needs them at runtime) but are **generated - do not
-hand-edit them**, the next sync overwrites your changes.
+**TypeScript apps** import their own generated copy by relative path, e.g.:
+
+```ts
+// server / pixorpheus (compiled/run as ESM, so the .js extension is required)
+import { config, launchDate, hackatimeCutoffUnix } from "../config.generated.js";
+
+// landing / dashboard (Next.js, no extension)
+import { config, launchDate } from "../_generated/config";
+// or, using the app's path alias: from "@/app/_generated/config"
+```
+
+All of these files are committed (the apps need them to build and run) but are
+**generated - do not hand-edit them**, the next sync overwrites your changes.
 
 ## Dates
 
