@@ -912,5 +912,11 @@ static func _add_pixlcraft_boat(root: Node) -> void:
 	trigger.owner = root
 	trigger.add_child(shape)
 	shape.owner = root
+
+	# boat_trigger.gd only ever reacts through these two signals, so a trigger
+	# that is not connected is dead. CONNECT_PERSIST keeps the wiring when the
+	# scene is saved back out.
+	trigger.body_entered.connect(Callable(trigger, "_on_body_entered"), CONNECT_PERSIST)
+	trigger.body_exited.connect(Callable(trigger, "_on_body_exited"), CONNECT_PERSIST)
 	trigger.body_entered.connect(Callable(trigger, "_on_body_entered"))
 	trigger.body_exited.connect(Callable(trigger, "_on_body_exited"))

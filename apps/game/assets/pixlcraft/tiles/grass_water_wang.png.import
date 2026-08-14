@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b66bwu3ge6qv2"
-path="res://.godot/imported/grass_water_wang.png-ea77b7a014b305969c129eff52d67f18.ctex"
+path="res://.godot/imported/grass_water_wang.png-119fdc1450193758c62b25b53a67370c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/pixlcraft/tiles/grass_water_wang.png"
-dest_files=["res://.godot/imported/grass_water_wang.png-ea77b7a014b305969c129eff52d67f18.ctex"]
+dest_files=["res://.godot/imported/grass_water_wang.png-119fdc1450193758c62b25b53a67370c.ctex"]
 
 [params]
 

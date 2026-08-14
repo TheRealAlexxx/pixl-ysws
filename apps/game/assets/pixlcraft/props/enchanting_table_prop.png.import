@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dl7d135nh5el3"
-path="res://.godot/imported/enchanting_table_prop.png-ac904e2a3ea18a6845b632e6976cd0fe.ctex"
+path="res://.godot/imported/enchanting_table_prop.png-28cbd3c604d39c4f4e882b2476b57ee3.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/pixlcraft/props/enchanting_table_prop.png"
-dest_files=["res://.godot/imported/enchanting_table_prop.png-ac904e2a3ea18a6845b632e6976cd0fe.ctex"]
+dest_files=["res://.godot/imported/enchanting_table_prop.png-28cbd3c604d39c4f4e882b2476b57ee3.ctex"]
 
 [params]
 

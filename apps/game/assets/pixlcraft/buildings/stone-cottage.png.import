@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxt3ra6sg6ou5"
-path="res://.godot/imported/stone-cottage.png-e8a23bbab3513101657a23b3ce1bc2b1.ctex"
+path="res://.godot/imported/stone-cottage.png-b1600bd64140849e31dc639069e7c9c2.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/pixlcraft/buildings/stone-cottage.png"
-dest_files=["res://.godot/imported/stone-cottage.png-e8a23bbab3513101657a23b3ce1bc2b1.ctex"]
+dest_files=["res://.godot/imported/stone-cottage.png-b1600bd64140849e31dc639069e7c9c2.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cptsyn02x3c3t"
-path="res://.godot/imported/boulder-16.png-9bb8c510c46a16f76cceafb0ba0b1919.ctex"
+path="res://.godot/imported/boulder-16.png-12eb894cf2faad4b874b56936260d085.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/pixlcraft/props/boulder-16.png"
-dest_files=["res://.godot/imported/boulder-16.png-9bb8c510c46a16f76cceafb0ba0b1919.ctex"]
+dest_files=["res://.godot/imported/boulder-16.png-12eb894cf2faad4b874b56936260d085.ctex"]
 
 [params]
 
