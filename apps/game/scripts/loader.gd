@@ -40,6 +40,21 @@ func hide_loading() -> void:
 	_active = false
 	_screen.visible = false
 
+## Brief cover for a jump inside the current scene (boat rides), where there is
+## no scene swap to wait on. `midpoint` fires while the screen is covered, so the
+## world never visibly snaps. Drives the bar itself rather than letting _process
+## creep it, so a half-second cover still reads as a complete load.
+func cover_jump(duration: float, message: String, midpoint: Callable) -> void:
+	show_loading(message)
+	_active = false
+	var tween := create_tween()
+	tween.tween_method(_screen.set_progress, 0.0, 100.0, duration)
+	await get_tree().create_timer(duration * 0.5).timeout
+	if midpoint.is_valid():
+		midpoint.call()
+	await tween.finished
+	hide_loading()
+
 func _process(delta: float) -> void:
 	if _pending_path != "":
 		var progress: Array = []

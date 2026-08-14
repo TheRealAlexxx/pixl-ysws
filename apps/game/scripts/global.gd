@@ -33,7 +33,7 @@ func ui_blocked() -> bool:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	var is_toggle_key := event.keycode == KEY_F2
+	var is_toggle_key: bool = event.keycode == KEY_F2
 	if OS.get_name() == "macOS":
 		is_toggle_key = is_toggle_key or (event.keycode == KEY_H and event.meta_pressed)
 	if not is_toggle_key:

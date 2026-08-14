@@ -15,12 +15,11 @@ const MONOCRAFT := preload("res://assets/fonts/Monocraft.ttf")
 
 var _player_near := false
 var _player_body: Node2D
+var _sailing := false
 var _prompt: Label
 var _dest_label: Label
-var _debug_frame := 0
 
 func _ready() -> void:
-	print("[boat_debug] ", name, " ready at global_position=", global_position, " shape_extents=", $CollisionShape2D.shape.size if $CollisionShape2D.shape is RectangleShape2D else "?", " shape_local_pos=", $CollisionShape2D.position)
 	_prompt = Label.new()
 	_prompt.z_index = 30
 	_prompt.text = "[%s]" % _interact_key_label()
@@ -56,14 +55,6 @@ func _interact_key_label() -> String:
 	return "E"
 
 func _process(_delta: float) -> void:
-	_debug_frame += 1
-	if _debug_frame % 20 == 0:
-		var scene := get_tree().current_scene
-		var p = scene.get("_local_player") if scene != null else null
-		if is_instance_valid(p):
-			var d: float = (p.global_position - global_position).length()
-			if d < 150.0:
-				print("[boat_debug] ", name, " player_pos=", p.global_position, " trigger_pos=", global_position, " dist=", d, " player_near=", _player_near)
 	var show := _player_near and not Dialogue.is_open and not ChatHud.is_typing()
 	_prompt.visible = show
 	if _dest_label:
@@ -77,13 +68,11 @@ func _process(_delta: float) -> void:
 			)
 
 func _on_body_entered(body: Node2D) -> void:
-	print("[boat_debug] ", name, " body_entered: ", body, " has_player_method=", body.has_method("player"), " is_local=", body.get("is_local"))
 	if body.has_method("player") and body.is_local:
 		_player_near = true
 		_player_body = body
 
 func _on_body_exited(body: Node2D) -> void:
-	print("[boat_debug] ", name, " body_exited: ", body)
 	if body.has_method("player") and body.is_local:
 		_player_near = false
 
@@ -102,4 +91,12 @@ func _teleport() -> void:
 	if marker == null or not is_instance_valid(_player_body):
 		Dialogue.open(speaker, [dialogue_text])
 		return
-	_player_body.global_position = marker.global_position
+	if _sailing:
+		return
+	_sailing = true
+	_player_near = false
+	var body := _player_body
+	await Loader.cover_jump(0.5, "Sailing", func() -> void:
+		if is_instance_valid(body) and is_instance_valid(marker):
+			body.global_position = marker.global_position)
+	_sailing = false

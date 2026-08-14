@@ -4071,7 +4071,7 @@ sources/1 = SubResource("TileSetAtlasSource_rusk3")
 size = Vector2(21, 26)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boat1"]
-size = Vector2(30, 45.5)
+size = Vector2(44, 56)
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rbkc6"]
 texture = ExtResource("48_80neg")

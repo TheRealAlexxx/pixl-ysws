@@ -43,7 +43,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# Mac keyboards map bare F-keys to system functions by default, so F1 never
 	# reaches the app there; Cmd+G ("Guide") is the Mac-only alternate binding.
-	var is_guide_key := event.keycode == KEY_F1
+	var is_guide_key: bool = event.keycode == KEY_F1
 	if OS.get_name() == "macOS":
 		is_guide_key = is_guide_key or (event.keycode == KEY_G and event.meta_pressed)
 	if is_guide_key:
