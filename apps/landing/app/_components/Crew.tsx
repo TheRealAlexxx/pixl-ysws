@@ -13,7 +13,7 @@ const ORGS: Person[] = [
 ];
 const SPONSORS: Person[] = [
   { name: "barnav", link: "https://hackclub.enterprise.slack.com/team/U08RVF1BAN4" },
-  { name: "seba", link: "" },
+  { name: "seba", link: "https://hackclub.enterprise.slack.com/team/U087BHR98AX" },
 ];
 
 function Name({ p }: { p: Person }) {
