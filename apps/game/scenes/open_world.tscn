@@ -4927,24 +4927,22 @@ shape = SubResource("RectangleShape2D_boat1")
 
 [node name="BoatTrigger2" type="Area2D" parent="." unique_id=393268605]
 z_index = 13
-position = Vector2(-446, -318)
+position = Vector2(-622, 738)
 collision_mask = 2
 script = ExtResource("46_boat1")
 target_marker = NodePath("../PlayerSpawn")
 destination_label = "Go to Main Island"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BoatTrigger2" unique_id=1472849203]
-position = Vector2(-314, 647.5)
 shape = SubResource("RectangleShape2D_boat1")
 
 [node name="BoatTrigger3" type="Area2D" parent="." unique_id=1201145161]
 z_index = 13
-position = Vector2(-446, -318)
+position = Vector2(-1294, 690)
 collision_mask = 2
 script = ExtResource("46_boat1")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BoatTrigger3" unique_id=778306270]
-position = Vector2(-378, 1210)
 shape = SubResource("RectangleShape2D_boat1")
 
 [node name="Farwest L_1" type="TileMapLayer" parent="." unique_id=632102809]
