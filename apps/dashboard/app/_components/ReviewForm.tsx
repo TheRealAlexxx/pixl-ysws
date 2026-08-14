@@ -90,11 +90,12 @@ const TIERS = [
 
 /**
  * The tier picker plus every conversion it implies, worked out live so a
- * reviewer never has to do the arithmetic: hours at this tier become RE, that RE
- * moves the player along the payout ramp, and the rate averaged across that move
- * times the hours is the payout. Numbers come from packages/config, and the
- * maths mirrors creditBeneficiary exactly - if these two ever disagree, the
- * reviewer is being shown a number the player won't receive.
+ * reviewer never has to do the arithmetic: hours at this tier become RE, and
+ * the rate averaged over this project's own RE (0 -> projectRe) times the
+ * hours is the payout - the player's existing lifetime RE/level is shown
+ * for context but doesn't move the rate. Numbers come from packages/config,
+ * and the maths mirrors creditBeneficiary exactly - if these two ever
+ * disagree, the reviewer is being shown a number the player won't receive.
  */
 function TierAndPayout({
   hours,
@@ -110,10 +111,10 @@ function TierAndPayout({
   const perHour = rePerHour(tier);
   const projectRe = reForHours(hours, tier);
   const reAfter = playerReBefore + projectRe;
-  // Averaged across the RE this ship earns, matching creditBeneficiary exactly -
-  // the rate climbs as the RE is earned rather than being read off either end.
-  const rate = pxPerHourOver(playerReBefore, reAfter);
-  const usdRate = averageUsdPerHourOver(playerReBefore, reAfter);
+  // Averaged across this project's own RE only (0 -> projectRe), matching
+  // creditBeneficiary exactly - the player's lifetime RE doesn't move the rate.
+  const rate = pxPerHourOver(0, projectRe);
+  const usdRate = averageUsdPerHourOver(0, projectRe);
   // Flat tier bonus on the project's first hours - the thing that makes tier
   // visible on a short project, where the RE ramp alone is worth cents.
   const kickerUsd = tierKickerUsd(hours, tier);

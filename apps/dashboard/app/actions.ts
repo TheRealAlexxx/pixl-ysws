@@ -460,16 +460,18 @@ async function creditBeneficiary(
     }
   }
 
-  // Two parts, both in packages/config: the RE-driven rate averaged across the
-  // RE this ship earns (so a project's own tier counts toward its own payout
-  // without letting one long ship jump straight to the cap), plus a flat tier
-  // kicker on its first hours (so tier is felt on short projects, where the RE
-  // ramp alone is worth cents). pxRate below is the *effective* rate including
-  // the kicker, since that is what the player is told.
+  // Two parts, both in packages/config: the RE-driven rate averaged across
+  // this project's OWN RE only (0 -> projectRe), so payout depends on what
+  // this ship itself earns, not on RE the player already banked from other
+  // projects, plus a flat tier kicker on its first hours (so tier is felt on
+  // short projects, where the RE ramp alone is worth cents). pxRate below is
+  // the *effective* rate including the kicker, since that is what the player
+  // is told. xpBefore is still the player's lifetime RE (excluding this
+  // project) - kept only for the "you're now level N" copy, not the rate.
   const xpBefore = await lifetimeRe(userId, projectId);
   const projectRe = reForHours(creditHours, tier);
   const kickerPx = tierKickerUsd(creditHours, tier) / config.economy.pixelValueUsd;
-  let pxRate = pxPerHourOver(xpBefore, xpBefore + projectRe);
+  let pxRate = pxPerHourOver(0, projectRe);
   const alreadyPx = await projectPixelTotal(projectId, userId);
   // A project only counts as a "new ship" for referral purposes the first
   // time it earns any pixels , re-approvals of an already-credited project
