@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale } from "./LocaleProvider";
 
-const MAP_WIDTH = 1640;
-const MAP_HEIGHT = 960;
-const INITIAL_POS = { x: -600, y: -20 };
+const MAP_WIDTH = 1520;
+const MAP_HEIGHT = 1441;
+// The hub island sits in the top right of the bake and the rest of the map is
+// mostly ocean, so open on the hub rather than on empty water.
+const FOCUS = { x: 1240, y: 240 };
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -18,23 +20,27 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function clampPos(x: number, y: number, frameW: number, frameH: number) {
+  return {
+    x: clamp(x, Math.min(0, frameW - MAP_WIDTH), 0),
+    y: clamp(y, Math.min(0, frameH - MAP_HEIGHT), 0),
+  };
+}
+
 export function MapPreview() {
   const { dict } = useLocale();
   const t = dict.mapPreview;
   const frameRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState(INITIAL_POS);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
 
-  function clampPos(x: number, y: number) {
+  useLayoutEffect(() => {
     const frame = frameRef.current;
-    if (!frame) return { x, y };
-    const maxX = 0;
-    const maxY = 0;
-    const minX = Math.min(0, frame.clientWidth - MAP_WIDTH);
-    const minY = Math.min(0, frame.clientHeight - MAP_HEIGHT);
-    return { x: clamp(x, minX, maxX), y: clamp(y, minY, maxY) };
-  }
+    if (!frame) return;
+    const { clientWidth: w, clientHeight: h } = frame;
+    setPos(clampPos(w / 2 - FOCUS.x, h / 2 - FOCUS.y, w, h));
+  }, []);
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     setDragging(true);
@@ -44,9 +50,18 @@ export function MapPreview() {
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragging) return;
+    const frame = frameRef.current;
+    if (!frame) return;
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
-    setPos(clampPos(dragStart.current.posX + dx, dragStart.current.posY + dy));
+    setPos(
+      clampPos(
+        dragStart.current.posX + dx,
+        dragStart.current.posY + dy,
+        frame.clientWidth,
+        frame.clientHeight,
+      ),
+    );
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
