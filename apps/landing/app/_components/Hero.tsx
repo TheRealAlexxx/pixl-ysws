@@ -51,9 +51,9 @@ export function Hero() {
         disablePictureInPicture
         disableRemotePlayback
         preload="auto"
-        poster="/hero-bg1.png"
+        poster="/hero-bg-poster.webp"
       >
-        <source src="https://cdn.hackclub.com/019eee3a-c90e-79da-a7cc-9251883cfb5a/hero-bg.mp4" type="video/mp4" />
+        <source src="https://cdn.hackclub.com/01a001b5-62bc-7888-94b3-923d515f3af2/hero-bg.mp4" type="video/mp4" />
       </video>
       <motion.div
         className="absolute inset-0 bg-black"
