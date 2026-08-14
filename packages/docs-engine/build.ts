@@ -48,6 +48,42 @@ const exampleUsd = E.tierKickerUsdPerStep * (exampleTier - 1) * exampleHours;
 tokens.kickerExampleUsd = `$${exampleUsd.toFixed(2)}`;
 tokens.kickerExamplePx = `${Math.round(exampleUsd / E.pixelValueUsd)} px`;
 
+// Mirrors packages/config/sync.ts's payoutUsdPerHour/averageUsdPerHourOver -
+// the ramp is linear, so the average over [0, re] (re <= reForMaxPayout,
+// true for every example below) is just the average of its two endpoints.
+const rampAvgUsd = (re: number) => {
+  const r = Math.min(re, E.reForMaxPayout);
+  return E.basePayoutUsd + (r / (2 * E.reForMaxPayout)) * (E.maxPayoutUsd - E.basePayoutUsd);
+};
+
+// Same 10h/T4 project the kicker example already quotes - now the full total,
+// ramp + kicker together, so the two mechanics visibly add up to one number.
+const exampleProjectRe = E.tierRePerHour[exampleTier - 1] * exampleHours;
+const exampleRampUsd = rampAvgUsd(exampleProjectRe) * exampleHours;
+const exampleTotalUsd = exampleRampUsd + exampleUsd;
+tokens.exampleRampUsd = `$${exampleRampUsd.toFixed(2)}`;
+tokens.exampleTotalUsd = `$${exampleTotalUsd.toFixed(2)}`;
+tokens.exampleTotalPx = `${Math.round(exampleTotalUsd / E.pixelValueUsd)} px`;
+
+// A project big enough to hit the cap on its own: reForMaxPayout RE at the
+// top tier, so its own average rate runs the whole ramp start to finish.
+const capTier = E.tierRePerHour.length;
+const capHours = Math.round(E.reForMaxPayout / E.tierRePerHour[capTier - 1]);
+const capKickerUsd = E.tierKickerUsdPerStep * (capTier - 1) * Math.min(capHours, E.tierKickerHours);
+const capUsd = rampAvgUsd(E.reForMaxPayout) * capHours + capKickerUsd;
+tokens.capExampleHours = String(capHours);
+tokens.capExampleUsd = `$${capUsd.toFixed(2)}`;
+tokens.capExamplePx = `${Math.round(capUsd / E.pixelValueUsd)} px`;
+
+// The same player's next project, small and low tier, right after the one
+// above - shows the rate resets instead of carrying over.
+const nextHours = 5;
+const nextRe = E.tierRePerHour[0] * nextHours;
+const nextRate = rampAvgUsd(nextRe);
+tokens.nextExampleHours = String(nextHours);
+tokens.nextExampleRate = `$${nextRate.toFixed(2)}`;
+tokens.nextExamplePx = `${Math.round((nextRate * nextHours) / E.pixelValueUsd)} px`;
+
 let from = 1;
 let cumulative = 0;
 E.levelBands.forEach((band: { throughLevel: number; rePerLevel: number }, i: number) => {

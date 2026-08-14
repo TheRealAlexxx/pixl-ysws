@@ -27,6 +27,8 @@ Each project's own RE, its tier weighted by its hours, is what sets *that projec
 
 The climb counts for the project that's earning it, and only that project. Its rate rises *while* its hours land, so it gets paid the average rate across the RE it earned, from zero. Whatever RE you've already banked from other projects doesn't carry over: every project starts its own climb from the bottom, so splitting your work across several projects or bundling it into one pays about the same either way, and no single big build inflates the rate on everything you ship afterwards.
 
+For example, a {{capExampleHours}} hour T4 project earns the full {{reCap}} RE by itself, so its rate runs the entire ramp start to finish and it's paid {{capExampleUsd}} ({{capExamplePx}}) total. Ship a {{nextExampleHours}} hour T1 project right after it and that one earns barely any RE on its own, so it's paid close to base: around {{nextExampleRate}} an hour ({{nextExamplePx}} total), not the {{maxUsd}} the big project just finished at.
+
 ::: note The short version
 On any one project, ship more, and ship something more ambitious, and every hour of it is worth more than the one before it. That project's own rate has a ceiling; your lifetime RE, below, does not.
 :::
@@ -35,7 +37,7 @@ On any one project, ship more, and ship something more ambitious, and every hour
 
 That climb is deliberately slow, because {{reCap}} RE is a lot of shipping for one project. On a short project it would barely register, and a tier 4 weekend build would pay about the same as a tier 1 one. So tier also pays a flat bonus on top: {{kickerUsd}} an hour for every tier above T1, on the first {{kickerHours}} hours of a project.
 
-So a 10 hour T4 project earns {{kickerExampleUsd}}, about {{kickerExamplePx}}, on top of whatever its normal rate pays.
+So a 10 hour T4 project earns {{kickerExampleUsd}}, about {{kickerExamplePx}}, on top of whatever its normal rate pays. Put together: 10 hours at T4 earns {{exampleRampUsd}} off the RE ramp (its own RE barely dents {{reCap}}, so the ramp alone is still close to base) plus the {{kickerExampleUsd}} kicker, for {{exampleTotalUsd}} total, about {{exampleTotalPx}}.
 
 After that the bonus stops, because by then a high tier project is already earning RE several times faster than a low tier one, so its own rate has already climbed a long way up the ramp without needing the flat bonus's help.
 
