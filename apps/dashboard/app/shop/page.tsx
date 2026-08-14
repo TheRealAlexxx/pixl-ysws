@@ -30,19 +30,25 @@ const FILE_INPUT =
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; region?: string }>;
+  searchParams: Promise<{ page?: string; region?: string; q?: string }>;
 }) {
   const access = await requirePagePerm(["shop"]);
-  const { page, region: rawRegion } = await searchParams;
+  const { page, region: rawRegion, q } = await searchParams;
   const region: ShopRegion = (SHOP_REGIONS as readonly string[]).includes(rawRegion ?? "")
     ? (rawRegion as ShopRegion)
     : "US";
+  const query = (q ?? "").trim().toLowerCase();
   // Trophies (unlock_xp > 0, e.g. the 3D Printed Blahaj) are earned by
   // leveling up, not bought with pixels or tied to a region — pull them out
   // into their own section regardless of which region tab is selected.
   const [regionItems, everyItem] = await Promise.all([listShopItems(region), listShopItems()]);
   const trophies = everyItem.filter((i) => i.unlock_xp > 0);
-  const allItems = regionItems.filter((i) => i.unlock_xp === 0);
+  let allItems = regionItems.filter((i) => i.unlock_xp === 0);
+  if (query) {
+    allItems = allItems.filter(
+      (i) => i.name.toLowerCase().includes(query) || i.description?.toLowerCase().includes(query),
+    );
+  }
   const pages = Math.max(1, Math.ceil(allItems.length / PER));
   const cur = Math.min(Math.max(parseInt(page ?? "1", 10) || 1, 1), pages);
   const start = (cur - 1) * PER;
@@ -110,20 +116,39 @@ export default async function ShopPage({
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {SHOP_REGIONS.map((r) => (
-          <Link
-            key={r}
-            href={`/shop?region=${r}`}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
-              r === region
-                ? "bg-brand text-white border-transparent"
-                : "border-border text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {SHOP_REGION_LABELS[r]}
-          </Link>
-        ))}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {SHOP_REGIONS.map((r) => (
+            <Link
+              key={r}
+              href={`/shop?region=${r}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+                r === region
+                  ? "bg-brand text-white border-transparent"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {SHOP_REGION_LABELS[r]}
+            </Link>
+          ))}
+        </div>
+        <form className="flex gap-2">
+          <input type="hidden" name="region" value={region} />
+          <Input
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Search item names…"
+            className="w-full min-w-0 max-w-64 text-sm"
+          />
+          {q && (
+            <Link
+              href={`/shop?region=${region}`}
+              className="text-sm text-muted-foreground hover:text-foreground self-center"
+            >
+              Clear
+            </Link>
+          )}
+        </form>
       </div>
 
       <Card className="p-5 md:p-6 gap-0">
@@ -340,7 +365,7 @@ export default async function ShopPage({
               <PaginationContent>
                 <PaginationItem>
                   <PaginationLink
-                    href={`/shop?region=${region}&page=${cur - 1}`}
+                    href={`/shop?region=${region}&page=${cur - 1}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
                     aria-label="Previous page"
                     className={cur <= 1 ? "pointer-events-none opacity-40" : ""}
                   >
@@ -354,7 +379,7 @@ export default async function ShopPage({
                 </PaginationItem>
                 <PaginationItem>
                   <PaginationLink
-                    href={`/shop?region=${region}&page=${cur + 1}`}
+                    href={`/shop?region=${region}&page=${cur + 1}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
                     aria-label="Next page"
                     className={cur >= pages ? "pointer-events-none opacity-40" : ""}
                   >
