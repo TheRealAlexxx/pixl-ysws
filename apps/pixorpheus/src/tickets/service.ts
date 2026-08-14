@@ -252,17 +252,38 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
   // next time — is it our own code, or Slack's API round-trip?
   const startedAt = Date.now();
 
-  // A quick placeholder goes out first for responsiveness; it's then edited in
-  // place with either a docs answer or a "wait for a helper" line once pixo has
-  // checked the docs (see the end of this function).
-  const placeholder = await client.chat.postMessage({
+  // The classic reply people are watching for goes out first, before any
+  // DB/reaction round-trips. pixo's docs answer is posted as a SEPARATE
+  // follow-up message afterwards (see the end of this function).
+  await client.chat.postMessage({
     channel: event.channel,
     thread_ts: event.ts,
-    text: "lemme check the docs for this real quick :hii:",
+    text: "Someone will be here to help you soon!",
     unfurl_links: false,
     unfurl_media: false,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `Someone will be here to help you soon! In the meantime, check out the <${process.env.SLACK_FAQ_URL}|FAQ>.`,
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "Mark as resolved" },
+            style: "primary",
+            action_id: "mark_resolved",
+            value: event.ts,
+          },
+        ],
+      },
+    ],
   });
-  console.log(`[handleNewQuestion] placeholder posted in ${Date.now() - startedAt}ms`);
+  console.log(`[handleNewQuestion] reply posted in ${Date.now() - startedAt}ms`);
 
   // Fire-and-forget from here — nothing downstream needs these to have
   // landed before we move on. createTicket() already falls back to
@@ -347,28 +368,19 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
 
   pendingTickets.set(event.ts, { event, timer });
 
-  // Docs-aware reply: if the docs answer the question, edit the placeholder with
-  // that answer; otherwise fall back to waiting for a human helper (and offer a
-  // similar previously-resolved ticket if there is one).
-  const resolvedBtn = {
-    type: "actions" as const,
-    elements: [
-      {
-        type: "button" as const,
-        text: { type: "plain_text" as const, text: "Mark as resolved" },
-        style: "primary" as const,
-        action_id: "mark_resolved",
-        value: event.ts,
-      },
-    ],
-  };
+  // Docs-aware follow-up: a SEPARATE message from pixo, posted after the classic
+  // "someone will help you soon" reply above. If the docs answer the question,
+  // pixo posts that answer; otherwise it says to wait for a human helper (and
+  // offers a similar previously-resolved ticket if there is one).
   try {
     const ans = await answerQuestion(event.text || "");
     if (ans) {
-      await client.chat.update({
+      await client.chat.postMessage({
         channel: event.channel,
-        ts: placeholder.ts!,
+        thread_ts: event.ts,
         text: ans.answer,
+        unfurl_links: false,
+        unfurl_media: false,
         blocks: [
           {
             type: "section",
@@ -377,39 +389,18 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
               text: `${ans.answer}\n\n_straight from the <${DOCS_LINKS.docs}|docs> — if that doesn't cover it, a helper will still follow up :hii:_`,
             },
           },
-          resolvedBtn,
         ],
       });
     } else {
-      await client.chat.update({
+      await client.chat.postMessage({
         channel: event.channel,
-        ts: placeholder.ts!,
-        text: "just wait for a helper to respond to this one :D",
-        blocks: [
-          {
-            type: "section",
-            text: { type: "mrkdwn", text: "the docs don't cover this one — just wait for a helper to respond to this one :D" },
-          },
-          resolvedBtn,
-        ],
+        thread_ts: event.ts,
+        text: "the docs don't cover this one — just wait for a helper to respond to this one :D",
       });
       checkFAQAndSimilar(event, client).catch(() => {});
     }
   } catch (e) {
-    await client.chat
-      .update({
-        channel: event.channel,
-        ts: placeholder.ts!,
-        text: "just wait for a helper to respond to this one :D",
-        blocks: [
-          {
-            type: "section",
-            text: { type: "mrkdwn", text: "just wait for a helper to respond to this one :D" },
-          },
-          resolvedBtn,
-        ],
-      })
-      .catch(() => {});
+    /* the classic reply already went out; nothing more to say on failure */
   }
 }
 
