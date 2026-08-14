@@ -11,7 +11,7 @@ Pixels are the currency of Pixl. You earn them by shipping.
 ## Earning pixels
 
 - {{basePx}} for every hour of shipped work, tracked through Hackatime
-- that rate climbs to {{maxPx}} an hour as you build up Restoration Energy (see [Energy and levels](/docs/energy/))
+- that rate climbs to {{maxPx}} an hour as a single project builds up Restoration Energy (see [Energy and levels](/docs/energy/))
 - most trials also come with an extra prize on top of the base pixels
 
 ## Spending pixels

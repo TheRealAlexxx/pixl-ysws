@@ -21,23 +21,23 @@ When a reviewer approves your project they also give it a **tier**, 1 to 4, base
 
 Tier is about the project, not about you. A first timer who ships something genuinely hard gets the high tier for it. Padding a simple site out with hours doesn't move it up either, since reviewers look at the actual repo.
 
-## RE decides your rate
+## RE decides your rate, one project at a time
 
-Your lifetime RE is every approved project's hours weighted by the tier it shipped at, added up. That's what sets your hourly rate. It starts at {{baseUsd}} an hour and climbs in a straight line to {{maxUsd}} an hour once you reach {{reCap}} RE. In pixels, that's {{basePx}} an hour rising to {{maxPx}}.
+Each project's own RE, its tier weighted by its hours, is what sets *that project's* hourly rate. It starts at {{baseUsd}} an hour and climbs in a straight line to {{maxUsd}} an hour once the project alone earns {{reCap}} RE. In pixels, that's {{basePx}} an hour rising to {{maxPx}}.
 
-The climb counts for the project that's earning it, not just the next one. Your rate rises *while* the hours land, so a project gets paid the average rate across the RE it just earned. It also means splitting your work across several projects or bundling it into one pays exactly the same total, so ship however you actually want to build.
+The climb counts for the project that's earning it, and only that project. Its rate rises *while* its hours land, so it gets paid the average rate across the RE it earned, from zero. Whatever RE you've already banked from other projects doesn't carry over: every project starts its own climb from the bottom, so splitting your work across several projects or bundling it into one pays about the same either way, and no single big build inflates the rate on everything you ship afterwards.
 
 ::: note The short version
-Ship more, and ship more ambitious things, and every hour after that is worth more than the one before it. RE itself has no ceiling, only the rate does.
+On any one project, ship more, and ship something more ambitious, and every hour of it is worth more than the one before it. That project's own rate has a ceiling; your lifetime RE, below, does not.
 :::
 
 ## The tier bonus
 
-That climb is deliberately slow, because {{reCap}} RE is a lot of shipping. On a short project it would barely register, and a tier 4 weekend build would pay about the same as a tier 1 one. So tier also pays a flat bonus on top: {{kickerUsd}} an hour for every tier above T1, on the first {{kickerHours}} hours of a project.
+That climb is deliberately slow, because {{reCap}} RE is a lot of shipping for one project. On a short project it would barely register, and a tier 4 weekend build would pay about the same as a tier 1 one. So tier also pays a flat bonus on top: {{kickerUsd}} an hour for every tier above T1, on the first {{kickerHours}} hours of a project.
 
 So a 10 hour T4 project earns {{kickerExampleUsd}}, about {{kickerExamplePx}}, on top of whatever its normal rate pays.
 
-After that the bonus stops, because a long high tier project is already earning RE several times faster than a low tier one, and that permanently lifts the rate on everything you ship afterwards.
+After that the bonus stops, because by then a high tier project is already earning RE several times faster than a low tier one, so its own rate has already climbed a long way up the ramp without needing the flat bonus's help.
 
 ## Levels
 
