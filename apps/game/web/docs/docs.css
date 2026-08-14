@@ -168,8 +168,20 @@ body { overflow-y: auto; }
   .doc-foot .ttl { color: var(--gold-soft); font-size: 15px; font-weight: 500; }
   .doc-sign { margin-top: 28px; text-align: center; font-size: 12px; color: var(--faint); }
 
+  /* Drop the "on this page" column before the content column gets squeezed
+     hard enough to overflow (a 46px h1 word doesn't wrap, it just spills past
+     a ~300px column) - this alone buys content most of its width back. */
+  @media (max-width: 1080px) {
+    .docs { grid-template-columns: var(--sidebar) minmax(0, 1fr); }
+    .docs-toc { display: none; }
+  }
+
   @media (max-width: 820px) {
     .docs { grid-template-columns: 1fr; }
     .docs-nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--stroke); }
     .docs-main { padding: 30px 20px 72px; }
   }
+
+  /* Belt and suspenders: even if some future layout squeezes this column
+     again, long headings/table cells wrap instead of overflowing it. */
+  .doc h1, .doc h2, .doc h3, .fact-grid > div { overflow-wrap: break-word; }
