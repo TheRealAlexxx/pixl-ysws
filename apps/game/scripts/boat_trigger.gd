@@ -55,7 +55,7 @@ func _interact_key_label() -> String:
 	return "E"
 
 func _process(_delta: float) -> void:
-	var show := _player_near and not Dialogue.is_open and not ChatHud.is_typing()
+	var show: bool = _player_near and not Dialogue.is_open and not ChatHud.is_typing()
 	_prompt.visible = show
 	if _dest_label:
 		_dest_label.visible = show
