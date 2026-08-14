@@ -347,6 +347,13 @@ router.get("/auth/hackclub/callback", async (req, res) => {
   const me = (await meRes.json()) as HackClubMeResponse;
   const identity = me.identity;
 
+  // TEMP DEBUG: birthday/address sync has never populated a single user (0/248
+  // checked against prod on 2026-08-14) - "birthdate"/"address" are a guessed
+  // OIDC claim name per the comments on extractBirthday/extractAddress below.
+  // Dump the real shape once so we can fix the actual key names, then remove.
+  console.warn("[hca-debug] identity keys:", Object.keys(identity), "scopes:", me.scopes);
+  console.warn("[hca-debug] full identity:", JSON.stringify(identity));
+
   if (pending.purpose === "verify_address") {
     const addr = extractAddress(identity);
     if (addr && pending.userId) {
