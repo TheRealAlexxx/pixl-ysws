@@ -1,55 +1,76 @@
-[gd_scene format=4 uid="uid://0p7hx6122c2a"]
+[gd_scene format=4]
 
-[ext_resource type="Script" uid="uid://b1oodl1bac32m" path="res://scripts/open_world.gd" id="1_uwfmm"]
-[ext_resource type="Texture2D" uid="uid://dcf01uco6haij" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Water.png" id="2_02ewf"]
-[ext_resource type="Texture2D" uid="uid://bj1slphb7wwt4" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Seaprops.png" id="3_gn8t7"]
-[ext_resource type="Script" uid="uid://ch7tdp8lxj0t5" path="res://scripts/water.gd" id="4_3uvyv"]
-[ext_resource type="Texture2D" uid="uid://beh8okrwrhn7i" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/water_cyberpunk.png" id="4_ow7pp"]
-[ext_resource type="Texture2D" uid="uid://dt1vs2st37iti" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Terrain.png" id="5_jc8li"]
-[ext_resource type="Texture2D" uid="uid://cegp6ts1gtb1b" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Beach.png" id="6_ylhcx"]
-[ext_resource type="Texture2D" uid="uid://va4cspb47toy" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Chickencoop.png" id="7_xgvb8"]
-[ext_resource type="Texture2D" uid="uid://bhj7ljbcjfvim" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Crafters.png" id="8_b2ewn"]
-[ext_resource type="Texture2D" uid="uid://cn3b8hjbfaex3" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/DocksBridges.png" id="9_xh2rm"]
-[ext_resource type="Texture2D" uid="uid://comafn35u641n" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Farmprops.png" id="10_4u7aq"]
-[ext_resource type="Texture2D" uid="uid://dif2l7sh6nbx4" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Feedingtroughs.png" id="11_22evk"]
-[ext_resource type="Texture2D" uid="uid://bc6h5olofdwmb" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Flowers.png" id="12_ow7pp"]
-[ext_resource type="Texture2D" uid="uid://1pporgywp2kd" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Grounddecor.png" id="13_ucatk"]
-[ext_resource type="Texture2D" uid="uid://bpleuvi57hwbc" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Mushrooms.png" id="14_80neg"]
-[ext_resource type="Texture2D" uid="uid://bnpgygspbgk7p" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Ores.png" id="15_bj576"]
-[ext_resource type="Texture2D" uid="uid://67a86its2fvh" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Soil.png" id="16_chyv3"]
-[ext_resource type="Texture2D" uid="uid://bmqa8inkwms7b" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Stonebridge.png" id="17_woedy"]
-[ext_resource type="Texture2D" uid="uid://cjbnfp3l6jfqj" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Stonefence.png" id="18_tqi37"]
-[ext_resource type="Texture2D" uid="uid://be7sjsbknnqs0" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Terrain_cave.png" id="19_7s717"]
-[ext_resource type="Texture2D" uid="uid://bsm1o7gwvv4wk" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Toolprops.png" id="20_g54le"]
-[ext_resource type="Texture2D" uid="uid://cenbhqk6s2a4q" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Water_cave.png" id="21_w45ei"]
-[ext_resource type="Texture2D" uid="uid://t0x4h7qth32m" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Woodenfence.png" id="22_6jou3"]
-[ext_resource type="Texture2D" uid="uid://cxr0rysw4umux" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Barn.png" id="23_c00nj"]
-[ext_resource type="Texture2D" uid="uid://kn6nf4qodi4o" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Boats.png" id="24_nc00u"]
-[ext_resource type="Texture2D" uid="uid://cnu4vxiga2xip" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Caveprops.png" id="25_urmch"]
-[ext_resource type="Texture2D" uid="uid://b32qwr64mvsg0" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Chests.png" id="26_85rse"]
-[ext_resource type="Texture2D" uid="uid://fvjkp868n6i5" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_birch.png" id="27_l522u"]
-[ext_resource type="Texture2D" uid="uid://btufcgw572rgk" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_birch_young.png" id="28_d2ajg"]
-[ext_resource type="Texture2D" uid="uid://cq0ogd000r5c0" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_cherryblossom.png" id="29_5ym54"]
-[ext_resource type="Texture2D" uid="uid://wf5moe7vh5w" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_cherryblossom_young.png" id="30_nn4wp"]
-[ext_resource type="Texture2D" uid="uid://dxuwkwj0liado" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_oak.png" id="31_5gt81"]
-[ext_resource type="Texture2D" uid="uid://ba455jojoaxjh" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_oak_young.png" id="32_dem61"]
-[ext_resource type="Texture2D" uid="uid://6naaj8n15t1m" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_palm.png" id="33_0kgfl"]
-[ext_resource type="Texture2D" uid="uid://b5rymrv6gpb17" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_palm_young.png" id="34_l2l0j"]
-[ext_resource type="Texture2D" uid="uid://5y125smb2tx5" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_spruce.png" id="35_dcsdm"]
-[ext_resource type="Texture2D" uid="uid://bys8dww5ue7a" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_spruce_young.png" id="36_iq8cu"]
-[ext_resource type="Texture2D" uid="uid://dw563l7d1fy66" path="res://assets/cozy-towns/Housing/Exterior/Tents_big.png" id="37_xh2rm"]
-[ext_resource type="Texture2D" uid="uid://12rcm738opof" path="res://assets/cozy-towns/Housing/Exterior/Tents_small.png" id="38_4u7aq"]
-[ext_resource type="Texture2D" uid="uid://dmkjrfpmsrdtu" path="res://assets/cozy-towns/Housing/Exterior/Loghouses.png" id="39_22evk"]
-[ext_resource type="Texture2D" uid="uid://cmnaenmv7ie0" path="res://assets/cozy-towns/Housing/Exterior/Houses.png" id="40_ow7pp"]
-[ext_resource type="Texture2D" uid="uid://bo6x875nx7dh6" path="res://assets/cozy-towns/Housing/Exterior/Shop_merch.png" id="41_ucatk"]
-[ext_resource type="Texture2D" uid="uid://cuscxsk2agqh" path="res://assets/cozy-towns/Housing/Exterior/Shop_software.png" id="42_80neg"]
-[ext_resource type="Script" uid="uid://c6o1bgj0ub2mo" path="res://scripts/door_trigger.gd" id="43_bj576"]
-[ext_resource type="Texture2D" uid="uid://bbu3i6s46nsb5" path="res://assets/cozy-towns/CozyValley_Basic_1.0/Tilesets/TERRAIN_MINECRAFT.png" id="44_22evk"]
-[ext_resource type="Texture2D" uid="uid://sh02quysvufq" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/farwest/shack_tasks.png" id="45_ow7pp"]
-[ext_resource type="Script" uid="uid://bncqt3sib82of" path="res://scripts/boat_trigger.gd" id="46_boat1"]
-[ext_resource type="Texture2D" uid="uid://cichujwaom4rn" path="res://assets/cozy-towns/CozyValley_Basic_1.0/Tilesets/FARWEST_TERRAIN.png" id="48_80neg"]
-[ext_resource type="Texture2D" uid="uid://dugeng26ij2od" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Terrain - Copy.png" id="49_bj576"]
-[ext_resource type="Texture2D" uid="uid://be5060ksal0gh" path="res://assets/cozy-towns/CozyValley_Basic_1.0/Tilesets/FARWEST_crops - Copy.png" id="50_chyv3"]
+[ext_resource type="Script" path="res://scripts/open_world.gd" id="1_uwfmm"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Water.png" id="2_02ewf"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Seaprops.png" id="3_gn8t7"]
+[ext_resource type="Script" path="res://scripts/water.gd" id="4_3uvyv"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/water_cyberpunk.png" id="4_ow7pp"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Terrain.png" id="5_jc8li"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Beach.png" id="6_ylhcx"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Chickencoop.png" id="7_xgvb8"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Crafters.png" id="8_b2ewn"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/DocksBridges.png" id="9_xh2rm"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Farmprops.png" id="10_4u7aq"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Feedingtroughs.png" id="11_22evk"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Flowers.png" id="12_ow7pp"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Grounddecor.png" id="13_ucatk"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Mushrooms.png" id="14_80neg"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Ores.png" id="15_bj576"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Soil.png" id="16_chyv3"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Stonebridge.png" id="17_woedy"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Stonefence.png" id="18_tqi37"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Terrain_cave.png" id="19_7s717"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Toolprops.png" id="20_g54le"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Water_cave.png" id="21_w45ei"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Woodenfence.png" id="22_6jou3"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Barn.png" id="23_c00nj"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Boats.png" id="24_nc00u"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Caveprops.png" id="25_urmch"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Chests.png" id="26_85rse"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_birch.png" id="27_l522u"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_birch_young.png" id="28_d2ajg"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_cherryblossom.png" id="29_5ym54"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_cherryblossom_young.png" id="30_nn4wp"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_oak.png" id="31_5gt81"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_oak_young.png" id="32_dem61"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_palm.png" id="33_0kgfl"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_palm_young.png" id="34_l2l0j"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_spruce.png" id="35_dcsdm"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Trees/Trees_spruce_young.png" id="36_iq8cu"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/Housing/Exterior/Tents_big.png" id="37_xh2rm"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/Housing/Exterior/Tents_small.png" id="38_4u7aq"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/Housing/Exterior/Loghouses.png" id="39_22evk"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/Housing/Exterior/Houses.png" id="40_ow7pp"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/Housing/Exterior/Shop_merch.png" id="41_ucatk"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/Housing/Exterior/Shop_software.png" id="42_80neg"]
+[ext_resource type="Script" path="res://scripts/door_trigger.gd" id="43_bj576"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Basic_1.0/Tilesets/TERRAIN_MINECRAFT.png" id="44_22evk"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/farwest/shack_tasks.png" id="45_ow7pp"]
+[ext_resource type="Script" path="res://scripts/boat_trigger.gd" id="46_boat1"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Basic_1.0/Tilesets/FARWEST_TERRAIN.png" id="48_80neg"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Premium_1.3/Tilesets/Terrain - Copy.png" id="49_bj576"]
+[ext_resource type="Texture2D" path="res://assets/cozy-towns/CozyValley_Basic_1.0/Tilesets/FARWEST_crops - Copy.png" id="50_chyv3"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/grass_pure.png" id="51_1knqj"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/wood_planks.png" id="52_xa5xf"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/grass_dirt_wang.png" id="53_l3m0t"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/grass_stone_wang.png" id="54_fqfbq"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/grass_water_wang.png" id="55_c1ypy"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/island_edge_wang.png" id="56_y263v"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/buildings/stone-cottage.png" id="57_f3gfh"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/buildings/oak-cabin.png" id="58_0ifb1"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/flower-16.png" id="59_audcb"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/mushroom-16.png" id="60_c004s"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/dirt_speckle_a-16.png" id="61_te8x3"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/tiles/dirt_speckle_b-16.png" id="62_m6vug"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/hay_bale.png" id="63_uja0i"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/boulder-16.png" id="64_vqnrw"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/anvil.png" id="65_fvr3x"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/furnace.png" id="66_smide"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/chest.png" id="67_j2ux3"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/relic_stand.png" id="68_kfh1v"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/tree_dark_oak.png" id="69_272ge"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/well.png" id="70_j68px"]
+[ext_resource type="Texture2D" path="res://assets/pixlcraft/props/lily_pad.png" id="71_btyyf"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1knqj"]
 texture = ExtResource("2_02ewf")
@@ -4769,6 +4790,396 @@ sources/0 = SubResource("TileSetAtlasSource_4s6jh")
 sources/1 = SubResource("TileSetAtlasSource_3ybkj")
 sources/2 = SubResource("TileSetAtlasSource_imwmc")
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_c1ypy"]
+texture = ExtResource("51_1knqj")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wv2j8"]
+texture = ExtResource("52_xa5xf")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_i4bi0"]
+texture = ExtResource("53_l3m0t")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8c8ei"]
+texture = ExtResource("54_fqfbq")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h7j1q"]
+texture = ExtResource("55_c1ypy")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4hleb"]
+texture = ExtResource("56_y263v")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_ikiy1"]
+sources/0 = SubResource("TileSetAtlasSource_c1ypy")
+sources/1 = SubResource("TileSetAtlasSource_wv2j8")
+sources/2 = SubResource("TileSetAtlasSource_i4bi0")
+sources/3 = SubResource("TileSetAtlasSource_8c8ei")
+sources/4 = SubResource("TileSetAtlasSource_h7j1q")
+sources/5 = SubResource("TileSetAtlasSource_4hleb")
+metadata/grass = 0
+metadata/wood_planks = 1
+metadata/grass_dirt_wang = 2
+metadata/grass_stone_wang = 3
+metadata/grass_water_wang = 4
+metadata/island_edge_wang = 5
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_i055r"]
+texture = ExtResource("57_f3gfh")
+0:0/size_in_atlas = Vector2i(6, 6)
+0:0/0 = 0
+0:0/0/y_sort_origin = 23
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-40, -10, 40, -10, 40, 45, -40, 45)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4um0n"]
+texture = ExtResource("58_0ifb1")
+0:0/size_in_atlas = Vector2i(6, 6)
+0:0/0 = 0
+0:0/0/y_sort_origin = 23
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-40, -10, 40, -10, 40, 45, -40, 45)
+
+[sub_resource type="TileSet" id="TileSet_87u2l"]
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_i055r")
+sources/1 = SubResource("TileSetAtlasSource_4um0n")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_prr3m"]
+texture = ExtResource("59_audcb")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_b4tjp"]
+texture = ExtResource("60_c004s")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_whdq0"]
+texture = ExtResource("61_te8x3")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_40711"]
+texture = ExtResource("62_m6vug")
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_cbrpc"]
+texture = ExtResource("63_uja0i")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(2, 2, 30, 2, 30, 30, 2, 30)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_mwq1r"]
+texture = ExtResource("64_vqnrw")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(3, 3, 29, 3, 29, 29, 3, 29)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_jb30f"]
+texture = ExtResource("65_fvr3x")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_agvcu"]
+texture = ExtResource("66_smide")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fm3r4"]
+texture = ExtResource("67_j2ux3")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rvlry"]
+texture = ExtResource("68_kfh1v")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fetsx"]
+texture = ExtResource("69_272ge")
+0:0/size_in_atlas = Vector2i(8, 8)
+0:0/0 = 0
+0:0/0/y_sort_origin = 31
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(17, 64, 47, 64, 47, 94, 17, 94)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ddnhx"]
+texture = ExtResource("70_j68px")
+0:0/size_in_atlas = Vector2i(2, 2)
+0:0/0 = 0
+0:0/0/y_sort_origin = 8
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uameo"]
+texture = ExtResource("71_btyyf")
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_tur06"]
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_prr3m")
+sources/1 = SubResource("TileSetAtlasSource_b4tjp")
+sources/2 = SubResource("TileSetAtlasSource_mwq1r")
+sources/12 = SubResource("TileSetAtlasSource_cbrpc")
+sources/10 = SubResource("TileSetAtlasSource_whdq0")
+sources/11 = SubResource("TileSetAtlasSource_40711")
+sources/9 = SubResource("TileSetAtlasSource_uameo")
+sources/3 = SubResource("TileSetAtlasSource_jb30f")
+sources/4 = SubResource("TileSetAtlasSource_agvcu")
+sources/5 = SubResource("TileSetAtlasSource_fm3r4")
+sources/6 = SubResource("TileSetAtlasSource_rvlry")
+sources/7 = SubResource("TileSetAtlasSource_fetsx")
+sources/8 = SubResource("TileSetAtlasSource_ddnhx")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a5l5w"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ko4e3"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hku61"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_meehs"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cngn4"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cfmor"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_170ht"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tlcfb"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bhfqi"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bfjee"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_77nti"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xsdr0"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k70kt"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ndjli"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6b5xc"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6f3y2"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cp7rp"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pcw6b"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f4531"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gdrss"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_42cl8"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j5m4j"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1gkwl"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pge3j"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gyt0u"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_svnbd"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gp5el"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kh2jd"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_njiye"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1ycuk"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gphym"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_uesvb"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mtmix"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4kw0o"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_by8pe"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vbo0b"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_70fn7"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4dur8"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vt53k"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jgy2g"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lylsj"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6d0gm"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2xbrl"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rc8y4"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x22co"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2bf20"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7tsge"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s778r"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yhnca"]
+size = Vector2(16, 128)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_om63n"]
+size = Vector2(16, 144)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4pe68"]
+size = Vector2(16, 320)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ccv8n"]
+size = Vector2(416, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b8br0"]
+size = Vector2(416, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7uuev"]
+size = Vector2(40, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_44daf"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sd023"]
+size = Vector2(28, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3ck01"]
+size = Vector2(28, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_iidjh"]
+size = Vector2(28, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bqqy2"]
+size = Vector2(28, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gussp"]
+size = Vector2(28, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_d1px4"]
+size = Vector2(28, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_odboq"]
+size = Vector2(28, 28)
+
 [node name="OpenWorld" type="Node2D" unique_id=732456473]
 y_sort_enabled = true
 script = ExtResource("1_uwfmm")
@@ -4969,6 +5380,304 @@ y_sort_enabled = true
 position = Vector2(-494, 299)
 tile_map_data = PackedByteArray("AADs/wwAAQALAAcAAADt/wwAAQAMAAcAAADu/wwAAQANAAcAAADW/xIAAgABAAEAAADW/xMAAgABAAIAAADW/xQAAgABAAMAAADX/xIAAgACAAEAAADX/xMAAgACAAIAAADX/xQAAgACAAMAAADd/xIAAgABAAEAAADd/xMAAgABAAIAAADd/xQAAgABAAMAAADe/xIAAgACAAEAAADe/xMAAgACAAIAAADe/xQAAgACAAMAAADi/xoAAgABAAEAAADi/xsAAgABAAIAAADi/xwAAgABAAMAAADj/xoAAgACAAEAAADj/xsAAgACAAIAAADj/xwAAgACAAMAAADw/xkAAgABAAEAAADw/xoAAgABAAIAAADw/xsAAgABAAMAAADx/xkAAgACAAEAAADx/xoAAgACAAIAAADx/xsAAgACAAMAAADv/w4AAgABAAEAAADv/w8AAgABAAIAAADv/xAAAgABAAMAAADw/w4AAgACAAEAAADw/w8AAgACAAIAAADw/xAAAgACAAMAAADk/xAAAgABAAEAAADk/xEAAgABAAIAAADk/xIAAgABAAMAAADl/xAAAgACAAEAAADl/xEAAgACAAIAAADl/xIAAgACAAMAAADn/xUAAgABAAEAAADn/xYAAgABAAIAAADn/xcAAgABAAMAAADo/xUAAgACAAEAAADo/xYAAgACAAIAAADo/xcAAgACAAMAAADw/wkAAgABAAEAAADw/woAAgABAAIAAADw/wsAAgABAAMAAADx/wkAAgACAAEAAADx/woAAgACAAIAAADx/wsAAgACAAMAAADU/xAAAgAAAAAAAADU/xEAAgAAAAEAAADV/xAAAgABAAAAAADV/xEAAgABAAEAAADe/wwAAgABAAAAAADv/wcAAgAAAAAAAADv/wgAAgAAAAEAAADw/wcAAgABAAAAAADn/wcAAgAAAAAAAADn/wgAAgAAAAEAAADo/wcAAgABAAAAAADn/xAAAgAAAAAAAADn/xEAAgAAAAEAAADo/xAAAgABAAAAAADv/xMAAgAAAAAAAADv/xQAAgAAAAEAAADw/xMAAgABAAAAAADq/xkAAgAAAAAAAADq/xoAAgAAAAEAAADr/xkAAgABAAAAAADs/xMAAgAAAAAAAADs/xQAAgAAAAEAAADt/xMAAgABAAAAAADj/xYAAgAAAAAAAADj/xcAAgAAAAEAAADk/xYAAgABAAAAAADt/xwAAgAAAAAAAADt/x0AAgAAAAEAAADu/xwAAgABAAAAAADl/xsAAgAAAAAAAADl/xwAAgAAAAEAAADm/xsAAgABAAAAAADp/w4AAgAAAAAAAADp/w8AAgAAAAEAAADq/w4AAgABAAAAAADe/xAAAgABAAAAAADj/woAAgAAAAAAAADj/wsAAgAAAAEAAADk/woAAgABAAAAAADr/wcAAgAAAAAAAADr/wgAAgAAAAEAAADs/wcAAgABAAAAAADj/wcAAgAAAAAAAADj/wgAAgAAAAEAAADk/wcAAgABAAAAAADn/xIAAQAJAAUAAADn/xMAAQAJAAYAAADn/xQAAQAJAAcAAADb/wkAAgAAAAAAAADb/woAAgAAAAEAAADc/wkAAgABAAAAAADd/wwAAgAAAAAAAADd/w0AAgAAAAEAAADX/wkAAAAAAAUAAADe/wcAAAAAAAAAAAA=")
 tile_set = SubResource("TileSet_efk7h")
+
+[node name="Bridge3" type="TileMapLayer" parent="." unique_id=1481525439]
+z_index = 4
+tile_map_data = PackedByteArray("AAAUACoAAQAAAAAAAAAUACsAAQAAAAAAAAAUACwAAQAAAAAAAAAVACoAAQAAAAAAAAAVACsAAQAAAAAAAAAVACwAAQAAAAAAAAAWACoAAQAAAAAAAAAWACsAAQAAAAAAAAAWACwAAQAAAAAAAAAXACoAAQAAAAAAAAAXACsAAQAAAAAAAAAXACwAAQAAAAAAAAA=")
+tile_set = SubResource("TileSet_ikiy1")
+
+[node name="Pixlcraft ground" type="TileMapLayer" parent="." unique_id=317424372]
+z_index = 2
+tile_map_data = PackedByteArray("AAAYACIAAAAAAAAAAAAYACMAAAAAAAAAAAAYACQAAAAAAAAAAAAYACUAAAAAAAAAAAAYACYAAAAAAAAAAAAYACcAAAAAAAAAAAAYACgAAAAAAAAAAAAYACkAAAAAAAAAAAAYACoAAAAAAAAAAAAYACsAAAAAAAAAAAAYACwAAAAAAAAAAAAYAC0AAAAAAAAAAAAYAC4AAAAAAAAAAAAYAC8AAAAAAAAAAAAYADAAAAAAAAAAAAAYADEAAAAAAAAAAAAYADIAAAAAAAAAAAAYADMAAAAAAAAAAAAYADQAAAAAAAAAAAAYADUAAAAAAAAAAAAZACIAAAAAAAAAAAAZACMAAAAAAAAAAAAZACQAAAAAAAAAAAAZACUAAAAAAAAAAAAZACYAAAAAAAAAAAAZACcAAAAAAAAAAAAZACgAAAAAAAAAAAAZACkAAAAAAAAAAAAZACoAAAAAAAAAAAAZACsAAAAAAAAAAAAZACwAAAAAAAAAAAAZAC0AAAAAAAAAAAAZAC4AAAAAAAAAAAAZAC8AAAAAAAAAAAAZADAAAAAAAAAAAAAZADEAAAAAAAAAAAAZADIAAAAAAAAAAAAZADMAAAAAAAAAAAAZADQAAAAAAAAAAAAZADUAAAAAAAAAAAAaACIAAAAAAAAAAAAaACMAAAAAAAAAAAAaACQAAAAAAAAAAAAaACUAAAAAAAAAAAAaACYAAAAAAAAAAAAaACcAAAAAAAAAAAAaACgAAAAAAAAAAAAaACkAAAAAAAAAAAAaACoAAAAAAAAAAAAaACsAAAAAAAAAAAAaACwAAAAAAAAAAAAaAC0AAAAAAAAAAAAaAC4AAAAAAAAAAAAaAC8AAAAAAAAAAAAaADAAAAAAAAAAAAAaADEAAAAAAAAAAAAaADIAAAAAAAAAAAAaADMAAAAAAAAAAAAaADQAAAAAAAAAAAAaADUAAAAAAAAAAAAbACIAAAAAAAAAAAAbACMAAAAAAAAAAAAbACQAAAAAAAAAAAAbACUAAAAAAAAAAAAbACYAAAAAAAAAAAAbACcAAAAAAAAAAAAbACgAAAAAAAAAAAAbACkAAAAAAAAAAAAbACoAAAAAAAAAAAAbACsAAAAAAAAAAAAbACwAAAAAAAAAAAAbAC0AAAAAAAAAAAAbAC4AAAAAAAAAAAAbAC8AAAAAAAAAAAAbADAAAAAAAAAAAAAbADEAAAAAAAAAAAAbADIAAAAAAAAAAAAbADMAAAAAAAAAAAAbADQAAAAAAAAAAAAbADUAAAAAAAAAAAAcACIAAAAAAAAAAAAcACMAAAAAAAAAAAAcACQAAAAAAAAAAAAcACUAAAAAAAAAAAAcACYAAAAAAAAAAAAcACcAAAAAAAAAAAAcACgAAAAAAAAAAAAcACkAAAAAAAAAAAAcACoAAAAAAAAAAAAcACsAAAAAAAAAAAAcACwAAAAAAAAAAAAcAC0AAAAAAAAAAAAcAC4AAAAAAAAAAAAcAC8AAAAAAAAAAAAcADAAAAAAAAAAAAAcADEAAAAAAAAAAAAcADIAAAAAAAAAAAAcADMAAAAAAAAAAAAcADQAAAAAAAAAAAAcADUAAAAAAAAAAAAdACIAAAAAAAAAAAAdACMAAAAAAAAAAAAdACQAAAAAAAAAAAAdACUAAAAAAAAAAAAdACYAAAAAAAAAAAAdACcAAAAAAAAAAAAdACgAAAAAAAAAAAAdACkAAAAAAAAAAAAdACoAAAAAAAAAAAAdACsAAAAAAAAAAAAdACwAAAAAAAAAAAAdAC0AAAAAAAAAAAAdAC4AAAAAAAAAAAAdAC8AAAAAAAAAAAAdADAAAAAAAAAAAAAdADEAAAAAAAAAAAAdADIAAAAAAAAAAAAdADMAAAAAAAAAAAAdADQAAAAAAAAAAAAdADUAAAAAAAAAAAAeACIAAAAAAAAAAAAeACMAAAAAAAAAAAAeACQAAAAAAAAAAAAeACUAAAAAAAAAAAAeACYAAAAAAAAAAAAeACcAAAAAAAAAAAAeACgAAAAAAAAAAAAeACkAAAAAAAAAAAAeACoAAAAAAAAAAAAeACsAAAAAAAAAAAAeACwAAAAAAAAAAAAeAC0AAAAAAAAAAAAeAC4AAAAAAAAAAAAeAC8AAAAAAAAAAAAeADAAAAAAAAAAAAAeADEAAAAAAAAAAAAeADIAAAAAAAAAAAAeADMAAAAAAAAAAAAeADQAAAAAAAAAAAAeADUAAAAAAAAAAAAfACIAAAAAAAAAAAAfACMAAAAAAAAAAAAfACQAAAAAAAAAAAAfACUAAAAAAAAAAAAfACYAAAAAAAAAAAAfACcAAAAAAAAAAAAfACgAAAAAAAAAAAAfACkAAAAAAAAAAAAfACoAAAAAAAAAAAAfACsAAAAAAAAAAAAfACwAAAAAAAAAAAAfAC0AAAAAAAAAAAAfAC4AAAAAAAAAAAAfAC8AAAAAAAAAAAAfADAAAAAAAAAAAAAfADEAAAAAAAAAAAAfADIAAAAAAAAAAAAfADMAAAAAAAAAAAAfADQAAAAAAAAAAAAfADUAAAAAAAAAAAAgACIAAAAAAAAAAAAgACMAAAAAAAAAAAAgACQAAAAAAAAAAAAgACUAAAAAAAAAAAAgACYAAAAAAAAAAAAgACcAAAAAAAAAAAAgACgAAAAAAAAAAAAgACkAAAAAAAAAAAAgACoAAAAAAAAAAAAgACsAAAAAAAAAAAAgACwAAAAAAAAAAAAgAC0AAAAAAAAAAAAgAC4AAAAAAAAAAAAgAC8AAAAAAAAAAAAgADAAAAAAAAAAAAAgADEAAAAAAAAAAAAgADIAAAAAAAAAAAAgADMAAAAAAAAAAAAgADQAAAAAAAAAAAAgADUAAAAAAAAAAAAhACIAAAAAAAAAAAAhACMAAAAAAAAAAAAhACQAAAAAAAAAAAAhACUAAAAAAAAAAAAhACYAAAAAAAAAAAAhACcAAAAAAAAAAAAhACgAAAAAAAAAAAAhACkAAAAAAAAAAAAhACoAAAAAAAAAAAAhACsAAAAAAAAAAAAhACwAAAAAAAAAAAAhAC0AAAAAAAAAAAAhAC4AAAAAAAAAAAAhAC8AAAAAAAAAAAAhADAAAAAAAAAAAAAhADEAAAAAAAAAAAAhADIAAAAAAAAAAAAhADMAAAAAAAAAAAAhADQAAAAAAAAAAAAhADUAAAAAAAAAAAAiACIAAAAAAAAAAAAiACMAAAAAAAAAAAAiACQAAAAAAAAAAAAiACUAAAAAAAAAAAAiACYAAAAAAAAAAAAiACcAAAAAAAAAAAAiACgAAAAAAAAAAAAiACkAAAAAAAAAAAAiACoAAAAAAAAAAAAiACsAAAAAAAAAAAAiACwAAAAAAAAAAAAiAC0AAAAAAAAAAAAiAC4AAAAAAAAAAAAiAC8AAAAAAAAAAAAiADAAAAAAAAAAAAAiADEAAAAAAAAAAAAiADIAAAAAAAAAAAAiADMAAAAAAAAAAAAiADQAAAAAAAAAAAAiADUAAAAAAAAAAAAjACIAAAAAAAAAAAAjACMAAAAAAAAAAAAjACQAAAAAAAAAAAAjACUAAAAAAAAAAAAjACYAAAAAAAAAAAAjACcAAAAAAAAAAAAjACgAAAAAAAAAAAAjACkAAAAAAAAAAAAjACoAAAAAAAAAAAAjACsAAAAAAAAAAAAjACwAAAAAAAAAAAAjAC0AAAAAAAAAAAAjAC4AAAAAAAAAAAAjAC8AAAAAAAAAAAAjADAAAAAAAAAAAAAjADEAAAAAAAAAAAAjADIAAAAAAAAAAAAjADMAAAAAAAAAAAAjADQAAAAAAAAAAAAjADUAAAAAAAAAAAAkACIAAAAAAAAAAAAkACMAAAAAAAAAAAAkACQAAAAAAAAAAAAkACUAAAAAAAAAAAAkACYAAAAAAAAAAAAkACcAAAAAAAAAAAAkACgAAAAAAAAAAAAkACkAAAAAAAAAAAAkACoAAAAAAAAAAAAkACsAAAAAAAAAAAAkACwAAAAAAAAAAAAkAC0AAAAAAAAAAAAkAC8AAAAAAAAAAAAkADAAAAAAAAAAAAAkADEAAAAAAAAAAAAkADIAAAAAAAAAAAAkADMAAAAAAAAAAAAkADQAAAAAAAAAAAAkADUAAAAAAAAAAAAlACIAAAAAAAAAAAAlACMAAAAAAAAAAAAlACQAAAAAAAAAAAAlACUAAAAAAAAAAAAlACYAAAAAAAAAAAAlACcAAAAAAAAAAAAlACgAAAAAAAAAAAAlACkAAAAAAAAAAAAlACoAAAAAAAAAAAAlACsAAAAAAAAAAAAlACwAAAAAAAAAAAAlADAAAAAAAAAAAAAlADEAAAAAAAAAAAAlADIAAAAAAAAAAAAlADMAAAAAAAAAAAAlADQAAAAAAAAAAAAlADUAAAAAAAAAAAAmACIAAAAAAAAAAAAmACMAAAAAAAAAAAAmACQAAAAAAAAAAAAmACUAAAAAAAAAAAAmACYAAAAAAAAAAAAmACcAAAAAAAAAAAAmACgAAAAAAAAAAAAmACkAAAAAAAAAAAAmACoAAAAAAAAAAAAmACsAAAAAAAAAAAAmACwAAAAAAAAAAAAmADAAAAAAAAAAAAAmADEAAAAAAAAAAAAmADIAAAAAAAAAAAAmADMAAAAAAAAAAAAmADQAAAAAAAAAAAAmADUAAAAAAAAAAAAnACIAAAAAAAAAAAAnACMAAAAAAAAAAAAnACQAAAAAAAAAAAAnACUAAAAAAAAAAAAnACYAAAAAAAAAAAAnACcAAAAAAAAAAAAnACgAAAAAAAAAAAAnACkAAAAAAAAAAAAnACoAAAAAAAAAAAAnACsAAAAAAAAAAAAnACwAAAAAAAAAAAAnADAAAAAAAAAAAAAnADEAAAAAAAAAAAAnADIAAAAAAAAAAAAnADMAAAAAAAAAAAAnADQAAAAAAAAAAAAnADUAAAAAAAAAAAAoACIAAAAAAAAAAAAoACMAAAAAAAAAAAAoACQAAAAAAAAAAAAoACUAAAAAAAAAAAAoACYAAAAAAAAAAAAoACcAAAAAAAAAAAAoACgAAAAAAAAAAAAoACkAAAAAAAAAAAAoACoAAAAAAAAAAAAoACsAAAAAAAAAAAAoACwAAAAAAAAAAAAoADAAAAAAAAAAAAAoADEAAAAAAAAAAAAoADIAAAAAAAAAAAAoADMAAAAAAAAAAAAoADQAAAAAAAAAAAAoADUAAAAAAAAAAAApACIAAAAAAAAAAAApACMAAAAAAAAAAAApACQAAAAAAAAAAAApACUAAAAAAAAAAAApACYAAAAAAAAAAAApACcAAAAAAAAAAAApACgAAAAAAAAAAAApACkAAAAAAAAAAAApACoAAAAAAAAAAAApACsAAAAAAAAAAAApACwAAAAAAAAAAAApAC4AAAAAAAAAAAApADQAAAAAAAAAAAApADUAAAAAAAAAAAAqACIAAAAAAAAAAAAqACMAAAAAAAAAAAAqACQAAAAAAAAAAAAqACUAAAAAAAAAAAAqACYAAAAAAAAAAAAqACcAAAAAAAAAAAAqACgAAAAAAAAAAAAqACkAAAAAAAAAAAAqACoAAAAAAAAAAAAqACsAAAAAAAAAAAAqACwAAAAAAAAAAAAqAC4AAAAAAAAAAAAqADQAAAAAAAAAAAAqADUAAAAAAAAAAAArACIAAAAAAAAAAAArACMAAAAAAAAAAAArACQAAAAAAAAAAAArACUAAAAAAAAAAAArACYAAAAAAAAAAAArACcAAAAAAAAAAAArACgAAAAAAAAAAAArACkAAAAAAAAAAAArACoAAAAAAAAAAAArACsAAAAAAAAAAAArACwAAAAAAAAAAAArAC0AAAAAAAAAAAArAC4AAAAAAAAAAAArADUAAAAAAAAAAAAsACIAAAAAAAAAAAAsACMAAAAAAAAAAAAsACQAAAAAAAAAAAAsACUAAAAAAAAAAAAsACYAAAAAAAAAAAAsACcAAAAAAAAAAAAsACgAAAAAAAAAAAAsACkAAAAAAAAAAAAsACoAAAAAAAAAAAAsACsAAAAAAAAAAAAsACwAAAAAAAAAAAAsAC0AAAAAAAAAAAAsAC4AAAAAAAAAAAAsADUAAAAAAAAAAAAtACIAAAAAAAAAAAAtACMAAAAAAAAAAAAtACQAAAAAAAAAAAAtACUAAAAAAAAAAAAtACYAAAAAAAAAAAAtACcAAAAAAAAAAAAtACgAAAAAAAAAAAAtACkAAAAAAAAAAAAtACoAAAAAAAAAAAAtACsAAAAAAAAAAAAtACwAAAAAAAAAAAAtAC0AAAAAAAAAAAAtAC4AAAAAAAAAAAAtADQAAAAAAAAAAAAtADUAAAAAAAAAAAAuACIAAAAAAAAAAAAuACMAAAAAAAAAAAAuACQAAAAAAAAAAAAuACUAAAAAAAAAAAAuACYAAAAAAAAAAAAuACcAAAAAAAAAAAAuACgAAAAAAAAAAAAuACkAAAAAAAAAAAAuACoAAAAAAAAAAAAuACsAAAAAAAAAAAAuACwAAAAAAAAAAAAuAC0AAAAAAAAAAAAuAC4AAAAAAAAAAAAuAC8AAAAAAAAAAAAuADQAAAAAAAAAAAAuADUAAAAAAAAAAAAvACIAAAAAAAAAAAAvACMAAAAAAAAAAAAvACQAAAAAAAAAAAAvACUAAAAAAAAAAAAvACYAAAAAAAAAAAAvACcAAAAAAAAAAAAvACgAAAAAAAAAAAAvACkAAAAAAAAAAAAvACoAAAAAAAAAAAAvACsAAAAAAAAAAAAvACwAAAAAAAAAAAAvAC0AAAAAAAAAAAAvAC4AAAAAAAAAAAAvAC8AAAAAAAAAAAAvADAAAAAAAAAAAAAvADMAAAAAAAAAAAAvADQAAAAAAAAAAAAvADUAAAAAAAAAAAAwACIAAAAAAAAAAAAwACMAAAAAAAAAAAAwACQAAAAAAAAAAAAwACUAAAAAAAAAAAAwACYAAAAAAAAAAAAwACcAAAAAAAAAAAAwACgAAAAAAAAAAAAwACkAAAAAAAAAAAAwACoAAAAAAAAAAAAwACsAAAAAAAAAAAAwACwAAAAAAAAAAAAwAC0AAAAAAAAAAAAwAC4AAAAAAAAAAAAwAC8AAAAAAAAAAAAwADAAAAAAAAAAAAAwADEAAAAAAAAAAAAwADIAAAAAAAAAAAAwADMAAAAAAAAAAAAwADQAAAAAAAAAAAAwADUAAAAAAAAAAAAxACIAAAAAAAAAAAAxACMAAAAAAAAAAAAxACQAAAAAAAAAAAAxACUAAAAAAAAAAAAxACYAAAAAAAAAAAAxACcAAAAAAAAAAAAxACgAAAAAAAAAAAAxACkAAAAAAAAAAAAxACoAAAAAAAAAAAAxACsAAAAAAAAAAAAxACwAAAAAAAAAAAAxAC0AAAAAAAAAAAAxAC4AAAAAAAAAAAAxAC8AAAAAAAAAAAAxADAAAAAAAAAAAAAxADEAAAAAAAAAAAAxADIAAAAAAAAAAAAxADMAAAAAAAAAAAAxADQAAAAAAAAAAAAxADUAAAAAAAAAAAA=")
+tile_set = SubResource("TileSet_ikiy1")
+
+[node name="Pixlcraft dual-grid" type="TileMapLayer" parent="." unique_id=918111967]
+z_index = 3
+position = Vector2(-8, -8)
+tile_map_data = PackedByteArray("AAAYACoABQACAAIAAAAYACsABQACAAIAAAAYACwABQACAAIAAAAYAC0ABQACAAIAAAAZACoAAgAAAAMAAAAZACsAAgADAAMAAAAZACwAAgADAAMAAAAZAC0AAgADAAAAAAAaACoAAgAAAAMAAAAaACsAAgADAAMAAAAaACwAAgADAAMAAAAaAC0AAgADAAAAAAAbACoAAgAAAAMAAAAbACsAAgADAAMAAAAbACwAAgADAAMAAAAbAC0AAgADAAAAAAAcACYAAgAAAAIAAAAcACcAAgACAAIAAAAcACgAAgACAAIAAAAcACkAAgACAAIAAAAcACoAAgACAAMAAAAcACsAAgADAAMAAAAcACwAAgADAAMAAAAcAC0AAgADAAAAAAAcADIAAgAAAAIAAAAcADMAAgACAAIAAAAcADQAAgACAAIAAAAcADUAAgACAAAAAAAdACYAAgAAAAMAAAAdACcAAgADAAMAAAAdACgAAgADAAMAAAAdACkAAgADAAMAAAAdACoAAgADAAMAAAAdACsAAgADAAMAAAAdACwAAgADAAEAAAAdAC0AAgABAAAAAAAdADIAAgAAAAMAAAAdADMAAgADAAMAAAAdADQAAgADAAMAAAAdADUAAgADAAAAAAAeACYAAgAAAAMAAAAeACcAAgADAAMAAAAeACgAAgADAAMAAAAeACkAAgADAAMAAAAeACoAAgADAAMAAAAeACsAAgADAAMAAAAeACwAAgADAAAAAAAeADIAAgAAAAMAAAAeADMAAgADAAMAAAAeADQAAgADAAMAAAAeADUAAgADAAAAAAAfACYAAgAAAAEAAAAfACcAAgABAAEAAAAfACgAAgABAAMAAAAfACkAAgADAAMAAAAfACoAAgADAAMAAAAfACsAAgADAAMAAAAfACwAAgADAAAAAAAfADIAAgAAAAMAAAAfADMAAgADAAMAAAAfADQAAgADAAMAAAAfADUAAgADAAAAAAAgACgAAgAAAAEAAAAgACkAAgABAAMAAAAgACoAAgADAAMAAAAgACsAAgADAAMAAAAgACwAAgADAAAAAAAgADIAAgAAAAMAAAAgADMAAgADAAMAAAAgADQAAgADAAMAAAAgADUAAgADAAAAAAAhACkAAgAAAAMAAAAhACoAAgADAAMAAAAhACsAAgADAAMAAAAhACwAAgADAAAAAAAhAC8AAgAAAAIAAAAhADAAAgACAAIAAAAhADEAAgACAAIAAAAhADIAAgACAAMAAAAhADMAAgADAAMAAAAhADQAAgADAAMAAAAhADUAAgADAAAAAAAiACkAAgAAAAMAAAAiACoAAgADAAMAAAAiACsAAgADAAMAAAAiACwAAgADAAIAAAAiAC0AAgACAAIAAAAiAC4AAgACAAIAAAAiAC8AAgACAAMAAAAiADAAAgADAAMAAAAiADEAAgADAAMAAAAiADIAAgADAAMAAAAiADMAAgADAAEAAAAiADQAAgABAAEAAAAiADUAAgABAAAAAAAjACkAAgAAAAMAAAAjACoAAgADAAMAAAAjACsAAgADAAMAAAAjACwAAgADAAMAAAAjAC0AAgADAAMAAAAjAC4AAgADAAMAAAAjAC8AAgADAAMAAAAjADAAAgADAAEAAAAjADEAAgABAAEAAAAjADIAAgABAAEAAAAjADMAAgABAAAAAAAkACkAAgAAAAMAAAAkACoAAgADAAMAAAAkACsAAgADAAMAAAAkACwAAgADAAMAAAAkAC0AAgADAAEAAAAkAC4ABAAAAAIAAAAkAC8ABAACAAAAAAAkADAAAgABAAAAAAAlACkAAgAAAAEAAAAlACoAAgABAAMAAAAlACsAAgADAAMAAAAlACwAAgADAAMAAAAlAC0ABAAAAAIAAAAmACoAAgAAAAMAAAAmACsAAgADAAMAAAAmACwAAgADAAMAAAAmAC0ABAAAAAMAAAAnACoAAgAAAAMAAAAnACsAAgADAAMAAAAnACwAAgADAAMAAAAnAC0ABAAAAAMAAAAnAC4ABAADAAMAAAAoACoAAgAAAAMAAAAoACsAAgADAAMAAAAoACwAAgADAAMAAAAoAC0ABAAAAAMAAAAoAC4ABAADAAMAAAApACoAAgAAAAEAAAApACsAAgABAAMAAAApACwAAgADAAMAAAApAC0ABAAAAAMAAAApAC4ABAADAAEAAAAqACoAAgAAAAIAAAAqACsAAgACAAMAAAAqACwAAgADAAMAAAAqAC0ABAAAAAMAAAAqAC4ABAADAAAAAAArACoAAgAAAAMAAAArACsAAgADAAMAAAArACwAAgADAAMAAAArAC0ABAAAAAEAAAArAC4ABAABAAAAAAAsACkAAgAAAAIAAAAsACoAAgACAAMAAAAsACsAAgADAAMAAAAsACwAAgADAAMAAAAsAC0AAgADAAEAAAAsAC4AAgABAAAAAAAtACkAAgAAAAMAAAAtACoAAgADAAMAAAAtACsAAgADAAMAAAAtACwAAgADAAMAAAAtAC0AAgADAAAAAAAuACgAAgAAAAIAAAAuACkAAgACAAMAAAAuACoAAgADAAMAAAAuACsAAgADAAMAAAAuACwAAgADAAMAAAAuAC0AAgADAAAAAAAvACgAAgAAAAEAAAAvACkAAgABAAMAAAAvACoAAgADAAMAAAAvACsAAgADAAMAAAAvACwAAgADAAEAAAAvAC0AAgABAAAAAAAwACkAAgAAAAMAAAAwACoAAgADAAMAAAAwACsAAgADAAMAAAAwACwAAgADAAAAAAAxACkAAgAAAAEAAAAxACoAAgABAAEAAAAxACsAAgABAAEAAAAxACwAAgABAAAAAAAlAC4ABAACAAMAAAAlAC8ABAADAAIAAAAlADAABAACAAAAAAAmAC4ABAADAAMAAAAmAC8ABAADAAMAAAAmADAABAADAAAAAAAnAC8ABAADAAMAAAAnADAABAADAAAAAAAoAC8ABAADAAMAAAAoADAABAADAAAAAAApAC8ABAABAAMAAAApADAABAADAAIAAAApADEABAACAAIAAAApADIABAACAAIAAAApADMABAACAAIAAAApADQABAACAAAAAAAqAC8ABAAAAAMAAAAqADAABAADAAMAAAAqADEABAADAAMAAAAqADIABAADAAMAAAAqADMABAADAAMAAAAqADQABAADAAAAAAArAC8ABAAAAAMAAAArADAABAADAAMAAAArADEABAADAAMAAAArADIABAADAAMAAAArADMABAADAAMAAAArADQABAADAAIAAAArADUABAACAAAAAAAsAC8ABAAAAAMAAAAsADAABAADAAMAAAAsADEABAADAAMAAAAsADIABAADAAMAAAAsADMABAADAAMAAAAsADQABAADAAMAAAAsADUABAADAAAAAAAtAC8ABAAAAAMAAAAtADAABAADAAMAAAAtADEABAADAAMAAAAtADIABAADAAMAAAAtADMABAADAAMAAAAtADQABAADAAEAAAAtADUABAABAAAAAAAuAC8ABAAAAAEAAAAuADAABAABAAMAAAAuADEABAADAAMAAAAuADIABAADAAMAAAAuADMABAADAAMAAAAuADQABAADAAAAAAAvADAABAAAAAEAAAAvADEABAABAAMAAAAvADIABAADAAMAAAAvADMABAADAAEAAAAvADQABAABAAAAAAAwADEABAAAAAEAAAAwADIABAABAAEAAAAwADMABAABAAAAAAAYACIABQAAAAIAAAAYACMABQACAAIAAAAYACQABQACAAIAAAAYACUABQACAAIAAAAYACYABQACAAIAAAAYACcABQACAAIAAAAYACgABQACAAIAAAAYACkABQACAAIAAAAYAC4ABQACAAIAAAAYAC8ABQACAAIAAAAYADAABQACAAIAAAAYADEABQACAAIAAAAYADIABQACAAIAAAAYADMABQACAAIAAAAYADQABQACAAIAAAAYADUABQACAAIAAAAYADYABQACAAAAAAAZACIABQAAAAMAAAAZADYABQADAAAAAAAaACIABQAAAAMAAAAaADYABQADAAAAAAAbACIABQAAAAMAAAAbADYABQADAAAAAAAcACIABQAAAAMAAAAcADYABQADAAAAAAAdACIABQAAAAMAAAAdADYABQADAAAAAAAeACIABQAAAAMAAAAeADYABQADAAAAAAAfACIABQAAAAMAAAAfADYABQADAAAAAAAgACIABQAAAAMAAAAgADYABQADAAAAAAAhACIABQAAAAMAAAAhADYABQADAAAAAAAiACIABQAAAAMAAAAiADYABQADAAAAAAAjACIABQAAAAMAAAAjADYABQADAAAAAAAkACIABQAAAAMAAAAkADYABQADAAAAAAAlACIABQAAAAMAAAAlADYABQADAAAAAAAmACIABQAAAAMAAAAmADYABQADAAAAAAAnACIABQAAAAMAAAAnADYABQADAAAAAAAoACIABQAAAAMAAAAoADYABQADAAAAAAApACIABQAAAAMAAAApADYABQADAAAAAAAqACIABQAAAAMAAAAqADYABQADAAAAAAArACIABQAAAAMAAAArADYABQADAAAAAAAsACIABQAAAAMAAAAsADYABQADAAAAAAAtACIABQAAAAMAAAAtADYABQADAAAAAAAuACIABQAAAAMAAAAuADYABQADAAAAAAAvACIABQAAAAMAAAAvADYABQADAAAAAAAwACIABQAAAAMAAAAwADYABQADAAAAAAAxACIABQAAAAMAAAAxADYABQADAAAAAAAyACIABQAAAAEAAAAyACMABQABAAEAAAAyACQABQABAAEAAAAyACUABQABAAEAAAAyACYABQABAAEAAAAyACcABQABAAEAAAAyACgABQABAAEAAAAyACkABQABAAEAAAAyACoABQABAAEAAAAyACsABQABAAEAAAAyACwABQABAAEAAAAyAC0ABQABAAEAAAAyAC4ABQABAAEAAAAyAC8ABQABAAEAAAAyADAABQABAAEAAAAyADEABQABAAEAAAAyADIABQABAAEAAAAyADMABQABAAEAAAAyADQABQABAAEAAAAyADUABQABAAEAAAAyADYABQABAAAAAAA=")
+tile_set = SubResource("TileSet_ikiy1")
+
+[node name="Pixlcraft houses" type="TileMapLayer" parent="." unique_id=537998536]
+z_index = 10
+y_sort_enabled = true
+tile_map_data = PackedByteArray("AAAdACMAAAAAAAAAAAAcADAAAQAAAAAAAAA=")
+tile_set = SubResource("TileSet_87u2l")
+
+[node name="Pixlcraft props" type="TileMapLayer" parent="." unique_id=1788654374]
+z_index = 10
+y_sort_enabled = true
+tile_map_data = PackedByteArray("AAAqACAABwAAAAAAAAAqACYABgAAAAAAAAAnAC8ACQAAAAAAAAAqAC8ACQAAAAAAAAArADIACQAAAAAAAAAtADMACQAAAAAAAAAaACUAAQAAAAAAAAAaACYAAQAAAAAAAAAoACcAAQAAAAAAAAAoACYAAQAAAAAAAAAlADMAAQAAAAAAAAAmADMAAQAAAAAAAAAlADQAAQAAAAAAAAAmADQAAQAAAAAAAAAvADMAAQAAAAAAAAAwADMAAQAAAAAAAAAvADQAAQAAAAAAAAAwADQAAQAAAAAAAAAtAC4AAQAAAAAAAAAaACsACgAAAAAAAAAgACoACgAAAAAAAAAlACsACgAAAAAAAAAoACwACgAAAAAAAAAtACsACgAAAAAAAAAdACkACgAAAAAAAAAiAC4ACgAAAAAAAAAeADMACgAAAAAAAAAcACsACwAAAAAAAAAiACoACwAAAAAAAAAnACsACwAAAAAAAAArACwACwAAAAAAAAAeACoACwAAAAAAAAAjAC8ACwAAAAAAAAAgADMACwAAAAAAAAAcADMACwAAAAAAAAAgACcAAgAAAAAAAAAkACYAAgAAAAAAAAAwAC8AAgAAAAAAAAAZAC4ADAAAAAAAAAAmACYADAAAAAAAAAAvAC4ADAAAAAAAAAA=")
+tile_set = SubResource("TileSet_tur06")
+
+[node name="Pixlcraft Pond Collision" type="StaticBody2D" parent="." unique_id=1206507907]
+collision_mask = 0
+
+[node name="@CollisionShape2D@542" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1416177238]
+position = Vector2(584, 744)
+shape = SubResource("RectangleShape2D_a5l5w")
+
+[node name="@CollisionShape2D@543" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=196698516]
+position = Vector2(600, 728)
+shape = SubResource("RectangleShape2D_ko4e3")
+
+[node name="@CollisionShape2D@544" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1412092245]
+position = Vector2(600, 744)
+shape = SubResource("RectangleShape2D_hku61")
+
+[node name="@CollisionShape2D@545" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1146862419]
+position = Vector2(600, 760)
+shape = SubResource("RectangleShape2D_meehs")
+
+[node name="@CollisionShape2D@546" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=869137425]
+position = Vector2(616, 728)
+shape = SubResource("RectangleShape2D_cngn4")
+
+[node name="@CollisionShape2D@547" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=977722941]
+position = Vector2(616, 744)
+shape = SubResource("RectangleShape2D_cfmor")
+
+[node name="@CollisionShape2D@548" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1551075902]
+position = Vector2(616, 760)
+shape = SubResource("RectangleShape2D_170ht")
+
+[node name="@CollisionShape2D@549" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1102985344]
+position = Vector2(632, 728)
+shape = SubResource("RectangleShape2D_tlcfb")
+
+[node name="@CollisionShape2D@550" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=71617495]
+position = Vector2(632, 744)
+shape = SubResource("RectangleShape2D_bhfqi")
+
+[node name="@CollisionShape2D@551" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=985723988]
+position = Vector2(632, 760)
+shape = SubResource("RectangleShape2D_bfjee")
+
+[node name="@CollisionShape2D@552" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1012744639]
+position = Vector2(648, 728)
+shape = SubResource("RectangleShape2D_77nti")
+
+[node name="@CollisionShape2D@553" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1471108188]
+position = Vector2(648, 744)
+shape = SubResource("RectangleShape2D_xsdr0")
+
+[node name="@CollisionShape2D@554" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1327565496]
+position = Vector2(648, 760)
+shape = SubResource("RectangleShape2D_k70kt")
+
+[node name="@CollisionShape2D@555" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1711521729]
+position = Vector2(664, 728)
+shape = SubResource("RectangleShape2D_ndjli")
+
+[node name="@CollisionShape2D@556" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=179192134]
+position = Vector2(664, 760)
+shape = SubResource("RectangleShape2D_6b5xc")
+
+[node name="@CollisionShape2D@557" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1007695728]
+position = Vector2(664, 776)
+shape = SubResource("RectangleShape2D_6f3y2")
+
+[node name="@CollisionShape2D@558" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=709223279]
+position = Vector2(664, 792)
+shape = SubResource("RectangleShape2D_cp7rp")
+
+[node name="@CollisionShape2D@559" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1447766553]
+position = Vector2(664, 808)
+shape = SubResource("RectangleShape2D_pcw6b")
+
+[node name="@CollisionShape2D@560" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1965609210]
+position = Vector2(664, 824)
+shape = SubResource("RectangleShape2D_f4531")
+
+[node name="@CollisionShape2D@561" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1107346135]
+position = Vector2(680, 728)
+shape = SubResource("RectangleShape2D_gdrss")
+
+[node name="@CollisionShape2D@562" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1702845312]
+position = Vector2(680, 760)
+shape = SubResource("RectangleShape2D_42cl8")
+
+[node name="@CollisionShape2D@563" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=126526129]
+position = Vector2(680, 776)
+shape = SubResource("RectangleShape2D_j5m4j")
+
+[node name="@CollisionShape2D@564" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1254020803]
+position = Vector2(680, 792)
+shape = SubResource("RectangleShape2D_1gkwl")
+
+[node name="@CollisionShape2D@565" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=2127063759]
+position = Vector2(680, 808)
+shape = SubResource("RectangleShape2D_pge3j")
+
+[node name="@CollisionShape2D@566" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1935797420]
+position = Vector2(680, 824)
+shape = SubResource("RectangleShape2D_gyt0u")
+
+[node name="@CollisionShape2D@567" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1188127322]
+position = Vector2(696, 760)
+shape = SubResource("RectangleShape2D_svnbd")
+
+[node name="@CollisionShape2D@568" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1684992277]
+position = Vector2(696, 776)
+shape = SubResource("RectangleShape2D_gp5el")
+
+[node name="@CollisionShape2D@569" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1918862033]
+position = Vector2(696, 792)
+shape = SubResource("RectangleShape2D_kh2jd")
+
+[node name="@CollisionShape2D@570" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1018956444]
+position = Vector2(696, 808)
+shape = SubResource("RectangleShape2D_njiye")
+
+[node name="@CollisionShape2D@571" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1287888907]
+position = Vector2(696, 824)
+shape = SubResource("RectangleShape2D_1ycuk")
+
+[node name="@CollisionShape2D@572" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=917025237]
+position = Vector2(696, 840)
+shape = SubResource("RectangleShape2D_gphym")
+
+[node name="@CollisionShape2D@573" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=645635766]
+position = Vector2(712, 760)
+shape = SubResource("RectangleShape2D_uesvb")
+
+[node name="@CollisionShape2D@574" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=106845387]
+position = Vector2(712, 776)
+shape = SubResource("RectangleShape2D_mtmix")
+
+[node name="@CollisionShape2D@575" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1540098138]
+position = Vector2(712, 792)
+shape = SubResource("RectangleShape2D_4kw0o")
+
+[node name="@CollisionShape2D@576" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=711175609]
+position = Vector2(712, 808)
+shape = SubResource("RectangleShape2D_by8pe")
+
+[node name="@CollisionShape2D@577" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=222530168]
+position = Vector2(712, 824)
+shape = SubResource("RectangleShape2D_vbo0b")
+
+[node name="@CollisionShape2D@578" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=2081134385]
+position = Vector2(712, 840)
+shape = SubResource("RectangleShape2D_70fn7")
+
+[node name="@CollisionShape2D@579" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=339872270]
+position = Vector2(728, 760)
+shape = SubResource("RectangleShape2D_4dur8")
+
+[node name="@CollisionShape2D@580" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=241192650]
+position = Vector2(728, 776)
+shape = SubResource("RectangleShape2D_vt53k")
+
+[node name="@CollisionShape2D@581" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=699327265]
+position = Vector2(728, 792)
+shape = SubResource("RectangleShape2D_jgy2g")
+
+[node name="@CollisionShape2D@582" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1945396283]
+position = Vector2(728, 808)
+shape = SubResource("RectangleShape2D_lylsj")
+
+[node name="@CollisionShape2D@583" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=363434970]
+position = Vector2(728, 824)
+shape = SubResource("RectangleShape2D_6d0gm")
+
+[node name="@CollisionShape2D@584" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=713351375]
+position = Vector2(744, 776)
+shape = SubResource("RectangleShape2D_2xbrl")
+
+[node name="@CollisionShape2D@585" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=609223984]
+position = Vector2(744, 792)
+shape = SubResource("RectangleShape2D_rc8y4")
+
+[node name="@CollisionShape2D@586" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=620772880]
+position = Vector2(744, 808)
+shape = SubResource("RectangleShape2D_x22co")
+
+[node name="@CollisionShape2D@587" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1519127575]
+position = Vector2(744, 824)
+shape = SubResource("RectangleShape2D_2bf20")
+
+[node name="@CollisionShape2D@588" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=1662888343]
+position = Vector2(760, 792)
+shape = SubResource("RectangleShape2D_7tsge")
+
+[node name="@CollisionShape2D@589" type="CollisionShape2D" parent="Pixlcraft Pond Collision" unique_id=530324353]
+position = Vector2(760, 808)
+shape = SubResource("RectangleShape2D_s778r")
+
+[node name="Pixlcraft Ocean Collision" type="StaticBody2D" parent="." unique_id=1656977615]
+collision_mask = 0
+
+[node name="@CollisionShape2D@590" type="CollisionShape2D" parent="Pixlcraft Ocean Collision" unique_id=556036271]
+position = Vector2(384, 608)
+shape = SubResource("RectangleShape2D_yhnca")
+
+[node name="@CollisionShape2D@591" type="CollisionShape2D" parent="Pixlcraft Ocean Collision" unique_id=316007967]
+position = Vector2(384, 784)
+shape = SubResource("RectangleShape2D_om63n")
+
+[node name="@CollisionShape2D@592" type="CollisionShape2D" parent="Pixlcraft Ocean Collision" unique_id=906984339]
+position = Vector2(800, 704)
+shape = SubResource("RectangleShape2D_4pe68")
+
+[node name="@CollisionShape2D@593" type="CollisionShape2D" parent="Pixlcraft Ocean Collision" unique_id=1344823753]
+position = Vector2(592, 544)
+shape = SubResource("RectangleShape2D_ccv8n")
+
+[node name="@CollisionShape2D@594" type="CollisionShape2D" parent="Pixlcraft Ocean Collision" unique_id=140246962]
+position = Vector2(592, 864)
+shape = SubResource("RectangleShape2D_b8br0")
+
+[node name="Pixlcraft Boat" type="Sprite2D" parent="." unique_id=594550749]
+z_index = 5
+position = Vector2(312, 696)
+texture = ExtResource("24_nc00u")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 16)
+
+[node name="Pixlcraft Boat Trigger" type="Area2D" parent="." unique_id=1578872046]
+position = Vector2(312, 696)
+collision_mask = 2
+script = ExtResource("46_boat1")
+target_marker = NodePath("../PlayerSpawn")
+destination_label = "Go to Main Island"
+
+[node name="@CollisionShape2D@595" type="CollisionShape2D" parent="Pixlcraft Boat Trigger" unique_id=1648701318]
+shape = SubResource("RectangleShape2D_7uuev")
+
+[node name="Pixlcraft Prop Collision" type="StaticBody2D" parent="." unique_id=713453635]
+collision_mask = 0
+
+[node name="@CollisionShape2D@596" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=1424985085]
+position = Vector2(720, 616)
+shape = SubResource("RectangleShape2D_44daf")
+
+[node name="@CollisionShape2D@597" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=172375612]
+position = Vector2(688, 624)
+shape = SubResource("RectangleShape2D_sd023")
+
+[node name="@CollisionShape2D@598" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=2066347966]
+position = Vector2(528, 640)
+shape = SubResource("RectangleShape2D_3ck01")
+
+[node name="@CollisionShape2D@599" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=457695048]
+position = Vector2(592, 624)
+shape = SubResource("RectangleShape2D_iidjh")
+
+[node name="@CollisionShape2D@600" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=1361082464]
+position = Vector2(784, 768)
+shape = SubResource("RectangleShape2D_bqqy2")
+
+[node name="@CollisionShape2D@601" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=954103881]
+position = Vector2(416, 752)
+shape = SubResource("RectangleShape2D_gussp")
+
+[node name="@CollisionShape2D@602" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=419466817]
+position = Vector2(624, 624)
+shape = SubResource("RectangleShape2D_d1px4")
+
+[node name="@CollisionShape2D@603" type="CollisionShape2D" parent="Pixlcraft Prop Collision" unique_id=690495054]
+position = Vector2(768, 752)
+shape = SubResource("RectangleShape2D_odboq")
 
 [connection signal="body_entered" from="DoorTrigger" to="DoorTrigger" method="_on_body_entered"]
 [connection signal="body_exited" from="DoorTrigger" to="DoorTrigger" method="_on_body_exited"]
