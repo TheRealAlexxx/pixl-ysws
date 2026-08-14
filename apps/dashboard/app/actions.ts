@@ -1367,6 +1367,35 @@ export async function archiveProject(formData: FormData): Promise<void> {
   revalidatePath("/", "layout");
 }
 
+// Any reviewer can nominate a project as "Peak" - a cosmetic badge shown
+// wherever the project is displayed publicly (explore, project page), never
+// a payout/pixel effect. Gated on "review" rather than "ban", unlike the
+// staff actions above, since this is a grading call any reviewer can make.
+export async function toggleProjectPeak(formData: FormData): Promise<void> {
+  const access = await requirePerm("review");
+  const by = actorName(access);
+  const projectId = Number(formData.get("projectId") ?? 0);
+  const isPeak = formData.get("isPeak") === "1";
+  if (!projectId) return;
+  const { data: project, error } = await db
+    .from("projects")
+    .update({ is_peak: isPeak })
+    .eq("id", projectId)
+    .select("id, name, user_id")
+    .single();
+  if (error || !project) {
+    console.error("toggleProjectPeak failed", error?.message);
+    return;
+  }
+  await logModAction(
+    project.user_id,
+    isPeak ? "project_peak_marked" : "project_peak_unmarked",
+    project.name,
+    by,
+  );
+  revalidatePath("/", "layout");
+}
+
 export async function rejectProject(formData: FormData): Promise<void> {
   const access = await requirePerm("ban");
   const by = actorName(access);

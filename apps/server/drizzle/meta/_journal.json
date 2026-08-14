@@ -785,6 +785,13 @@
       "when": 1782000110000,
       "tag": "0110_dustline_stake_followup_and_mp3_trial",
       "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1782000111000,
+      "tag": "0111_project_peak",
+      "breakpoints": true
     }
   ]
 }

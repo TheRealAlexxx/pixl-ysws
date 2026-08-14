@@ -133,6 +133,9 @@ export interface ProjectRow {
   sidequest_id: number | null;
   trial_prize_order_id: number | null;
   eligibility_attested: boolean;
+  // Reviewer-only cosmetic flag, see toggleProjectPeak in actions.ts. Never
+  // player-set, never affects payout.
+  is_peak: boolean;
 }
 
 export interface PlayerStateRow {

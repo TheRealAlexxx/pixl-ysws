@@ -10,9 +10,11 @@ import {
   unrejectProject,
   banProject,
   unbanProject,
+  toggleProjectPeak,
 } from "@/app/actions";
 import {
   LevelBadge,
+  PeakBadge,
   ShipBadges,
   StatusBadge,
 } from "@/app/_components/ProjectBadges";
@@ -67,6 +69,9 @@ export default async function ProjectPage({
   // Banning / archiving / rejecting / sending back is an admin action ,
   // reviewers only grade. Gated on the "ban" permission (owners + sub-admins).
   const canModerate = canView(access, ["ban"]);
+  // Marking a project Peak is a grading call, not moderation , any reviewer
+  // can do it, same as the initial verdict.
+  const canPeak = canView(access, ["review"]);
   // Send back to review is a staff action , admins only (not plain reviewers).
   const canReReview =
     canModerate &&
@@ -91,6 +96,7 @@ export default async function ProjectPage({
               {project.name}
             </h1>
             <StatusBadge status={project.status} />
+            {project.is_peak && <PeakBadge />}
             <LevelBadge level={project.level} />
             <ShipBadges project={project} />
             {project.archived_at && (
@@ -254,6 +260,27 @@ export default async function ProjectPage({
           </div>
         )}
       </Card>
+
+      {canPeak && (
+        <Card className="p-4 mb-8 gap-0">
+          <div className="font-pixel text-xl mb-1">Peak</div>
+          <p className="text-sm text-muted-foreground mb-3">
+            Nominate a standout project. Purely cosmetic , shown wherever this
+            project is displayed publicly, never a payout change.
+          </p>
+          <form action={toggleProjectPeak}>
+            <input type="hidden" name="projectId" value={project.id} />
+            {!project.is_peak && <input type="hidden" name="isPeak" value="1" />}
+            <PendingButton
+              variant={project.is_peak ? "outline" : undefined}
+              className={project.is_peak ? "" : "bg-amber-500 text-black hover:bg-amber-600 border-transparent"}
+              pendingText={project.is_peak ? "Removing…" : "Marking…"}
+            >
+              {project.is_peak ? "Remove Peak" : "★ Mark as Peak"}
+            </PendingButton>
+          </form>
+        </Card>
+      )}
 
       {canModerate && (
         <Card className="p-4 mb-8 gap-0">

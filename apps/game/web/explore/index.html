@@ -177,17 +177,24 @@ function statusChip(p) {
   return `<span class="chip status-chip ${map[s] || ""}">${Pixl.esc(s.replace("_", " "))}</span>`;
 }
 
+// Reviewer-nominated standout project - cosmetic only, no payout effect.
+function peakChip(p) {
+  return p.is_peak
+    ? `<span class="chip gold" title="Nominated as a standout project by a reviewer">★ PEAK</span>`
+    : "";
+}
+
 function projCard(p) {
   return `
     <a class="card panel proj-card" href="#project=${Pixl.esc(p.id)}">
       <div class="proj-thumb">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>
-      <div class="proj-name">${Pixl.esc(p.name)}</div>
+      <div class="proj-name">${Pixl.esc(p.name)}${p.is_peak ? " ★" : ""}</div>
       <div class="proj-meta">
         <span>by ${Pixl.esc(p.owner_name || "?")}</span>
         <span>${Pixl.timeAgo(p.created_at)}</span>
       </div>
       <div class="proj-foot">
-        <span>${statusChip(p)}${p.hackatime_seconds ? ` <span class="chip teal">${Pixl.hours(p.hackatime_seconds)}</span>` : ""}</span>
+        <span>${statusChip(p)}${peakChip(p)}${p.hackatime_seconds ? ` <span class="chip teal">${Pixl.hours(p.hackatime_seconds)}</span>` : ""}</span>
         <span class="vote-group">${upvoteBtn(p)}${downvoteBtn(p)}</span>
       </div>
     </a>`;
@@ -396,7 +403,7 @@ async function showProject(id) {
       <div class="proj-thumb" style="width:220px;height:160px;flex-shrink:0">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" onerror="this.remove()">` : ""}</div>
       <div class="profile-info">
         <h2>${Pixl.esc(p.name)}</h2>
-        <div>${statusChip(p)}
+        <div>${statusChip(p)}${peakChip(p)}
           ${p.hackatime_seconds ? `<span class="chip teal">${Pixl.hours(p.hackatime_seconds)} CODED</span>` : ""}
           ${p.level ? `<span class="chip">LEVEL ${p.level}</span>` : ""}
         </div>
