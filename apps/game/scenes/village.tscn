@@ -2687,8 +2687,6 @@ position = Vector2(260, 50)
 collision_mask = 2
 script = ExtResource("44_ci1yp")
 target = "lobbies"
-sign_name = "LOBBIES"
-sign_y = -100.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorTrigger4" unique_id=990011227]
 position = Vector2(2, 6)
