@@ -39,7 +39,7 @@ Pixorpheus is a TypeScript Bun project (no build step - `bun run src/index.ts`),
 | `src/slack/` | Shared Bolt `App`/`ExpressReceiver` instances, bot identity, `#pixl-logs` logging |
 | `src/tickets/` | Full help/ticket workflow - repo, blocks, service, event/action/view handlers |
 | `src/chat/` | Message handling - thread state, the main AI chat handler, welcome messages, polls, `:pixl-delete:` |
-| `src/ai/` | OpenRouter client (buffered + streaming), the Pixorpheus persona/system prompt, emoji handling, web search |
+| `src/ai/` | OpenRouter client (buffered + streaming), the Pixorpheus persona/system prompt, emoji handling, web search, and docs answering (`docs.ts` fetch+cache, `answerFromDocs.ts` answer + `pixo_qa_cache`) |
 | `src/memory/` | Per-user facts/personality, server-wide facts, speaking-style notes |
 | `src/commands/` | Remaining slash commands (fun/utility, social, helpers, memory, ai, ship) |
 | `src/pixelate/` | `/pixl` avatar pixelation command |
@@ -181,21 +181,27 @@ It can also react to messages with these emojis (the AI decides when it's approp
 
 ---
 
-## Smart FAQ
+## Docs Answers & Smart FAQ
 
-When a user posts in the help channel, Pixorpheus automatically checks whether the question was already answered before creating a ticket.
+Pixorpheus can answer questions straight from the Pixl **docs** and the landing **FAQ**, and remembers what it has already answered so repeat questions are instant.
 
-### How it works
+### How it works (`src/ai/docs.ts`, `src/ai/answerFromDocs.ts`)
 
-1. As soon as a message lands in the help channel, Pixorpheus queries the last 60 resolved tickets (by description and title)
-2. It uses DeepSeek to compare the new question against all of them and look for a semantic match
-3. If a similar resolved ticket is found, the user gets an **ephemeral** message with a link to that ticket and a "View FAQ" button - before they even have to wait for a reply
-4. The ticket is still created normally so a helper can follow up if needed
+1. **Docs are fetched, never hardcoded into the prompt.** On demand, pixo fetches the docs pages (`https://pixl.hackclub.com/docs/*`) and the landing FAQ, strips them to text, and caches that corpus **in memory** (6h TTL). The docs text is only ever passed to a dedicated "answer from docs" model call — it is **never** added to the main chat system prompt, so ordinary messages don't pay the doc token cost. Override the sources with `PIXL_DOCS_URL` / `PIXL_LANDING_URL`.
+2. **Answered-questions cache (`pixo_qa_cache` table).** Before fetching anything, pixo checks the questions it has already answered (exact + token-overlap match). A hit is returned instantly with no docs fetch and no model call. Fresh answers are stored so the next similar question is a cache hit.
+3. **If the docs don't cover it**, the answer step returns nothing — the signal to fall back to a human helper.
 
-The FAQ check runs in parallel with the ticket creation flow - it never slows anything down.
+### In the help channel
+
+When a new question is posted, pixo posts a quick placeholder, then edits it in place:
+
+- **Docs have the answer** → the answer is posted (with a link to the docs), and a helper can still follow up.
+- **Docs don't cover it** → "just wait for a helper to respond to this one :D", and pixo also surfaces a **similar previously-resolved ticket** if there is one (last 60 closed tickets, semantic match — the older Smart FAQ behavior, now a fallback).
+
+The ticket is still created normally either way.
 
 - **Language:** English only (the bot reminds users to post in English if needed)
-- **Threshold:** Only high-confidence matches are surfaced - vague similarity is ignored
+- **Threshold:** Only high-confidence similar-ticket matches are surfaced - vague similarity is ignored
 
 ---
 
@@ -221,7 +227,7 @@ This is the core support system for the Pixl program.
 
 1. **User posts in the help channel** →
    - Pixorpheus adds a 🤔 reaction to the message
-   - Posts a thread reply: "Someone will be here soon!" + a "Mark as resolved" button
+   - Posts a placeholder thread reply, then edits it into either a **docs answer** or "just wait for a helper to respond to this one :D" (see [Docs Answers & Smart FAQ](#docs-answers--smart-faq)) + a "Mark as resolved" button
    - Sends the user an ephemeral message asking them to set a title for their ticket ("Set title" / "Skip" buttons)
 
 2. **Title modal** (optional) →
@@ -351,6 +357,8 @@ Tables (`tickets`, `helpers`, `user_memory`, `user_personality`, `program_memory
 | `OPENROUTER_API_KEY` | OpenRouter API key (main AI + utility models) |
 | `PIXO_MODEL` | Overrides the default OpenRouter model (`google/gemini-3.1-flash-lite:nitro`) |
 | `BRAVE_SEARCH_KEY` | Brave Search API key (auto web search in replies) |
+| `PIXL_DOCS_URL` | Base URL of the Pixl docs pixo answers from (default `https://pixl.hackclub.com/docs`) |
+| `PIXL_LANDING_URL` | Landing URL pixo pulls the FAQ text from (default `https://pixl.hackclub.com`) |
 | `PIXL_LOGS_CHANNEL_ID` | Skips the `#pixl-logs` channel-name scan (see `src/slack/logs.ts`) |
 | `GITHUB_WEBHOOK_SECRET` | HMAC secret for the `/webhooks/github` route. **Required** - without it the route returns 503 and processes nothing |
 | `GITHUB_NOTIFY_CHANNEL` | Channel ID to post GitHub push/merge notifications to |
