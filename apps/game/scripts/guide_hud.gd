@@ -349,6 +349,7 @@ func _build_pages() -> void:
 		_row("J", "Trial log"),
 		_row("E", "Explore"),
 		_row("M", "Map"),
+		_row("Cmd+K" if OS.get_name() == "macOS" else "F3", "Show or hide the shortcut list"),
 		_row("F1", "This guide"),
 		_row("Esc", "Pause / settings"),
 		_spacer(),

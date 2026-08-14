@@ -17,6 +17,9 @@ var _pixels_label: Label
 var _hours_label: Label
 var _event_card: PanelContainer
 var _event_label: Label
+## The stack of [key] hint chips. Starts hidden and toggles on F3 so the HUD is
+## quiet by default; the wallet and clock are not in here and always show.
+var _shortcuts: VBoxContainer
 var _players := {}
 var _your_id := ""
 var _list_root: Control
@@ -78,7 +81,16 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	if event.keycode == KEY_TAB:
+	# Mac keyboards map bare F-keys to system functions by default, so F3 never
+	# reaches the app there; Cmd+K is the Mac-only alternate binding.
+	var is_shortcuts_key: bool = event.keycode == KEY_F3
+	if OS.get_name() == "macOS":
+		is_shortcuts_key = is_shortcuts_key or (event.keycode == KEY_K and event.meta_pressed)
+	if is_shortcuts_key:
+		if _in_gameplay() and not global.ui_blocked() and not ChatHud.is_typing() and not Dialogue.is_open:
+			_shortcuts.visible = not _shortcuts.visible
+			get_viewport().set_input_as_handled()
+	elif event.keycode == KEY_TAB:
 		if _in_gameplay() and not global.ui_blocked() and not ChatHud.is_typing() and not Dialogue.is_open:
 			_toggle_list()
 			get_viewport().set_input_as_handled()
@@ -193,6 +205,12 @@ func _build_ui() -> void:
 	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	card_margin.add_child(_name_label)
 
+	_shortcuts = VBoxContainer.new()
+	_shortcuts.add_theme_constant_override("separation", 6)
+	_shortcuts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shortcuts.visible = false
+	column.add_child(_shortcuts)
+
 	var chip := PanelContainer.new()
 	chip.theme_type_variation = &"HudPanel"
 	chip.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -202,7 +220,7 @@ func _build_ui() -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if _in_gameplay() and not global.ui_blocked() and not ChatHud.is_typing() and not Dialogue.is_open:
 				_toggle_list())
-	column.add_child(chip)
+	_shortcuts.add_child(chip)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 7)
@@ -233,7 +251,7 @@ func _build_ui() -> void:
 				FriendsHud.close()
 			elif not ChatHud.is_typing() and not Dialogue.is_open and not global.ui_blocked():
 				FriendsHud.open())
-	column.add_child(friends_chip)
+	_shortcuts.add_child(friends_chip)
 
 	var friends_row := HBoxContainer.new()
 	friends_row.add_theme_constant_override("separation", 7)
@@ -262,7 +280,7 @@ func _build_ui() -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if _in_gameplay() and not global.ui_blocked() and not ChatHud.is_typing() and not Dialogue.is_open:
 				WebPages.open("shop"))
-	column.add_child(shop_chip)
+	_shortcuts.add_child(shop_chip)
 
 	var shop_row := HBoxContainer.new()
 	shop_row.add_theme_constant_override("separation", 7)
@@ -291,7 +309,7 @@ func _build_ui() -> void:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if _in_gameplay() and not global.ui_blocked() and not ChatHud.is_typing() and not Dialogue.is_open:
 				WebPages.open("quests"))
-	column.add_child(quest_chip)
+	_shortcuts.add_child(quest_chip)
 
 	var quest_row := HBoxContainer.new()
 	quest_row.add_theme_constant_override("separation", 7)
@@ -322,7 +340,7 @@ func _build_ui() -> void:
 				InboxHud.close()
 			elif not ChatHud.is_typing() and not Dialogue.is_open and not global.ui_blocked():
 				InboxHud.open())
-	column.add_child(inbox_chip)
+	_shortcuts.add_child(inbox_chip)
 
 	var inbox_row := HBoxContainer.new()
 	inbox_row.add_theme_constant_override("separation", 7)
@@ -636,7 +654,9 @@ func _build_list_ui() -> void:
 	wrap.add_child(plate)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(320, 0)
+	# Wide enough that a typical display name plus the "(you)" tag and the View
+	# button sit on one line; longer names wrap rather than getting clipped.
+	panel.custom_minimum_size = Vector2(460, 0)
 	wrap.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -676,8 +696,9 @@ func _refresh_list() -> void:
 		label.text = "%s  (you)" % entry[0] if entry[1] else String(entry[0])
 		if entry[1]:
 			label.add_theme_color_override("font_color", PixlTheme.color("gold"))
-		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(label)
 		var pid := String(entry[2])
 		if pid != "":
