@@ -70,6 +70,8 @@ var _rows: Array = []          # Array[Label]
 var _hint: Label
 var _action_btn: Button
 var _collapse_btn: Button
+var _skip_btn: Button
+var _skip_armed := false
 var _timer: Timer
 
 func _ready() -> void:
@@ -202,6 +204,7 @@ func _apply_step(new_step: int) -> void:
 		if completed >= 0 and completed < STEP_DONE_LINE.size():
 			_say(STEP_DONE_LINE[completed])
 	_step = new_step
+	_skip_armed = false
 	if _step == S_DONE:
 		_timer.stop()
 		_save_state(false)  # don't auto-resume next session; stays visible until closed
@@ -263,14 +266,17 @@ func _build_ui() -> void:
 	refresh_btn.theme_type_variation = &"GreyButton"
 	refresh_btn.icon = _refresh_icon_texture()
 	refresh_btn.expand_icon = false
-	refresh_btn.custom_minimum_size = Vector2(30, 0)
+	refresh_btn.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	refresh_btn.custom_minimum_size = Vector2(40, 34)
 	refresh_btn.tooltip_text = "Check progress now"
 	refresh_btn.pressed.connect(_poll)
 	header.add_child(refresh_btn)
 
 	_collapse_btn = Button.new()
 	_collapse_btn.theme_type_variation = &"GreyButton"
-	_collapse_btn.custom_minimum_size = Vector2(30, 0)
+	_collapse_btn.add_theme_font_size_override("font_size", 22)
+	_collapse_btn.custom_minimum_size = Vector2(40, 34)
+	_collapse_btn.tooltip_text = "Collapse or expand this panel"
 	_collapse_btn.pressed.connect(_toggle_collapse)
 	header.add_child(_collapse_btn)
 
@@ -301,6 +307,14 @@ func _build_ui() -> void:
 	_action_btn.pressed.connect(_on_action)
 	_body.add_child(_action_btn)
 
+	_skip_btn = Button.new()
+	_skip_btn.theme_type_variation = &"GreyButton"
+	_skip_btn.add_theme_font_size_override("font_size", 13)
+	_skip_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_skip_btn.tooltip_text = "Dismiss this guide for good"
+	_skip_btn.pressed.connect(_on_skip)
+	_body.add_child(_skip_btn)
+
 # 12x12 pixel-art reload glyph (an open ring with an arrowhead), baked as an
 # ImageTexture at build time instead of relying on a font glyph that may not
 # exist in Monocraft/Pixelify Sans.
@@ -313,10 +327,16 @@ const REFRESH_ICON_PIXELS: Array[Vector2i] = [
 	Vector2i(9,3), Vector2i(9,4), Vector2i(9,5), Vector2i(10,4),
 ]
 
+# Baked at an integer scale rather than letting the Button stretch the 12x12
+# source, so the glyph stays crisp instead of going soft at the edges.
+const ICON_SCALE := 2
+
 func _refresh_icon_texture() -> ImageTexture:
-	var img := Image.create(12, 12, false, Image.FORMAT_RGBA8)
+	var img := Image.create(12 * ICON_SCALE, 12 * ICON_SCALE, false, Image.FORMAT_RGBA8)
 	for p in REFRESH_ICON_PIXELS:
-		img.set_pixel(p.x, p.y, PixlTheme.color("ink"))
+		for dy in ICON_SCALE:
+			for dx in ICON_SCALE:
+				img.set_pixel(p.x * ICON_SCALE + dx, p.y * ICON_SCALE + dy, PixlTheme.color("ink"))
 	return ImageTexture.create_from_image(img)
 
 func _render() -> void:
@@ -335,6 +355,10 @@ func _render() -> void:
 			label.text = "[ ] " + STEP_LABELS[i]
 			label.add_theme_color_override("font_color", DIM)
 
+	# Nothing left to skip once it's finished; the action button is "Close" there.
+	_skip_btn.visible = _step != S_DONE
+	_skip_btn.text = "Really skip? Tap again" if _skip_armed else "Skip this trial"
+
 	if _step == S_DONE:
 		_hint.text = "All done. Your first Trial is shipped — every other Trial is the same loop."
 		_action_btn.text = "Close"
@@ -349,7 +373,21 @@ func _render() -> void:
 
 func _toggle_collapse() -> void:
 	_collapsed = not _collapsed
+	_skip_armed = false
 	_render()
+
+## Skipping is one-way — the guide only comes back through the onboarding opt-in
+## — so it takes two taps rather than throwing the trial away on a stray click.
+func _on_skip() -> void:
+	if not _skip_armed:
+		_skip_armed = true
+		_render()
+		return
+	_skip_armed = false
+	_active = false
+	_timer.stop()
+	_save_state(false)
+	_root.visible = false
 
 func _on_action() -> void:
 	if _step == S_DONE:

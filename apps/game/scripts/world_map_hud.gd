@@ -14,9 +14,17 @@ const REGIONS := {
 	"Dustline": Vector2(0.68, 0.32),
 }
 
-# The overworld is the map: village/interiors are rooms inside it, and both
-# canon regions live in open_world's tilemaps.
-const WORLD_MAP_KEY := "open_world"
+# Interiors (house/shop) are rooms inside the overworld and have no bake of
+# their own, so they fall back to it. The village does have its own bake, so
+# standing in it shows the village rather than the overworld it sits in.
+const FALLBACK_MAP_KEY := "open_world"
+
+func _map_key() -> String:
+	var cur := get_tree().current_scene
+	if cur == null:
+		return FALLBACK_MAP_KEY
+	var key := MapData.scene_key(cur)
+	return key if MapData.has(key) else FALLBACK_MAP_KEY
 const COLOR_SELF := Color(1, 0.819608, 0.4)
 
 var _root: Control
@@ -139,19 +147,20 @@ func _build_ui() -> void:
 # the world's aspect ratio, plus the player's position on it. Silently draws
 # nothing until that bake has been run, leaving the plain dark panel behind it.
 func _draw_art() -> void:
-	var tex := MapData.texture(WORLD_MAP_KEY)
+	var key := _map_key()
+	var tex := MapData.texture(key)
 	if tex == null:
 		return
 	var art := _fit(Vector2(tex.get_size()), _map_art.size)
 	_map_art.draw_texture_rect(tex, art, false)
 
 	var world := get_tree().current_scene
-	if world == null or MapData.scene_key(world) != WORLD_MAP_KEY:
+	if world == null or MapData.scene_key(world) != key:
 		return
 	var me = world.get("_local_player")
 	if me == null or not is_instance_valid(me):
 		return
-	var frac := MapData.world_to_image(WORLD_MAP_KEY, me.global_position) / Vector2(tex.get_size())
+	var frac := MapData.world_to_image(key, me.global_position) / Vector2(tex.get_size())
 	var at := art.position + frac * art.size
 	_map_art.draw_rect(Rect2(at - Vector2(4, 4), Vector2(8, 8)), COLOR_SELF)
 	_map_art.draw_rect(Rect2(at - Vector2(4, 4), Vector2(8, 8)), Color.BLACK, false, 1.0)

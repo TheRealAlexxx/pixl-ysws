@@ -13,6 +13,7 @@ const OUTDOOR := ["village", "open_world"]
 
 var _grad: Gradient
 var _glow_tex: GradientTexture2D
+var _was_outdoor := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -32,11 +33,19 @@ func _ready() -> void:
 	])
 
 func _process(delta: float) -> void:
+	var outdoor := _is_outdoor()
 	var target := Color.WHITE
-	if Settings.day_night_enabled and _is_outdoor():
+	if Settings.day_night_enabled and outdoor:
 		target = _grad.sample(_phase())
-	# Ease toward the target so scene changes and the toggle fade instead of snap.
-	color = color.lerp(target, clampf(delta * 2.0, 0.0, 1.0))
+	# Snap when crossing in or out of the world. This modulate covers every canvas
+	# including the menus, so easing here meant a menu opened at night inherited
+	# the world's tint and visibly faded it off. Easing still applies in-world, for
+	# the gradual time-of-day drift and the settings toggle.
+	if outdoor != _was_outdoor:
+		color = target
+	else:
+		color = color.lerp(target, clampf(delta * 2.0, 0.0, 1.0))
+	_was_outdoor = outdoor
 
 func _is_outdoor() -> bool:
 	var cur := get_tree().current_scene
