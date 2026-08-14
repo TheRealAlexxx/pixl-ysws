@@ -21,8 +21,12 @@ router.post(
     if (!key)
       return res.status(503).json({ ok: false, error: "cdn_not_configured" });
 
-    const buf = req.body as Buffer;
-    if (!Buffer.isBuffer(buf) || buf.length === 0)
+    // express.json() runs globally before this router, so a request sent with a
+    // JSON content-type reaches here with req.body already parsed into an object
+    // or array — express.raw() only populates a Buffer for IMAGE_TYPES. Narrow
+    // rather than asserting `as Buffer`, which is a lie on that path.
+    const buf = Buffer.isBuffer(req.body) ? req.body : null;
+    if (!buf || buf.length === 0)
       return res.status(400).json({ ok: false, error: "empty_body" });
 
     const type = String(req.headers["content-type"] ?? "image/png");
