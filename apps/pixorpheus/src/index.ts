@@ -5,6 +5,7 @@ import { loadProgramMemory } from "./memory/program.js";
 import { loadStyleMemory } from "./memory/style.js";
 import { loadPendingPolls } from "./chat/polls.js";
 import { autoCloseOldTickets } from "./tickets/service.js";
+import { scheduleNewMembersDigest } from "./chat/newMembersDigest.js";
 
 // Side-effect imports — each of these registers its Bolt listeners
 // (commands/actions/events/routes) against the shared `app`/`receiver`.
@@ -39,5 +40,6 @@ import "./external/ticketApi.js";
   await loadStyleMemory();
   autoCloseOldTickets().catch(() => {});
   setInterval(() => autoCloseOldTickets().catch(() => {}), 24 * 60 * 60 * 1000);
+  scheduleNewMembersDigest();
   console.log("pixorpheus is running.");
 })();
