@@ -51,6 +51,8 @@ var _tcp_server: TCPServer = TCPServer.new()
 var _listening: bool = false
 var _http: HTTPRequest
 var _pending_scene_change: String = ""
+var _connect_deadline_msec: int = 0
+const CONNECT_TIMEOUT_MSEC := 8000
 
 func _is_socket_open() -> bool:
 	return _socket.get_ready_state() == WebSocketPeer.STATE_OPEN
@@ -109,6 +111,7 @@ func _process(_delta: float) -> void:
 	_socket.poll()
 	var state = _socket.get_ready_state()
 	if state == WebSocketPeer.STATE_OPEN:
+		_connect_deadline_msec = 0
 		if _pending_scene_change != "":
 			var sc := _pending_scene_change
 			_pending_scene_change = ""
@@ -117,6 +120,13 @@ func _process(_delta: float) -> void:
 			var pkt := _socket.get_packet()
 			if _socket.was_string_packet():
 				_handle_message(pkt.get_string_from_utf8())
+	elif state == WebSocketPeer.STATE_CONNECTING:
+		# The handshake can hang indefinitely (never reaching OPEN or CLOSED)
+		# on a flaky connection - without this, request_lobby_list() and
+		# everything else keeps silently no-opping forever with no feedback.
+		if _connect_deadline_msec != 0 and Time.get_ticks_msec() > _connect_deadline_msec:
+			push_error("WebSocket handshake timed out, retrying")
+			_connect_to_server()
 	elif state == WebSocketPeer.STATE_CLOSED:
 		var was_connected := _connected
 		_connected = false
@@ -229,6 +239,7 @@ func _connect_to_server() -> void:
 		push_error("WebSocket connection failed: %s" % err)
 		return
 	_connected = true
+	_connect_deadline_msec = Time.get_ticks_msec() + CONNECT_TIMEOUT_MSEC
 
 func _handle_message(raw: String) -> void:
 	var json = JSON.parse_string(raw)
