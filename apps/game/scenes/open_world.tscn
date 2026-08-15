@@ -5301,7 +5301,7 @@ tile_set = SubResource("TileSet_fqfbq")
 
 [node name="TileMapLayeBoatsBoatsr" type="TileMapLayer" parent="." unique_id=370350821]
 position = Vector2(-206, -182)
-tile_map_data = PackedByteArray("AADx//b/AQAFAAcAAGDw//b/AQAFAAYAAGDw//j/AQADAAYAAGDm/zgAAQAAAAIAAFDm/zkAAQABAAIAAFDm/zoAAQACAAIAAFDl/zgAAQAAAAMAAFDl/zkAAQABAAMAAFDl/zoAAQACAAMAAFC7/zcAAQADAAAAAGC7/zYAAQAEAAAAAGC7/zUAAQAFAAAAAGC8/zcAAQADAAEAAGC8/zYAAQAEAAEAAGC8/zUAAQAFAAEAAGDx//j/AQADAAcAAGDx//f/AQAEAAcAAGDw//f/AQAEAAYAAGAWAPj/AQADAAIAAGAWAPf/AQAEAAIAAGAWAPb/AQAFAAIAAGAXAPj/AQADAAMAAGAXAPf/AQAEAAMAAGAXAPb/AQAFAAMAAGAfADcAAQAAAAIAAGAfADYAAQABAAIAAGAfADUAAQACAAIAAGAgADcAAQAAAAMAAGAgADYAAQABAAMAAGAgADUAAQACAAMAAGA=")
+tile_map_data = PackedByteArray("AADx//b/AQAFAAcAAGDw//b/AQAFAAYAAGDw//j/AQADAAYAAGDm/zgAAQAAAAIAAFDm/zkAAQABAAIAAFDm/zoAAQACAAIAAFDl/zgAAQAAAAMAAFDl/zkAAQABAAMAAFDl/zoAAQACAAMAAFC7/zcAAQADAAAAAGC7/zYAAQAEAAAAAGC7/zUAAQAFAAAAAGC8/zcAAQADAAEAAGC8/zYAAQAEAAEAAGC8/zUAAQAFAAEAAGDx//j/AQADAAcAAGDx//f/AQAEAAcAAGDw//f/AQAEAAYAAGAfADcAAQAAAAIAAGAfADYAAQABAAIAAGAfADUAAQACAAIAAGAgADcAAQAAAAMAAGAgADYAAQABAAMAAGAgADUAAQACAAMAAGAWAPb/AQAFAAIAAGAWAPf/AQAEAAIAAGAWAPj/AQADAAIAAGAXAPb/AQAFAAMAAGAXAPf/AQAEAAMAAGAXAPj/AQADAAMAAGA=")
 tile_set = SubResource("TileSet_eitk3")
 
 [node name="DoorTrigger" type="Area2D" parent="." unique_id=1872262273]
@@ -5680,7 +5680,7 @@ script = ExtResource("46_boat1")
 target_marker = NodePath("../PlayerSpawn")
 destination_label = "Set sail"
 destination_labels = PackedStringArray("Main Island", "Far West")
-destination_markers = [NodePath("../PlayerSpawn"), NodePath("../FarwestSpawn")]
+destination_markers = Array[NodePath]([NodePath("../PlayerSpawn"), NodePath("../FarwestSpawn")])
 
 [node name="@CollisionShape2D@595" type="CollisionShape2D" parent="Pixlcraft Boat Trigger" unique_id=1648701318]
 position = Vector2(10, -7)
