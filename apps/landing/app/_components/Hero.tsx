@@ -32,7 +32,9 @@ export function Hero() {
         events.forEach((e) => window.removeEventListener(e, onInteract));
       }
     }
-    events.forEach((e) => window.addEventListener(e, onInteract, { passive: true }));
+    events.forEach((e) =>
+      window.addEventListener(e, onInteract, { passive: true }),
+    );
 
     return () => {
       video.removeEventListener("canplay", tryPlay);
@@ -54,7 +56,10 @@ export function Hero() {
         preload="auto"
         poster="/hero-bg-poster.webp"
       >
-        <source src="https://cdn.hackclub.com/01a001b5-62bc-7888-94b3-923d515f3af2/hero-bg.mp4" type="video/mp4" />
+        <source
+          src="https://cdn.hackclub.com/01a001b5-62bc-7888-94b3-923d515f3af2/hero-bg.mp4"
+          type="video/mp4"
+        />
       </video>
       <motion.div
         className="absolute inset-0 bg-black"
@@ -69,10 +74,15 @@ export function Hero() {
             style={{ boxShadow: "4px 4px 0px #000", rotate: "-1.5deg" }}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
+            transition={{
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1],
+              delay: 0.45,
+            }}
           >
             <p className="font-sans font-bold text-xs sm:text-sm leading-snug text-center text-black">
-              <span className="text-[#ff8c37]">{t.youShip}</span> {t.projectsInside}{" "}
+              <span className="text-[#ff8c37]">{t.youShip}</span>{" "}
+              {t.projectsInside}{" "}
               <span className="text-[#ec3750]">{t.weShip}</span> {t.realPrizes}
             </p>
           </motion.div>
@@ -105,7 +115,7 @@ export function Hero() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              open dash
+              open dashboard
             </motion.a>
             <Crew />
           </motion.div>

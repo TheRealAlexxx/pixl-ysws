@@ -23,12 +23,16 @@ export function ExampleSubmission() {
 
   return (
     <div className="w-full flex flex-col items-center gap-6 text-black pt-4">
-      <h3 className="font-pixel text-2xl md:text-3xl text-center">Example Submission</h3>
+      <h3 className="font-pixel text-2xl md:text-3xl text-center">
+        Example Submission
+      </h3>
 
       {canEdit ? (
         <>
           <p className="text-black/60 text-sm font-sans">
-            Edit mode. Nobody else sees this, and nothing is saved automatically, export when you're done and paste it into the code.
+            Edit mode. Nobody else sees this, and nothing is saved
+            automatically, export when you&apos;re done and paste it into the
+            code.
           </p>
           <textarea
             value={content}

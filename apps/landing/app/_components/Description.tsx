@@ -24,7 +24,10 @@ const cardVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+    },
   },
 };
 
@@ -42,8 +45,12 @@ function VideoCard({ s, t }: { s: any; t: any }) {
     <motion.div
       variants={cardVariants}
       className="flex flex-col gap-2 text-left"
-      onPointerEnter={(e) => { if (!comingSoon && e.pointerType === "mouse") videoRef.current?.play(); }}
-      onPointerLeave={(e) => { if (!comingSoon && e.pointerType === "mouse") videoRef.current?.pause(); }}
+      onPointerEnter={(e) => {
+        if (!comingSoon && e.pointerType === "mouse") videoRef.current?.play();
+      }}
+      onPointerLeave={(e) => {
+        if (!comingSoon && e.pointerType === "mouse") videoRef.current?.pause();
+      }}
     >
       <div className="relative border-2 border-black aspect-square overflow-hidden bg-black shadow-[4px_4px_0px_#000] hover:shadow-[8px_8px_0px_#000] hover:-translate-y-2 hover:-translate-x-2 transition-all">
         <span
@@ -64,7 +71,9 @@ function VideoCard({ s, t }: { s: any; t: any }) {
         {comingSoon && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/70 backdrop-blur-sm">
             <p className="font-pixel text-[#ec3750] text-4xl">Pixl</p>
-            <p className="font-pixel text-[#F5EED2] text-lg tracking-wide">{t.comingSoon}</p>
+            <p className="font-pixel text-[#F5EED2] text-lg tracking-wide">
+              {t.comingSoon}
+            </p>
           </div>
         )}
       </div>
@@ -78,7 +87,12 @@ export function WTFISTHIS() {
   const { dict } = useLocale();
   const t = dict.description;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const steps = (t.steps as any[]).map((s: any, i: number) => ({ ...s, step: i + 1, video: videos[i], tags: [] }));
+  const steps = (t.steps as any[]).map((s: any, i: number) => ({
+    ...s,
+    step: i + 1,
+    video: videos[i],
+    tags: [],
+  }));
 
   return (
     <section
@@ -116,15 +130,32 @@ export function WTFISTHIS() {
         {steps.map((s: any) => (
           <VideoCard key={s.step} s={s} t={t} />
         ))}
-        <motion.div variants={cardVariants} className="flex flex-col gap-2 text-left">
+        <motion.div
+          variants={cardVariants}
+          className="flex flex-col gap-2 text-left"
+        >
           <div className="aspect-square flex flex-col">
             <div className="flex-1 flex flex-col justify-center gap-1">
-              <p className="font-pixel text-[#ff8c37] leading-none" style={{ fontSize: "clamp(1rem, 4vw, 3rem)" }}>{t.youRepair}</p>
-              <p className="text-black/70 leading-snug text-xs sm:text-sm md:text-lg lg:text-xl">{t.youRepairDesc}</p>
+              <p
+                className="font-pixel text-[#ff8c37] leading-none"
+                style={{ fontSize: "clamp(1rem, 4vw, 3rem)" }}
+              >
+                {t.youRepair}
+              </p>
+              <p className="text-black/70 leading-snug text-xs sm:text-sm md:text-lg lg:text-xl">
+                {t.youRepairDesc}
+              </p>
             </div>
             <div className="flex-1 flex flex-col justify-center gap-1">
-              <p className="font-pixel text-[#ec3750] leading-none" style={{ fontSize: "clamp(1rem, 4vw, 3rem)" }}>{t.theCorePays}</p>
-              <p className="text-black/70 leading-snug text-xs sm:text-sm md:text-lg lg:text-xl">{t.theCorePaysDesc}</p>
+              <p
+                className="font-pixel text-[#ec3750] leading-none"
+                style={{ fontSize: "clamp(1rem, 4vw, 3rem)" }}
+              >
+                {t.theCorePays}
+              </p>
+              <p className="text-black/70 leading-snug text-xs sm:text-sm md:text-lg lg:text-xl">
+                {t.theCorePaysDesc}
+              </p>
             </div>
           </div>
         </motion.div>
@@ -132,4 +163,3 @@ export function WTFISTHIS() {
     </section>
   );
 }
-

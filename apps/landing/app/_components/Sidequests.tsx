@@ -45,12 +45,19 @@ function SidequestCard({
       </div>
 
       <div className="px-5 py-5 flex flex-col gap-2 flex-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 font-sans">{t.sidequestLabel}</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 font-sans">
+          {t.sidequestLabel}
+        </p>
         <p className="font-pixel text-lg leading-snug">{l.quest.title}</p>
-        <p className="text-black/60 text-sm leading-relaxed font-sans">{l.quest.description}</p>
+        <p className="text-black/60 text-sm leading-relaxed font-sans">
+          {l.quest.description}
+        </p>
         <div className="flex gap-2 flex-wrap mt-1">
           {tags.map((tag) => (
-            <span key={tag} className="text-[10px] border border-black/30 px-2 py-0.5 text-black/50 font-sans">
+            <span
+              key={tag}
+              className="text-[10px] border border-black/30 px-2 py-0.5 text-black/50 font-sans"
+            >
               {tag}
             </span>
           ))}
@@ -60,9 +67,13 @@ function SidequestCard({
       <div
         className={`absolute inset-0 bg-[#fffaf7] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col justify-center px-5 py-5 gap-3 group-hover:translate-y-0 ${open ? "translate-y-0" : "translate-y-full"}`}
       >
-        <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 font-sans">{t.prizeLabel}</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-black/40 font-sans">
+          {t.prizeLabel}
+        </p>
         <p className="font-pixel text-2xl leading-snug">{l.prize.title}</p>
-        <p className="text-black/60 text-sm leading-relaxed font-sans">{l.prize.description}</p>
+        <p className="text-black/60 text-sm leading-relaxed font-sans">
+          {l.prize.description}
+        </p>
       </div>
     </div>
   );
@@ -72,7 +83,7 @@ const MARQUEE_DURATION = 40;
 
 function wrap(value: number, min: number, max: number) {
   const range = max - min;
-  return min + (((value - min) % range) + range) % range;
+  return min + ((((value - min) % range) + range) % range);
 }
 
 function Marquee({ children }: { children: React.ReactNode }) {
@@ -122,7 +133,8 @@ function Marquee({ children }: { children: React.ReactNode }) {
     const delta = e.clientX - dragStartXRef.current;
     if (Math.abs(delta) > 5) draggedRef.current = true;
     const halfWidth = halfWidthRef.current;
-    if (halfWidth) x.set(wrap(dragStartValueRef.current + delta, -halfWidth, 0));
+    if (halfWidth)
+      x.set(wrap(dragStartValueRef.current + delta, -halfWidth, 0));
   }
 
   function endDrag() {
@@ -142,14 +154,21 @@ function Marquee({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="w-full overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
-      style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
+      style={{
+        maskImage:
+          "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
       onClickCapture={onClickCapture}
-      onMouseEnter={() => { pausedRef.current = true; }}
-      onMouseLeave={() => { if (!draggingRef.current) pausedRef.current = false; }}
+      onMouseEnter={() => {
+        pausedRef.current = true;
+      }}
+      onMouseLeave={() => {
+        if (!draggingRef.current) pausedRef.current = false;
+      }}
     >
       <motion.div
         ref={trackRef}
@@ -174,7 +193,10 @@ export function Sidequests() {
   const tags = t.tags;
 
   return (
-    <section className="my-10 md:my-20 px-4 md:px-8 flex flex-col items-center gap-16" id="sidequests">
+    <section
+      className="my-10 md:my-20 px-4 md:px-8 flex flex-col items-center gap-16"
+      id="sidequests"
+    >
       <div className="text-center">
         <motion.p
           className="text-sm font-bold uppercase tracking-widest text-black/50 mb-2"
@@ -214,7 +236,9 @@ export function Sidequests() {
         transition={{ duration: 0.5 }}
       >
         <p className="font-pixel text-lg mb-2">{t.howRewardsWork}</p>
-        <p className="text-black/60 text-sm leading-relaxed">{t.howRewardsWorkDesc}</p>
+        <p className="text-black/60 text-sm leading-relaxed">
+          {t.howRewardsWorkDesc}
+        </p>
       </motion.div>
 
       <Marquee>
@@ -223,27 +247,13 @@ export function Sidequests() {
           <SidequestCard
             key={i}
             l={l}
-            tags={TAG_KEYS[i % levels.length].map((k: string) => (tags as Record<string, string>)[k])}
+            tags={TAG_KEYS[i % levels.length].map(
+              (k: string) => (tags as Record<string, string>)[k],
+            )}
             t={t}
           />
         ))}
       </Marquee>
-
-      <motion.a
-        href="https://docs.google.com/document/d/1ROqv90L59KqjQ4uCTDhhXNUn2yssMYlLJyvMBjA5xFA/edit?usp=sharing"
-        target="_blank"
-        rel="noreferrer"
-        className="max-w-2xl w-full border-2 border-black bg-[#fffaf7] px-6 py-5 text-center font-sans cursor-pointer hover:-translate-y-1 hover:-translate-x-1 transition-all block"
-        style={{ boxShadow: "4px 4px 0px #ec3750" }}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        whileHover={{ boxShadow: "8px 8px 0px #ec3750" } as any}
-      >
-        <p className="font-pixel text-lg mb-2">{t.seeFullExample}</p>
-        <p className="text-black/60 text-sm leading-relaxed">{t.seeFullExampleDesc}</p>
-      </motion.a>
     </section>
   );
 }

@@ -8,6 +8,7 @@ import { MapPreview } from "../_components/MapPreview";
 import { MainContent } from "../_components/MainContent";
 import { FAQ } from "../_components/FAQ";
 import { Footer } from "../_components/Footer";
+import { ExampleSubmission } from "../_components/ExampleSubmission";
 
 export default async function Home({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
