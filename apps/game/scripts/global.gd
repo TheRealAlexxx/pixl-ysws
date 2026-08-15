@@ -14,8 +14,7 @@ var editor_return_scene: String = "res://scenes/main_menu.tscn"
 
 var ui_blockers: int = 0
 
-# Minecraft-style hide-HUD toggle (F2, since F1 is already guide_hud's help
-# panel): hides the always-on overlays (stats bar, minimap, chat, emotes) so
+# Minecraft-style hide-HUD toggle (F2): hides the always-on overlays (stats bar, minimap, chat, emotes) so
 # screenshots aren't cluttered. Mac keyboards map bare F-keys to system
 # functions (brightness etc.) by default, so F2 never reaches the app there;
 # Cmd+H is the Mac-only alternate binding for the same toggle.

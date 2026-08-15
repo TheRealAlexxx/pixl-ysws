@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://m7db8xeu1vhs"
-path="res://.godot/imported/oak-cabin.png-f3f2b30d2e03acab7d0bccdd8bc716b0.ctex"
+path="res://.godot/imported/oak-cabin.png-789c8093ae6647ba5abe5d3e498c673d.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/pixlcraft/buildings/oak-cabin.png"
-dest_files=["res://.godot/imported/oak-cabin.png-f3f2b30d2e03acab7d0bccdd8bc716b0.ctex"]
+dest_files=["res://.godot/imported/oak-cabin.png-789c8093ae6647ba5abe5d3e498c673d.ctex"]
 
 [params]
 

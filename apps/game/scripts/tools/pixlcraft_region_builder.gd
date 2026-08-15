@@ -903,7 +903,10 @@ static func _add_pixlcraft_boat(root: Node) -> void:
 	trigger.collision_mask = 2
 	trigger.set_script(load("res://scripts/boat_trigger.gd"))
 	trigger.set("target_marker", NodePath("../PlayerSpawn"))
-	trigger.set("destination_label", "Go to Main Island")
+	trigger.set("destination_label", "Set sail")
+	trigger.set("destination_labels", PackedStringArray(["Main Island", "Far West"]))
+	var stops: Array[NodePath] = [NodePath("../PlayerSpawn"), NodePath("../FarwestSpawn")]
+	trigger.set("destination_markers", stops)
 	var shape := CollisionShape2D.new()
 	var rectangle := RectangleShape2D.new()
 	rectangle.size = Vector2(40, 28)
@@ -912,5 +915,11 @@ static func _add_pixlcraft_boat(root: Node) -> void:
 	trigger.owner = root
 	trigger.add_child(shape)
 	shape.owner = root
+
+	# boat_trigger.gd only ever reacts through these two signals, so a trigger
+	# that is not connected is dead. CONNECT_PERSIST keeps the wiring when the
+	# scene is saved back out.
+	trigger.body_entered.connect(Callable(trigger, "_on_body_entered"), CONNECT_PERSIST)
+	trigger.body_exited.connect(Callable(trigger, "_on_body_exited"), CONNECT_PERSIST)
 	trigger.body_entered.connect(Callable(trigger, "_on_body_entered"))
 	trigger.body_exited.connect(Callable(trigger, "_on_body_exited"))

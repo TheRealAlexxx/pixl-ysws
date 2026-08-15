@@ -12,6 +12,13 @@ const MONOCRAFT := preload("res://assets/fonts/Monocraft.ttf")
 ## Small label shown above the [E] prompt while the player is near, e.g.
 ## "Go to Farwest". Leave blank to only show the key hint.
 @export var destination_label: String = ""
+## A boat that serves more than one region asks where to sail instead of going
+## straight to target_marker. Labels and markers are parallel: picking entry i
+## sails to destination_markers[i]. Leave both empty for a single-stop boat.
+@export var destination_labels: PackedStringArray = PackedStringArray()
+@export var destination_markers: Array[NodePath] = []
+## Prompt shown above the destination buttons.
+@export var ask_text: String = "Where to?"
 
 var _player_near := false
 var _player_body: Node2D
@@ -81,13 +88,28 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
-		if target_marker != NodePath(""):
-			_teleport()
+		if _has_choices():
+			_ask_destination()
+		elif target_marker != NodePath(""):
+			_teleport(target_marker)
 		else:
 			Dialogue.open(speaker, [dialogue_text])
 
-func _teleport() -> void:
-	var marker := get_node_or_null(target_marker)
+func _has_choices() -> bool:
+	return destination_markers.size() > 1 and destination_labels.size() == destination_markers.size()
+
+func _ask_destination() -> void:
+	if _sailing:
+		return
+	Dialogue.ask(speaker, [ask_text], destination_labels)
+	var picked: Array = await Dialogue.chosen
+	var index: int = int(picked[0]) if picked.size() > 0 else -1
+	if index < 0 or index >= destination_markers.size():
+		return
+	_teleport(destination_markers[index])
+
+func _teleport(marker_path: NodePath) -> void:
+	var marker := get_node_or_null(marker_path)
 	if marker == null or not is_instance_valid(_player_body):
 		Dialogue.open(speaker, [dialogue_text])
 		return

@@ -308,10 +308,11 @@ func _on_submit(text: String) -> void:
 		var space := rest.find(" ")
 		if space <= 0:
 			add_system("Usage: /w <name> <message>")
-		else:
-			NetworkManager.send_dm(rest.substr(0, space), rest.substr(space + 1).strip_edges())
+		elif not NetworkManager.send_dm(rest.substr(0, space), rest.substr(space + 1).strip_edges()):
+			add_system("Lost the connection, so that didn't send. Reconnecting, try again in a moment.")
 	elif t != "":
-		NetworkManager.send_chat(t)
+		if not NetworkManager.send_chat(t):
+			add_system("Lost the connection, so that didn't send. Reconnecting, try again in a moment.")
 	_close_input()
 
 func _censor(text: String) -> String:

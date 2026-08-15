@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6dfynxputyxa"
-path="res://.godot/imported/dirt_speckle_b-16.png-695a916b5f27a3710a5948071f879d87.ctex"
+path="res://.godot/imported/dirt_speckle_b-16.png-ce8d3fcdc8e3e753f818efb6e3ba1256.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/pixlcraft/tiles/dirt_speckle_b-16.png"
-dest_files=["res://.godot/imported/dirt_speckle_b-16.png-695a916b5f27a3710a5948071f879d87.ctex"]
+dest_files=["res://.godot/imported/dirt_speckle_b-16.png-ce8d3fcdc8e3e753f818efb6e3ba1256.ctex"]
 
 [params]
 

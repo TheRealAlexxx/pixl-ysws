@@ -382,15 +382,33 @@ func submit_display_name(name: String) -> void:
 	var url := SERVER_HTTP_URL + "/api/profile/name?token=" + session_token.uri_encode()
 	req.request(url, PackedStringArray(["Content-Type: application/json"]), HTTPClient.METHOD_POST, JSON.stringify({"name": name}))
 
-func send_chat(text: String) -> void:
-	if not _is_socket_open():
-		return
-	_socket.send_text(JSON.stringify({"type": "chat", "text": text}))
+# The socket can close mid-session (a network blip, or the server's 30s
+# heartbeat terminating us while a browser tab is throttled) and nothing in a
+# gameplay scene reconnects on its own, so every send_* below quietly no-ops
+# until the player reloads. Sends the player can *see* fail report it instead.
+# Returns true once a fresh connection is being opened.
+func reconnect_if_dropped() -> bool:
+	if _is_socket_open() or session_token == "":
+		return false
+	# Rejoin the room the player is standing in rather than whatever scene the
+	# server last persisted; this is the same queue change_scene() uses.
+	_pending_scene_change = current_scene_name
+	_connect_to_server()
+	return true
 
-func send_dm(to_name: String, text: String) -> void:
+func send_chat(text: String) -> bool:
 	if not _is_socket_open():
-		return
+		reconnect_if_dropped()
+		return false
+	_socket.send_text(JSON.stringify({"type": "chat", "text": text}))
+	return true
+
+func send_dm(to_name: String, text: String) -> bool:
+	if not _is_socket_open():
+		reconnect_if_dropped()
+		return false
 	_socket.send_text(JSON.stringify({"type": "dm", "to": to_name, "text": text}))
+	return true
 
 func send_block(target_id: String) -> void:
 	if not _is_socket_open() or target_id == "" or target_id == user_id:
