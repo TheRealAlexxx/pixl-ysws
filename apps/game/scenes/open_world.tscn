@@ -5227,7 +5227,7 @@ size = Vector2(16, 16)
 size = Vector2(16, 16)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7uuev"]
-size = Vector2(40, 47)
+size = Vector2(96, 56)
 
 [node name="OpenWorld" type="Node2D" unique_id=732456473]
 y_sort_enabled = true
@@ -5683,7 +5683,7 @@ destination_labels = PackedStringArray("Main Island", "Far West")
 destination_markers = [NodePath("../PlayerSpawn"), NodePath("../FarwestSpawn")]
 
 [node name="@CollisionShape2D@595" type="CollisionShape2D" parent="Pixlcraft Boat Trigger" unique_id=1648701318]
-position = Vector2(-10, -7)
+position = Vector2(10, -7)
 shape = SubResource("RectangleShape2D_7uuev")
 
 [connection signal="body_entered" from="DoorTrigger" to="DoorTrigger" method="_on_body_entered"]

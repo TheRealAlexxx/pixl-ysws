@@ -1,18 +1,38 @@
 extends CanvasLayer
 
+const MONOCRAFT := preload("res://assets/fonts/Monocraft.ttf")
+
 const GAMEPLAY_SCENES := ["village", "open_world", "house_interior", "shop_interior"]
 const COLOR_ACCENT := Color(1, 0.819608, 0.4)
 const COLOR_DIM := Color(0.788235, 0.694118, 0.54902)
 const COLOR_MARKER := Color(1, 0.85, 0.1)
+const COLOR_SEA := Color(0.098039, 0.219608, 0.32549)
+const COLOR_INK := Color(0.121569, 0.098039, 0.070588)
+const COLOR_ROUTE := Color(1, 0.85, 0.55, 0.4)
 
-# Hand-authored hotspots: region name (must match sidequests.region in the
-# dashboard) -> fractional position on the map panel. These were placed against
-# the old flat placeholder, so they need re-tuning once the terrain bake exists -
-# the regions are real places on the image now, not evenly spaced guesses.
-const REGIONS := {
-	"The Hub": Vector2(0.28, 0.62),
-	"Dustline": Vector2(0.68, 0.32),
+# Region name (must match sidequests.region in the dashboard) -> where it sits in
+# WORLD coordinates, per map. These used to be fractions of the panel eyeballed
+# against the old flat placeholder, which put every label on the wrong island
+# once the terrain bake replaced it; running them through the bake's bounds keeps
+# them on their region no matter how the world is re-baked.
+const REGION_POINTS := {
+	"open_world": {
+		"The Hub": Vector2(-164, -322),
+		"Dustline": Vector2(-950, 627),
+		"Pixlcraft": Vector2(408, 696),
+	},
+	"village": {
+		"The Hub": Vector2(-136, -104),
+	},
 }
+
+# Which regions a boat actually links. Drawn as dashed sailing routes so the
+# ocean between the islands reads as somewhere you can go rather than dead space.
+const ROUTES := [
+	["The Hub", "Dustline"],
+	["The Hub", "Pixlcraft"],
+	["Pixlcraft", "Dustline"],
+]
 
 # Interiors (house/shop) are rooms inside the overworld and have no bake of
 # their own, so they fall back to it. The village does have its own bake, so
@@ -33,6 +53,7 @@ var _map_art: Control
 var _detail_panel: PanelContainer
 var _detail_title: Label
 var _detail_body: RichTextLabel
+var _hotspots: Dictionary = {}
 var _markers: Dictionary = {}
 var _open := false
 var _quests_by_region: Dictionary = {}
@@ -75,6 +96,7 @@ func open() -> void:
 	_detail_panel.visible = false
 	# The map is modal and blocks movement, so one redraw on open is enough to
 	# keep the "you are here" dot honest.
+	_layout_hotspots()
 	_map_art.queue_redraw()
 	_refresh_markers()
 
@@ -113,24 +135,37 @@ func _build_ui() -> void:
 
 	var map_frame := PanelContainer.new()
 	map_frame.custom_minimum_size = Vector2(720, 480)
+	# The bake is wider than the panel, so it letterboxes. Sea-coloured bars and a
+	# chunky ink border make that read as the edge of a chart instead of a gap.
+	var frame_style := StyleBoxFlat.new()
+	frame_style.bg_color = COLOR_SEA
+	frame_style.border_color = COLOR_INK
+	frame_style.set_border_width_all(4)
+	frame_style.set_content_margin_all(4)
+	map_frame.add_theme_stylebox_override("panel", frame_style)
 	wrap.add_child(map_frame)
 
 	_map_panel = Control.new()
 	_map_panel.custom_minimum_size = Vector2(720, 480)
+	_map_panel.clip_contents = true
 	map_frame.add_child(_map_panel)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0.11, 0.13, 0.16)
+	bg.color = COLOR_SEA
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_map_panel.add_child(bg)
 
-	# Terrain + "you are here", under the hotspot buttons added below.
+	# Terrain, sailing routes, region pins and "you are here", under the hotspot
+	# buttons added below.
 	_map_art = Control.new()
 	_map_art.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_map_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_map_art.draw.connect(_draw_art)
 	_map_panel.add_child(_map_art)
+	# Connected last: the panel emits resized while it is still being built, and
+	# the layout pass needs the art node to already exist.
+	_map_panel.resized.connect(_layout_hotspots)
 
 	var hint := Label.new()
 	hint.text = "Press M to close"
@@ -138,8 +173,12 @@ func _build_ui() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	wrap.add_child(hint)
 
-	for region_name in REGIONS.keys():
-		_add_hotspot(region_name, REGIONS[region_name])
+	var names := {}
+	for key in REGION_POINTS:
+		for region_name in REGION_POINTS[key]:
+			names[region_name] = true
+	for region_name in names:
+		_add_hotspot(region_name)
 
 	_build_detail_panel()
 
@@ -154,16 +193,88 @@ func _draw_art() -> void:
 	var art := _fit(Vector2(tex.get_size()), _map_art.size)
 	_map_art.draw_texture_rect(tex, art, false)
 
+	var points: Dictionary = _region_points(key)
+	for route in ROUTES:
+		if points.has(route[0]) and points.has(route[1]):
+			_draw_route(_to_panel(key, points[route[0]], art), _to_panel(key, points[route[1]], art))
+	for region_name in points:
+		var pin: Vector2 = _to_panel(key, points[region_name], art)
+		_map_art.draw_rect(Rect2(pin - Vector2(5, 5), Vector2(10, 10)), COLOR_INK)
+		_map_art.draw_rect(Rect2(pin - Vector2(3, 3), Vector2(6, 6)), COLOR_ACCENT)
+	_draw_compass(art)
+
 	var world := get_tree().current_scene
 	if world == null or MapData.scene_key(world) != key:
 		return
 	var me = world.get("_local_player")
 	if me == null or not is_instance_valid(me):
 		return
-	var frac := MapData.world_to_image(key, me.global_position) / Vector2(tex.get_size())
-	var at := art.position + frac * art.size
-	_map_art.draw_rect(Rect2(at - Vector2(4, 4), Vector2(8, 8)), COLOR_SELF)
-	_map_art.draw_rect(Rect2(at - Vector2(4, 4), Vector2(8, 8)), Color.BLACK, false, 1.0)
+	var at := _to_panel(key, me.global_position, art)
+	# Ink halo first so the dot survives whatever terrain it lands on.
+	_map_art.draw_rect(Rect2(at - Vector2(7, 7), Vector2(14, 14)), COLOR_INK)
+	_map_art.draw_rect(Rect2(at - Vector2(5, 5), Vector2(10, 10)), COLOR_SELF)
+	_map_art.draw_string(
+		MONOCRAFT, at + Vector2(-20, -12), "YOU", HORIZONTAL_ALIGNMENT_CENTER, 40, 13,
+		COLOR_SELF
+	)
+
+# Dashed line between two islands: the boats make these trips, so the map says so.
+func _draw_route(from: Vector2, to: Vector2) -> void:
+	var span := to - from
+	var length := span.length()
+	if length <= 0.0:
+		return
+	var step := span / length
+	var travelled := 0.0
+	while travelled < length:
+		var seg := minf(7.0, length - travelled)
+		_map_art.draw_line(
+			from + step * travelled, from + step * (travelled + seg), COLOR_ROUTE, 2.0
+		)
+		travelled += 14.0
+
+func _draw_compass(art: Rect2) -> void:
+	var c := art.position + Vector2(art.size.x - 26.0, 26.0)
+	_map_art.draw_polygon(
+		PackedVector2Array([
+			c + Vector2(0, -13), c + Vector2(7, 7), c + Vector2(0, 2), c + Vector2(-7, 7)
+		]),
+		PackedColorArray([COLOR_ACCENT])
+	)
+	_map_art.draw_string(
+		MONOCRAFT, c + Vector2(-14, 26), "N", HORIZONTAL_ALIGNMENT_CENTER, 28, 13, COLOR_ACCENT
+	)
+
+func _region_points(key: String) -> Dictionary:
+	return REGION_POINTS.get(key, {})
+
+# World position -> pixels inside the letterboxed art rect.
+func _to_panel(key: String, world_pos: Vector2, art: Rect2) -> Vector2:
+	var tex := MapData.texture(key)
+	if tex == null:
+		return art.position + art.size * 0.5
+	var frac := MapData.world_to_image(key, world_pos) / Vector2(tex.get_size())
+	return art.position + frac * art.size
+
+# Labels are placed off the same world points as the pins, so a re-bake or a
+# resized panel moves them together instead of drifting onto the wrong island.
+func _layout_hotspots() -> void:
+	var key := _map_key()
+	var tex := MapData.texture(key)
+	var points: Dictionary = _region_points(key)
+	var art := _fit(Vector2(tex.get_size()) if tex != null else Vector2.ZERO, _map_panel.size)
+	for region_name in _hotspots:
+		var hotspot: Button = _hotspots[region_name]
+		var marker: ColorRect = _markers[region_name]
+		if tex == null or not points.has(region_name):
+			hotspot.visible = false
+			marker.visible = false
+			continue
+		hotspot.visible = true
+		var at := _to_panel(key, points[region_name], art)
+		hotspot.position = at - Vector2(hotspot.size.x * 0.5, hotspot.size.y + 10.0)
+		marker.position = hotspot.position + Vector2(hotspot.size.x - 4.0, -4.0)
+	_map_art.queue_redraw()
 
 # Largest centred rect of the given aspect that fits inside the panel.
 func _fit(tex_size: Vector2, panel: Vector2) -> Rect2:
@@ -173,36 +284,29 @@ func _fit(tex_size: Vector2, panel: Vector2) -> Rect2:
 	var size := tex_size * scale
 	return Rect2((panel - size) * 0.5, size)
 
-func _add_hotspot(region_name: String, frac: Vector2) -> void:
+func _add_hotspot(region_name: String) -> void:
 	var hotspot := Button.new()
 	hotspot.text = region_name
 	hotspot.flat = true
-	hotspot.custom_minimum_size = Vector2(140, 40)
-	hotspot.anchor_left = frac.x
-	hotspot.anchor_right = frac.x
-	hotspot.anchor_top = frac.y
-	hotspot.anchor_bottom = frac.y
-	hotspot.offset_left = -70.0
-	hotspot.offset_right = 70.0
-	hotspot.offset_top = -20.0
-	hotspot.offset_bottom = 20.0
+	hotspot.size = Vector2(150, 24)
+	hotspot.add_theme_font_override("font", MONOCRAFT)
+	hotspot.add_theme_font_size_override("font_size", 15)
 	hotspot.add_theme_color_override("font_color", Color.WHITE)
+	hotspot.add_theme_color_override("font_hover_color", COLOR_ACCENT)
+	hotspot.add_theme_color_override("font_pressed_color", COLOR_ACCENT)
+	# The label sits over water or terrain depending on the region, so it carries
+	# its own outline rather than relying on either being dark enough.
+	hotspot.add_theme_color_override("font_outline_color", COLOR_INK)
+	hotspot.add_theme_constant_override("outline_size", 6)
+	hotspot.visible = false
 	hotspot.pressed.connect(_show_detail.bind(region_name))
 	_map_panel.add_child(hotspot)
+	_hotspots[region_name] = hotspot
 
 	var marker := ColorRect.new()
 	marker.color = COLOR_MARKER
-	marker.custom_minimum_size = Vector2(10, 10)
 	marker.size = Vector2(10, 10)
 	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	marker.anchor_left = frac.x
-	marker.anchor_right = frac.x
-	marker.anchor_top = frac.y
-	marker.anchor_bottom = frac.y
-	marker.offset_left = 68.0
-	marker.offset_right = 78.0
-	marker.offset_top = -26.0
-	marker.offset_bottom = -16.0
 	marker.visible = false
 	_map_panel.add_child(marker)
 	_markers[region_name] = marker
@@ -287,5 +391,7 @@ func _refresh_markers() -> void:
 		if not _quests_by_region.has(region):
 			_quests_by_region[region] = []
 		_quests_by_region[region].append(q)
-		if _markers.has(region):
+		# Only for regions this map actually shows, or the dot lands in a corner
+		# of a map its region isn't on.
+		if _markers.has(region) and _hotspots[region].visible:
 			_markers[region].visible = true
