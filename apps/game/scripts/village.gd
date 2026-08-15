@@ -160,13 +160,10 @@ func _process(delta: float) -> void:
 		if global.active_door_target == "shop":
 			WebPages.open("shop")
 			return
+		if global.active_door_target == "dashboard":
+			WebPages.open("dashboard")
+			return
 		if global.active_door_target == "lobbies":
 			_save_npcs()
 			get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn")
 			return
-		can_transition = false
-		_save_npcs()
-		var door := Vector2i(global.active_door_pos.round())
-		global.house_variant = absi(door.x * 928371 + door.y * 1237) % 4
-		global.request_transition("house_interior", "PlayerSpawn")
-		Loader.change_scene("res://scenes/house_interior.tscn", "Loading")

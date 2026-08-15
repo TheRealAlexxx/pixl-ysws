@@ -2638,6 +2638,7 @@ z_index = 13
 position = Vector2(208, -189)
 collision_mask = 2
 script = ExtResource("44_ci1yp")
+target = "dashboard"
 sign_name = "HOME"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorTrigger" unique_id=1177872957]
