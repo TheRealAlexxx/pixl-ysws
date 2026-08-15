@@ -234,6 +234,10 @@ function extractAddress(identity: HackClubMeResponse["identity"]): HcaAddressPat
   };
 }
 
+function loginErrorPage(heading: string, detail: string, retry: string): string {
+  return `<html><body style="font-family:sans-serif;text-align:center;margin-top:4rem;"><h2>${heading}</h2><p>${detail}</p><p><a href="${retry}">Try logging in again</a></p></body></html>`;
+}
+
 router.get("/auth/hackclub", (req, res) => {
   const requestedRedirect = req.query.web_redirect as string | undefined;
   let webRedirect: string | null = null;
@@ -329,8 +333,26 @@ router.get("/auth/hackclub/callback", async (req, res) => {
   });
 
   if (!tokenRes.ok) {
-    console.error("HCA token exchange failed", await tokenRes.text());
-    return res.status(502).send("Failed to exchange authorization code");
+    const body = await tokenRes.text();
+    console.error("HCA token exchange failed", tokenRes.status, body);
+    // HCA throttles the token endpoint ("slow your roll!") if you log in and
+    // out a few times in a row. The code is spent either way, so the only way
+    // through is a fresh login once their window clears.
+    const throttled = tokenRes.status === 429 || body.includes("slow your roll");
+    const retry =
+      "/auth/hackclub" +
+      (webRedirect ? `?web_redirect=${encodeURIComponent(webRedirect)}` : "");
+    return res
+      .status(throttled ? 429 : 502)
+      .send(
+        loginErrorPage(
+          throttled ? "Hack Club Auth is rate limiting us" : "Login failed",
+          throttled
+            ? "Too many logins in a row. Give it a minute, then try again."
+            : "Hack Club Auth wouldn't hand over your session.",
+          retry,
+        ),
+      );
   }
 
   const tokens = (await tokenRes.json()) as HackClubTokenResponse;
