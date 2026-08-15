@@ -136,7 +136,7 @@ function Node({
         <p className="font-pixel text-xl lg:text-2xl leading-snug flex items-center gap-2.5">
           {n && (
             <span
-              className="text-sm px-2 py-0.5 border-2 border-black shrink-0"
+              className="font-sans font-bold text-sm px-2 py-0.5 border-2 border-black shrink-0"
               style={{ background: accent, color: "#F5EED2" }}
             >
               {n}
@@ -263,7 +263,8 @@ export function FlowDiagram() {
               >
                 <p className="font-pixel text-sm leading-none">{tier.name}</p>
                 <p className="font-sans text-xs text-black/60 mt-1.5">
-                  {rePerHour(i + 1)} {t.energy.perHour}
+                  <span className="font-bold">{rePerHour(i + 1)}</span>{" "}
+                  {t.energy.perHour}
                 </p>
               </div>
             ))}
@@ -291,7 +292,9 @@ export function FlowDiagram() {
 
       <Fork />
 
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6 max-sm:gap-0 items-start">
+      {/* stretch, not items-start: node 04 matches the height of the whole
+          right-hand column instead of stopping short under its own text */}
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6 max-sm:gap-0">
         <Node
           n="04"
           title={t.paid.title}
@@ -302,7 +305,7 @@ export function FlowDiagram() {
           accent="#ec3750"
         >
           <div className="mt-4 flex items-center gap-3">
-            <span className="font-pixel text-base">{floorPx}</span>
+            <span className="font-sans font-bold text-base">{floorPx}</span>
             <span className="relative flex-1 h-4 border-2 border-black bg-[#F5EED2] overflow-hidden">
               <motion.span
                 className="absolute inset-y-0 left-0 bg-[#ec3750]"
@@ -312,7 +315,7 @@ export function FlowDiagram() {
                 transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
               />
             </span>
-            <span className="font-pixel text-base">{ceilPx}</span>
+            <span className="font-sans font-bold text-base">{ceilPx}</span>
           </div>
           <p className="font-sans text-xs text-black/40 mt-1.5">
             {t.paid.scale}
@@ -372,8 +375,10 @@ export function FlowDiagram() {
                   ease: [0.22, 1, 0.36, 1],
                 }}
               >
+                {/* Poppins for every figure: the pixel face turns 575 into
+                    S7S and 2,500 into 2,900 at a glance. */}
                 <div>
-                  <p className="font-pixel text-2xl lg:text-3xl leading-none">
+                  <p className="font-sans font-bold text-3xl lg:text-4xl leading-none">
                     {row.hours}
                     {t.example.h}
                   </p>
@@ -382,7 +387,7 @@ export function FlowDiagram() {
                   </p>
                 </div>
                 <div>
-                  <p className="font-pixel text-2xl lg:text-3xl leading-none text-[#ff8c37]">
+                  <p className="font-sans font-bold text-3xl lg:text-4xl leading-none text-[#ff8c37]">
                     {num(re)}
                   </p>
                   <p className="font-sans text-xs text-black/50 mt-1.5">
@@ -390,19 +395,19 @@ export function FlowDiagram() {
                   </p>
                 </div>
                 <div>
-                  <p className="font-pixel text-2xl lg:text-3xl leading-none text-[#ec3750]">
+                  <p className="font-sans font-bold text-3xl lg:text-4xl leading-none text-[#ec3750]">
                     {num(paid)}
                   </p>
                   <p className="font-sans text-xs text-black/50 mt-1.5">
                     {t.example.px}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <img
                     src={row.img}
                     alt=""
                     aria-hidden
-                    className="w-14 h-14 object-contain shrink-0"
+                    className="w-24 h-24 lg:w-28 lg:h-28 object-contain shrink-0"
                   />
                   <p className="font-sans text-sm text-black/60 leading-tight">
                     {t.example.buys} {t.example.items[i]}
