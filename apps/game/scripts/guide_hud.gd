@@ -1,7 +1,6 @@
 extends CanvasLayer
 
 const THEME := preload("res://themes/main_theme.tres")
-const GAMEPLAY_SCENES := ["village", "open_world", "house_interior", "shop_interior"]
 const SEEN_PATH := "user://guide_seen.dat"
 # Shared cross-app onboarding counter (mirrors apps/server .../profile.ts and
 # apps/game/web/pixl.js): 0 = new, 1 = this in-game guide done / dashboard tour
@@ -21,7 +20,7 @@ var _next_button: Button
 var _page := 0
 var _open := false
 # True when the guide is running as the first-run onboarding (adds the story and
-# a "open my dashboard" hand-off at the end) vs. the plain F1 manual.
+# a "open my dashboard" hand-off at the end) vs. the plain manual.
 var _onboarding := false
 
 func _readable_theme() -> Theme:
@@ -41,17 +40,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	# Mac keyboards map bare F-keys to system functions by default, so F1 never
-	# reaches the app there; Cmd+G ("Guide") is the Mac-only alternate binding.
-	var is_guide_key: bool = event.keycode == KEY_F1
-	if OS.get_name() == "macOS":
-		is_guide_key = is_guide_key or (event.keycode == KEY_G and event.meta_pressed)
-	if is_guide_key:
-		if ChatHud.is_typing() or Dialogue.is_open or (not _open and global.ui_blocked()):
-			return
-		_toggle()
-		get_viewport().set_input_as_handled()
-	elif _open and event.keycode == KEY_ESCAPE:
+	# No key opens the guide any more; it only runs as first-run onboarding.
+	# These bindings just drive it while it is already up.
+	if _open and event.keycode == KEY_ESCAPE:
 		close()
 		get_viewport().set_input_as_handled()
 	elif _open and (event.keycode == KEY_RIGHT or event.keycode == KEY_D):
@@ -130,14 +121,6 @@ func _go_to_dashboard() -> void:
 	_post_step(1)
 	close()
 	WebPages.open("projects")
-
-func _toggle() -> void:
-	if _open:
-		close()
-		return
-	var current := get_tree().current_scene
-	if current and GAMEPLAY_SCENES.has(current.scene_file_path.get_file().get_basename()):
-		open()
 
 func is_open() -> bool:
 	return _open
@@ -295,7 +278,7 @@ func _build_pages() -> void:
 		_para("Pixl is a tiny multiplayer world where you build real projects to level up and unlock real-world rewards."),
 		_para("Walk around the village, meet other hack clubbers, and turn the hours you spend coding into pixels."),
 		_spacer(),
-		_hint("Use Next (or the arrow keys) to flip through this guide. Press F1 any time to open it again.")
+		_hint("Use Next (or the arrow keys) to flip through this guide.")
 	]))
 	_pages.append(_page_body([
 		_para("Long ago, Origin was the greatest digital world ever built — powered by a single Core that held every invention its people ever made."),
@@ -350,7 +333,6 @@ func _build_pages() -> void:
 		_row("E", "Explore"),
 		_row("M", "Map"),
 		_row("Cmd+K" if OS.get_name() == "macOS" else "F3", "Show or hide the shortcut list"),
-		_row("F1", "This guide"),
 		_row("Esc", "Pause / settings"),
 		_spacer(),
 		_para("That's everything. Go say hi!")
