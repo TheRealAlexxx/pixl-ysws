@@ -1,3 +1,5 @@
+import { GABIN_ID, RIDIT_ID, RICKY_ID } from "../constants.js";
+
 // Per-user sliding-window limiter shared by every AI (OpenRouter) and search
 // (Brave) call site — slash commands and the in-thread chat pipeline alike —
 // so one person spamming can't burn through the workspace's shared credits.
@@ -17,7 +19,15 @@ export const DEFAULT_AI_RATE_LIMIT: RateLimitOptions = { max: 8, windowMs: 60_00
 
 export const AI_RATE_LIMIT_MESSAGE = "chill for a sec, you're spamming me 💀 try again in a bit";
 
-export function checkAiRateLimit(userId: string, opts: RateLimitOptions = DEFAULT_AI_RATE_LIMIT): boolean {
+// The orgs run this thing and are constantly testing it, and 8/min is a
+// couple of minutes of debugging before Pixo starts refusing them in their
+// own workspace. They still get a ceiling so a runaway loop can't drain the
+// credits, just a far less annoying one.
+const ORG_IDS = new Set([GABIN_ID, RIDIT_ID, RICKY_ID]);
+export const ORG_AI_RATE_LIMIT: RateLimitOptions = { max: 60, windowMs: 60_000 };
+
+export function checkAiRateLimit(userId: string, opts?: RateLimitOptions): boolean {
+  opts ??= ORG_IDS.has(userId) ? ORG_AI_RATE_LIMIT : DEFAULT_AI_RATE_LIMIT;
   const now = Date.now();
   const arr = (buckets.get(userId) ?? []).filter((t) => now - t < opts.windowMs);
 

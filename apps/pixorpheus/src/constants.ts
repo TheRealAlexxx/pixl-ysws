@@ -1,5 +1,6 @@
 export const GABIN_ID = "U0A2SJ7B739";
 export const RIDIT_ID = "U0ARC79GEAV";
+export const RICKY_ID = "U0A1VPETCR3";
 
 /** #pixl - the main public channel, the one every "come join us" link points at. */
 export const PIXL_MAIN_CHANNEL = "C0B5P4N0WHH";
