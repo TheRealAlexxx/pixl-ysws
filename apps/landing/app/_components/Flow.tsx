@@ -308,14 +308,21 @@ export function FlowDiagram() {
         >
           <div className="mt-4 flex items-center gap-3">
             <span className="font-sans font-bold text-base">{floorPx}</span>
-            <span className="relative flex-1 h-4 border-2 border-black bg-[#F5EED2] overflow-hidden">
+            {/* the head rides the end of the shaft, so the right padding is what
+                keeps it from running into the ceiling number */}
+            <span className="relative flex-1 h-4 flex items-center pr-3">
               <motion.span
-                className="absolute inset-y-0 left-0 bg-[#ec3750]"
+                className="relative block h-1.5 bg-[#ec3750]"
                 initial={{ width: "18%" }}
                 whileInView={{ width: "100%" }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
-              />
+              >
+                <span
+                  className="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 w-3 h-4 bg-[#ec3750]"
+                  style={{ clipPath: "polygon(0 0, 0 100%, 100% 50%)" }}
+                />
+              </motion.span>
             </span>
             <span className="font-sans font-bold text-base">{ceilPx}</span>
           </div>
