@@ -1,4 +1,3 @@
-import axios from "axios";
 import type { WebClient } from "@slack/web-api";
 import type { AIRequestBody, AIResponse, SlackPostParams } from "./types.js";
 import { sanitizeAIOutput } from "./outputFilter.js";
@@ -26,6 +25,46 @@ function headers(openrouterKey: string) {
 }
 
 /**
+ * One POST to OpenRouter on native fetch. fetch keeps the connection to
+ * openrouter.ai pooled between calls, so only the very first request of the
+ * process pays for DNS + the TLS handshake — axios opened a fresh socket
+ * every time, which was a few hundred ms of pure handshake on every single
+ * reply. Non-2xx is turned into the same AIError the callers already handle
+ * (fetch, unlike axios, doesn't throw on a bad status).
+ */
+async function postOpenRouter(
+  openrouterKey: string,
+  body: unknown,
+  timeoutMs: number,
+): Promise<Response> {
+  let res: Response;
+  try {
+    res = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: headers(openrouterKey),
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (e: any) {
+    console.error("[openrouter] network error:", e?.message);
+    throw new AIError("transient error", RATE_LIMITED);
+  }
+  if (res.ok) return res;
+
+  const detail = await res.text().catch(() => "");
+  if (res.status === 429) {
+    console.warn("[openrouter] rate limited (429) — staying silent");
+    throw new AIError("rate limited", RATE_LIMITED);
+  }
+  if (res.status === 402) {
+    console.error("[openrouter] no credits (402)");
+    throw new AIError("no credits", NO_CREDITS);
+  }
+  console.error("[openrouter] failed (status", res.status, "):", detail.slice(0, 200));
+  throw new AIError("transient error", RATE_LIMITED);
+}
+
+/**
  * onDelta(accumulatedText) is called as tokens stream in from OpenRouter.
  * Omit it to get the old buffered behavior (single response once it's all
  * in). Either way the return shape is the same: res.data.choices[0].message.content.
@@ -48,88 +87,56 @@ export async function aiCall(
   };
 
   if (!onDelta) {
-    try {
-      const res = await axios.post(OPENROUTER_URL, orBody, {
-        headers: headers(openrouterKey),
-        timeout: 25000,
-      });
-      console.log(
-        "[openrouter] ok — content:",
-        JSON.stringify(res.data?.choices?.[0]?.message?.content)?.slice(0, 80),
-      );
-      return res as AIResponse;
-    } catch (e: any) {
-      if (e.response?.status === 429) {
-        console.warn("[openrouter] rate limited (429) — staying silent");
-        throw new AIError("rate limited", RATE_LIMITED);
-      }
-      if (e.response?.status === 402) {
-        console.error("[openrouter] no credits (402)");
-        throw new AIError("no credits", NO_CREDITS);
-      }
-      console.error(
-        "[openrouter] failed (status",
-        e.response?.status,
-        "):",
-        e.response?.data?.error?.message || e.message,
-      );
-      throw new AIError("transient error", RATE_LIMITED);
-    }
+    const res = await postOpenRouter(openrouterKey, orBody, 25000);
+    const data = (await res.json().catch(() => ({}))) as AIResponse["data"];
+    console.log(
+      "[openrouter] ok — content:",
+      JSON.stringify(data?.choices?.[0]?.message?.content)?.slice(0, 80),
+    );
+    return { data };
   }
 
   // Streaming path: OpenRouter forwards an SSE stream of
   // "data: {...}\n\n" chunks, each with a choices[0].delta.content
   // fragment, terminated by "data: [DONE]".
+  const res = await postOpenRouter(openrouterKey, { ...orBody, stream: true }, 45000);
+  if (!res.body) throw new AIError("transient error", RATE_LIMITED);
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = "";
+  let buf = "";
   try {
-    const res = await axios.post(
-      OPENROUTER_URL,
-      { ...orBody, stream: true },
-      {
-        headers: headers(openrouterKey),
-        timeout: 45000,
-        responseType: "stream",
-      },
-    );
-    let full = "";
-    let buf = "";
-    await new Promise<void>((resolve, reject) => {
-      res.data.on("data", (chunk: Buffer) => {
-        buf += chunk.toString("utf8");
-        let idx: number;
-        while ((idx = buf.indexOf("\n\n")) !== -1) {
-          const raw = buf.slice(0, idx).trim();
-          buf = buf.slice(idx + 2);
-          if (!raw.startsWith("data:")) continue;
-          const payload = raw.slice(5).trim();
-          if (!payload || payload === "[DONE]") continue;
-          try {
-            const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
-            if (delta) {
-              full += delta;
-              onDelta(full);
-            }
-          } catch (e) {
-            // ignore malformed chunk, keep streaming
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let idx: number;
+      while ((idx = buf.indexOf("\n\n")) !== -1) {
+        const raw = buf.slice(0, idx).trim();
+        buf = buf.slice(idx + 2);
+        if (!raw.startsWith("data:")) continue;
+        const payload = raw.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
+          if (delta) {
+            full += delta;
+            onDelta(full);
           }
+        } catch (e) {
+          // ignore malformed chunk, keep streaming
         }
-      });
-      res.data.on("end", () => resolve());
-      res.data.on("error", reject);
-    });
-    console.log("[openrouter] ok (stream) — content:", JSON.stringify(full).slice(0, 80));
-    return { data: { choices: [{ message: { content: full } }] } };
+      }
+    }
   } catch (e: any) {
-    if (e.response?.status === 429) {
-      console.warn("[openrouter] rate limited (429) — staying silent");
-      throw new AIError("rate limited", RATE_LIMITED);
-    }
-    if (e.response?.status === 402) {
-      console.error("[openrouter] no credits (402)");
-      throw new AIError("no credits", NO_CREDITS);
-    }
-    console.error("[openrouter] stream failed (status", e.response?.status, "):", e.message);
+    console.error("[openrouter] stream failed:", e?.message);
     throw new AIError("transient error", RATE_LIMITED);
+  } finally {
+    reader.cancel().catch(() => {});
   }
+  console.log("[openrouter] ok (stream) — content:", JSON.stringify(full).slice(0, 80));
+  return { data: { choices: [{ message: { content: full } }] } };
 }
 
 /** Aliases kept from the original code — same function, different call-site intent. */
@@ -179,7 +186,22 @@ export async function streamedAICall(
   client: WebClient,
   postParams: SlackPostParams,
   aiBody: AIRequestBody,
-  { format, stripSkip }: { format?: (text: string) => string; stripSkip?: boolean } = {},
+  {
+    format,
+    stripSkip,
+    placeholder,
+  }: {
+    format?: (text: string) => string;
+    stripSkip?: boolean;
+    /**
+     * A placeholder the caller already posted (and is therefore already
+     * on-screen). Callers that do slow prep before getting here — seeding
+     * thread history, a web search — post it up front so the user sees Pixo
+     * react immediately instead of staring at nothing until the model is
+     * ready. Omit it and this posts its own, exactly as before.
+     */
+    placeholder?: Promise<string | undefined>;
+  } = {},
 ): Promise<StreamedCallHandle> {
   const fmt = format || ((t: string) => t);
   let ts: string | undefined;
@@ -205,10 +227,11 @@ export async function streamedAICall(
   // wait gets flushed immediately once the placeholder lands, bypassing
   // the throttle for that first flush so it doesn't sit on-screen as "…"
   // for up to another 900ms for no reason.
-  const placeholderPromise = client.chat
-    .postMessage({ ...postParams, text: fmt("…") })
-    .then((placeholder) => {
-      ts = placeholder.ts;
+  const placeholderPromise = (
+    placeholder ?? client.chat.postMessage({ ...postParams, text: fmt("…") }).then((p) => p.ts)
+  )
+    .then((postedTs) => {
+      ts = postedTs;
       if (latestFull) pushUpdate(latestFull, true);
     })
     .catch(() => {

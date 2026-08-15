@@ -120,6 +120,7 @@ FINAL LENGTH CHECK: before sending, ask yourself — is this shorter than 2 sent
       stream = await streamedAICall(streamTarget.client, streamTarget.postParams, aiBody, {
         format: streamTarget.format,
         stripSkip: true,
+        placeholder: streamTarget.placeholder,
       });
       rawContent = stream.rawContent;
     } else {

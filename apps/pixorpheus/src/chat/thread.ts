@@ -20,6 +20,12 @@ export interface PendingReply {
   pixieFriendly: boolean;
   lastMsgTs?: string;
   timer?: ReturnType<typeof setTimeout>;
+  /**
+   * The "…" message, posted the moment Pixo is addressed rather than after
+   * the batch window, so being spoken to feels instant. Resolves to its ts
+   * (or undefined if Slack rejected the post); streamedAICall live-edits it.
+   */
+  placeholder?: Promise<string | undefined>;
 }
 
 export interface ThreadMemoryEntry {
@@ -79,10 +85,15 @@ export async function seedThreadHistory(
       limit: 80,
     });
     const msgs = data.messages || [];
-    // ensure names are loaded for all participants before mapping
-    await Promise.all(
+    // Warm display names for anyone we don't know yet, but do NOT block the
+    // reply on it: this is a users.info call per unknown participant, and it
+    // sat directly on the critical path between "you asked" and "Pixo
+    // starts writing". Names are already loaded in bulk at boot, so this is
+    // a miss-only path, and a miss just falls back to the raw user id for
+    // this one reply while the lookup populates the cache for the next.
+    void Promise.all(
       [...new Set(msgs.map((m) => m.user).filter(Boolean) as string[])].map((uid) => ensureUserName(uid, client)),
-    );
+    ).catch(() => {});
     const seeded: AIMessage[] = msgs
       .filter((m) => m.text)
       .map((m) => {

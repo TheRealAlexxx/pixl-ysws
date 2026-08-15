@@ -1,18 +1,22 @@
-import axios from "axios";
 import { aiClassify } from "./client.js";
 import { resolveUserMentions } from "../memory/users.js";
 import { botIdentity } from "../slack/identity.js";
 
 export async function braveSearch(query: string): Promise<string | null> {
   try {
-    const res = await axios.get("https://api.search.brave.com/res/v1/web/search", {
-      params: { q: query, count: 5 },
-      headers: {
-        "X-Subscription-Token": process.env.BRAVE_SEARCH_KEY,
-        Accept: "application/json",
+    const res = await fetch(
+      `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5`,
+      {
+        headers: {
+          "X-Subscription-Token": process.env.BRAVE_SEARCH_KEY!,
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(6000),
       },
-    });
-    const results = res.data.web?.results || [];
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { web?: { results?: { title: string; description: string }[] } };
+    const results = data.web?.results || [];
     return results
       .slice(0, 4)
       .map((r: { title: string; description: string }) => `${r.title}: ${r.description}`)
@@ -22,9 +26,41 @@ export async function braveSearch(query: string): Promise<string | null> {
   }
 }
 
+/** Things only the live web can answer: fresh facts, prices, releases, scores. */
+const WEB_HINTS =
+  /\b(news|latest|current(ly)?|today|tonight|tomorrow|yesterday|recent(ly)?|price|prices|cost|worth|stock|weather|forecast|score|scored|winner|won|released?|releasing|launch(ed|ing)?|announce[ds]?|update[ds]?|version|patch|trending|happening|right now|this (week|month|year)|20\d\d|look ?up|google|search (for|up))\b/i;
+
+/**
+ * A lookup-shaped question. Deliberately does not require a "?" — people
+ * type "who is the ceo of hack club" without one all the time.
+ */
+const FACTUAL_Q =
+  /\b(who (is|are|was|were)|who'?s|when (is|was|did|does|do)|where (is|are|was)|how (much|many|old|tall|far|long)|what('?s| is| are| was| were) the)\b/i;
+
+/** Greetings shaped like questions that never need the web. */
+const SMALL_TALK =
+  /\b(what'?s|how'?s|how are)\s+(up|good|poppin|goin|going|new|crackin|ya|u|you)\b|\b(wyd|wassup|sup)\b/i;
+
+/**
+ * Cheap gate in front of the classifier below. That classifier is a full
+ * model round-trip, and it used to run on literally every reply — so "yo
+ * pixo" paid for an entire extra LLM call, in series, before Pixo could
+ * even start writing. The overwhelming majority of messages in a Slack
+ * channel obviously need no web search, and a regex can tell for free.
+ * Anything that looks even vaguely like a lookup still goes to the model.
+ */
+function mightNeedWeb(text: string): boolean {
+  const t = text.trim();
+  if (t.length < 12) return false;
+  if (WEB_HINTS.test(t)) return true;
+  if (SMALL_TALK.test(t)) return false;
+  return FACTUAL_Q.test(t);
+}
+
 export async function extractSearchQuery(messages: string[]): Promise<string | null> {
   if (!process.env.BRAVE_SEARCH_KEY) return null;
   const combined = messages.join("\n");
+  if (!mightNeedWeb(combined)) return null;
   try {
     const res = await aiClassify({
       messages: [

@@ -37,6 +37,8 @@ export interface StreamTarget {
   client: WebClient;
   postParams: SlackPostParams;
   format?: (text: string) => string;
+  /** Already-posted placeholder ts to live-edit instead of posting a new one. */
+  placeholder?: Promise<string | undefined>;
 }
 
 /** Per-thread context getAIReply weaves into its system prompt. */

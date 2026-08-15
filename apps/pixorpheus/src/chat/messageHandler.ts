@@ -38,6 +38,14 @@ import {
 
 const processedMsgTs = new Set<string>();
 
+/**
+ * thread_ts -> did Pixo post the first message. Immutable per thread, so
+ * it's safe to cache forever, but this fills up with threads Pixo isn't
+ * even in — so it's bounded, oldest-first (Maps keep insertion order).
+ */
+const botStartedThreads = new Map<string, boolean>();
+const BOT_STARTED_CACHE_MAX = 2000;
+
 let trainingMode = false;
 let trainingMessages: string[] = [];
 
@@ -85,15 +93,27 @@ app.message(async ({ message, client }) => {
 
   let isBotStartedThread = false;
   if (m.thread_ts && !inActiveThread && !mentionsBot && !isDM) {
-    try {
-      const parent = await client.conversations.replies({
-        channel: m.channel,
-        ts: m.thread_ts,
-        limit: 1,
-      });
-      const first = parent.messages?.[0];
-      if (first && (first.bot_id === botIdentity.appId || first.user === botIdentity.userId)) isBotStartedThread = true;
-    } catch (_) {}
+    // Who started a thread never changes, so this Slack round-trip is worth
+    // paying exactly once per thread instead of on every message in it —
+    // it sits in front of the filter below that drops most of them anyway.
+    const cached = botStartedThreads.get(m.thread_ts);
+    if (cached !== undefined) {
+      isBotStartedThread = cached;
+    } else {
+      try {
+        const parent = await client.conversations.replies({
+          channel: m.channel,
+          ts: m.thread_ts,
+          limit: 1,
+        });
+        const first = parent.messages?.[0];
+        if (first && (first.bot_id === botIdentity.appId || first.user === botIdentity.userId)) isBotStartedThread = true;
+        if (botStartedThreads.size >= BOT_STARTED_CACHE_MAX) {
+          botStartedThreads.delete(botStartedThreads.keys().next().value!);
+        }
+        botStartedThreads.set(m.thread_ts, isBotStartedThread);
+      } catch (_) {}
+    }
   }
 
   // Training mode — intercept before the bot mention filter
@@ -334,6 +354,12 @@ app.message(async ({ message, client }) => {
     if (pendingStop) {
       clearTimeout(pendingStop.timer);
       pendingReplies.delete(threadKey);
+      // A "…" may already be on screen from the mention that's being muted.
+      pendingStop.placeholder
+        ?.then((ts) => {
+          if (ts) client.chat.delete({ channel: m.channel, ts }).catch(() => {});
+        })
+        .catch(() => {});
     }
     await client.chat.postMessage({
       channel: m.channel,
@@ -487,7 +513,30 @@ app.message(async ({ message, client }) => {
     if (wordCount < 4 && !text.includes("?")) return;
   }
 
-  const delay = pending.isMention || isDM ? 1500 : 8000;
+  // Once Pixo has been addressed it is definitely replying, so get the
+  // placeholder on screen NOW instead of after the batch window plus thread
+  // seeding plus a web search plus the model — that whole chain used to run
+  // in silence, which is what read as Pixo being frozen. Posted once per
+  // batch; later messages in the same window reuse it.
+  if (pending.isMention && !pending.placeholder && !mutedThreads.has(threadKey)) {
+    const phParams: { channel: string; thread_ts?: string } = { channel: m.channel };
+    if (!isDM) phParams.thread_ts = threadKey;
+    pending.placeholder = client.chat
+      .postMessage({ ...phParams, text: "…" })
+      .then((r) => r.ts)
+      .catch(() => undefined);
+  }
+
+  // Batch window, and the last big chunk of latency on the critical path.
+  // It exists to catch someone splitting a thought across two messages, but
+  // that only actually happens when the message so far has no substance —
+  // "@pixo" or "pixo?" is someone still typing the real question, so it's
+  // worth waiting on. A message that already says something is a question
+  // to answer right now, and making it wait was most of the felt lag.
+  // The passive chime-in window stays long: nobody is waiting on those.
+  const lastText = pending.messages[pending.messages.length - 1]?.text ?? "";
+  const isSubstantive = lastText.trim().split(/\s+/).filter(Boolean).length >= 4;
+  const delay = pending.isMention || isDM ? (isSubstantive ? 150 : 900) : 8000;
 
   pending.timer = setTimeout(async () => {
     try {
@@ -495,6 +544,32 @@ app.message(async ({ message, client }) => {
       if (!entry) return;
       pendingReplies.delete(threadKey);
 
+      const replyPostParams: { channel: string; thread_ts?: string } = { channel: entry.channel };
+      if (!isDM) replyPostParams.thread_ts = threadKey;
+
+      /** Drop the already-posted "…" when we end up with nothing to say. */
+      const dropPlaceholder = async () => {
+        const ts = await entry.placeholder;
+        if (ts) await client.chat.delete({ channel: entry.channel, ts }).catch(() => {});
+      };
+
+      // Both of these are in-memory checks, so running them up front costs
+      // nothing and lets us bail before doing any slow work.
+      if (mutedThreads.has(threadKey)) {
+        await dropPlaceholder();
+        return;
+      }
+      if (!checkAiRateLimit(entry.userId)) {
+        // Only speak up when the bot was actually addressed — a passive
+        // chime-in eval that gets rate-limited should just stay quiet.
+        await dropPlaceholder();
+        if (entry.isMention) {
+          await client.chat.postMessage({ ...replyPostParams, text: AI_RATE_LIMIT_MESSAGE });
+        }
+        return;
+      }
+
+      const placeholder = entry.placeholder;
       const entryTexts = entry.messages.map((msg) => msg.text);
       const combinedText = entryTexts.join("\n").toLowerCase();
       const isSummaryRequest =
@@ -537,20 +612,6 @@ app.message(async ({ message, client }) => {
         history.push({ role: "user", content });
       }
 
-      if (mutedThreads.has(threadKey)) return;
-
-      const replyPostParams: { channel: string; thread_ts?: string } = { channel: entry.channel };
-      if (!isDM) replyPostParams.thread_ts = threadKey;
-
-      if (!checkAiRateLimit(entry.userId)) {
-        // Only speak up when the bot was actually addressed — a passive
-        // chime-in eval that gets rate-limited should just stay quiet.
-        if (entry.isMention) {
-          await client.chat.postMessage({ ...replyPostParams, text: AI_RATE_LIMIT_MESSAGE });
-        }
-        return;
-      }
-
       let chimeMode = false;
       if (!entry.isMention && !entry.pixieFriendly) {
         const tmCurrent = threadMemory.get(threadKey);
@@ -580,7 +641,7 @@ app.message(async ({ message, client }) => {
         threadMemory.get(threadKey) ?? null,
         chimeMode,
         searchResults,
-        { client, postParams: replyPostParams },
+        { client, postParams: replyPostParams, placeholder },
         entry.pixieFriendly,
       );
       if (result === NO_CREDITS) {
