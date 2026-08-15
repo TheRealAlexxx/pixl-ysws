@@ -655,7 +655,7 @@ func _build_list_ui() -> void:
 
 	var panel := PanelContainer.new()
 	# Wide enough that a typical display name plus the "(you)" tag and the View
-	# button sit on one line; longer names wrap rather than getting clipped.
+	# button sit on one line; longer names trim with an ellipsis.
 	panel.custom_minimum_size = Vector2(460, 0)
 	wrap.add_child(panel)
 
@@ -693,13 +693,23 @@ func _refresh_list() -> void:
 		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(dot)
 		var label := Label.new()
-		label.text = "%s  (you)" % entry[0] if entry[1] else String(entry[0])
+		label.text = String(entry[0])
 		if entry[1]:
 			label.add_theme_color_override("font_color", PixlTheme.color("gold"))
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		# One row per player: clip_text drops the label's full-text minimum width
+		# so a long name trims with an ellipsis instead of wrapping and shoving
+		# the "(you)" tag onto a line of its own.
+		label.clip_text = true
+		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(label)
+		if entry[1]:
+			var you := Label.new()
+			you.text = "(you)"
+			you.add_theme_color_override("font_color", PixlTheme.color("gold"))
+			you.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(you)
 		var pid := String(entry[2])
 		if pid != "":
 			var view := Button.new()
