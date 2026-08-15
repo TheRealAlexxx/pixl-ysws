@@ -102,6 +102,9 @@ func clear_session() -> void:
 	user_id = ""
 	if FileAccess.file_exists(TOKEN_SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(TOKEN_SAVE_PATH))
+	# The dashboard and the rest of the web pages hold their own copy of the
+	# token, so drop that one too rather than leaving them signed in.
+	WebPages.sign_out()
 
 func _process(_delta: float) -> void:
 	if _listening:

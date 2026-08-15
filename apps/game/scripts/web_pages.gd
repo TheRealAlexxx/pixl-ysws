@@ -7,7 +7,8 @@ const GAMEPLAY_SCENES := ["village", "open_world", "house_interior"]
 const CANONICAL_BASE := "https://pixl.rsvp"
 
 const _open_js := """(function(u){
-	if (window.open(u, 'pixl_web')) return;
+	var w = window.open(u, 'pixl_web');
+	if (w) { window.__pixlWeb = w; return; }
 	var id = 'pixl-popup-fallback';
 	var old = document.getElementById(id); if (old) old.remove();
 	var wrap = document.createElement('div');
@@ -23,12 +24,27 @@ const _open_js := """(function(u){
 	btn.style.cssText = 'cursor:pointer;border:0;border-radius:11px;padding:11px 26px;font-weight:700;font-size:14px;letter-spacing:.03em;background:#f4b942;color:#16161d';
 	var close = function(){ wrap.remove(); document.removeEventListener('keydown', onKey); };
 	var onKey = function(e){ if (e.key === 'Escape') close(); };
-	btn.onclick = function(){ window.open(u, 'pixl_web'); close(); };
+	btn.onclick = function(){ var w2 = window.open(u, 'pixl_web'); if (w2) window.__pixlWeb = w2; close(); };
 	wrap.onclick = function(e){ if (e.target === wrap) close(); };
 	document.addEventListener('keydown', onKey);
 	card.appendChild(msg); card.appendChild(btn); wrap.appendChild(card);
 	document.body.appendChild(wrap);
 })(%s);"""
+
+# The companion pages keep their own copy of the session in localStorage, so a
+# logout in the game has to knock it out too or the dashboard stays signed in.
+# When the game runs on the apex the pages share our origin and the removal is
+# enough (other tabs pick it up through the storage event); on the play.* host
+# they don't, so we also poke the window we opened.
+const _sign_out_js := """(function(){
+	try {
+		localStorage.removeItem('pixl_token');
+		localStorage.removeItem('pixl_tour_step');
+		localStorage.removeItem('pixl_onboarded');
+	} catch (e) {}
+	var w = window.__pixlWeb;
+	if (w && !w.closed) { try { w.postMessage({ pixl: 'logout' }, '*'); } catch (e) {} }
+})();"""
 
 func open(path: String) -> void:
 	var url := _build_url(path)
@@ -36,6 +52,10 @@ func open(path: String) -> void:
 		JavaScriptBridge.eval(_open_js % JSON.stringify(url), true)
 	else:
 		OS.shell_open(url)
+
+func sign_out() -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval(_sign_out_js, true)
 
 func _build_url(path: String) -> String:
 	# path may carry its own query and/or fragment, e.g.

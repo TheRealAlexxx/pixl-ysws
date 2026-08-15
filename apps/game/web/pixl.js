@@ -144,6 +144,24 @@ const Pixl = (() => {
     try { token = localStorage.getItem("pixl_token") || ""; } catch {}
   }
 
+  // Logging out in the game clears the shared session. Same origin, we hear it
+  // through the storage event; on the play.* host the game can't touch our
+  // localStorage, so it messages the window it opened instead.
+  function signedOut() {
+    if (!token) return;
+    token = "";
+    try { localStorage.removeItem("pixl_token"); } catch {}
+    if (document.querySelector(".gate")) return;
+    if (document.body) gate();
+    else document.addEventListener("DOMContentLoaded", gate);
+  }
+  window.addEventListener("storage", (e) => {
+    if (e.key === "pixl_token" && !e.newValue) signedOut();
+  });
+  window.addEventListener("message", (e) => {
+    if (e.source === window.opener && e.data && e.data.pixl === "logout") signedOut();
+  });
+
   // The in-game First Project guide opens the Builder Terminal with
   // ?onboard=first-project to launch its own project-creation walkthrough. Grab
   // the flag, then strip it from the URL so a manual refresh doesn't replay it.
