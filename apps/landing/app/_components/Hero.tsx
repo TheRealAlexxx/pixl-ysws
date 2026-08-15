@@ -5,6 +5,7 @@ import { useLocale } from "./LocaleProvider";
 import { Crew } from "./Crew";
 
 const PLAY_URL = "https://pixl.hackclub.com/play";
+const DASH_URL = "https://dash.pixl.hackclub.com";
 
 export function Hero() {
   const { dict } = useLocale();
@@ -99,12 +100,12 @@ export function Hero() {
               enter the YSWS
             </motion.a>
             <motion.a
-              href="/docs"
+              href={DASH_URL}
               className="mt-4 text-center font-pixel px-6 py-2.5 sm:px-8 sm:py-3 text-lg sm:text-2xl md:text-3xl bg-black cursor-pointer text-[#F5EED2] border-black border-r-8 border-t-2 border-l-2 border-b-8 hover:border-b-12 hover:-translate-y-1 hover:-translate-x-1 transition-all"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              open docs
+              open dash
             </motion.a>
             <Crew />
           </motion.div>
