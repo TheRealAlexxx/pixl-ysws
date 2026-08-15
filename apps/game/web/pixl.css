@@ -441,11 +441,34 @@ select.field{cursor:pointer}
 .toast.bad{background:var(--bad);color:#fff;border-color:transparent}
 @keyframes toast-in{from{opacity:0;transform:translateY(10px)}}
 
-/* ── gate (no token) ── */
-.gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--panel-deep)}
-.gate-card{text-align:center;padding:50px 40px;max-width:460px}
-.gate-card h1{font-family:var(--pixel);font-size:44px;letter-spacing:3px;color:var(--gold);margin-bottom:10px;text-shadow:0 3px 0 rgba(0,0,0,.4)}
-.gate-card p{color:var(--dim);font-size:15px;line-height:1.7;margin-bottom:24px}
+/* ── gate (no token) ──
+   The game's own boot splash is the background, so a signed-out visitor lands
+   on the same screen the game itself starts on. Cream and dark ink regardless
+   of theme: it is the loading screen, not a page of the shell. The wordmark is
+   in the image, which is why there is no heading here. */
+.gate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:0 24px 14vh;
+  background:#f5eed2 url("/img/boot-splash.png") no-repeat center 28% / min(520px,72vw) auto;
+  image-rendering:pixelated;
+}
+.gate-card{text-align:center;max-width:460px}
+.gate-card p{color:#6b5c46;font-size:15px;line-height:1.7;margin-bottom:26px}
+/* the landing's CTA, same cream face and chunky offset border */
+.btn-enter{
+  display:inline-block;font-family:var(--pixel);font-size:30px;line-height:1;
+  padding:14px 34px;background:#f5eed2;color:#000;text-decoration:none;
+  border:2px solid #000;border-right-width:8px;border-bottom-width:8px;
+  transition:transform .15s ease,border-bottom-width .15s ease;
+}
+.btn-enter:hover{border-bottom-width:12px;transform:translate(-4px,-4px)}
+.btn-enter:active{border-bottom-width:4px;transform:translate(0,2px)}
+/* short viewports: shrink the splash and pull the copy up so they never meet */
+@media (max-height:640px){
+  .gate{background-size:min(360px,60vw) auto;background-position:center 24%;padding-bottom:8vh}
+  .btn-enter{font-size:24px;padding:12px 26px}
+}
 
 /* ── misc ── */
 audio{display:none}

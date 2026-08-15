@@ -172,11 +172,9 @@ const Pixl = (() => {
   function gate() {
     document.body.insertAdjacentHTML("beforeend", `
       <div class="gate">
-        <div class="gate-card panel">
-          <div style="font-size:44px;margin-bottom:12px"></div>
-          <h1>PIXL</h1>
-          <p>This page is part of the Pixl world — hop into the game and walk up to the shop, an NPC or press the shortcut key to open it with your account.</p>
-          <a class="btn" href="${GAME}">ENTER THE GAME</a>
+        <div class="gate-card">
+          <p>This page is part of the Pixl world. Hop into the game and walk up to the shop, an NPC, or press the shortcut key to open it with your account.</p>
+          <a class="btn-enter" href="${GAME}">Enter the Game</a>
         </div>
       </div>`);
   }
