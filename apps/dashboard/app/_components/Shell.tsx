@@ -41,6 +41,7 @@ export interface NavFlags {
   sidequests: boolean;
   story: boolean;
   goals: boolean;
+  news: boolean;
 }
 
 const GLYPHS = {
@@ -66,6 +67,7 @@ const GLYPHS = {
   sidequests: "compass",
   story: "compass",
   goals: "bank",
+  news: "message",
 } as const;
 
 type IconKey = keyof typeof GLYPHS;
@@ -181,6 +183,7 @@ export function Shell({
           icon: "goals",
           show: nav.goals,
         },
+        { href: "/news", label: "News", icon: "news", show: nav.news },
       ],
     },
     {

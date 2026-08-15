@@ -63,6 +63,7 @@ export default async function RootLayout({
         sidequests: canView(access, ["sidequests"]),
         story: canView(access, ["story"]),
         goals: canView(access, ["goals"]),
+        news: canView(access, ["news"]),
         fulfillment: fulfiller,
       }
     : null;

@@ -29,6 +29,7 @@ export const ALL_PERMISSIONS = [
   "sidequests",
   "story",
   "goals",
+  "news",
   "referrals",
   "ideas",
   "tickets",

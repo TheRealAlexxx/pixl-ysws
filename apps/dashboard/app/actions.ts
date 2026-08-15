@@ -3261,6 +3261,77 @@ export async function deleteVaultLevel(formData: FormData): Promise<void> {
   revalidatePath("/community-goals");
 }
 
+// posted_at is writable so a post can be backdated to when the thing actually
+// happened, rather than when someone got round to writing it up.
+function newsPostedAt(formData: FormData): string | undefined {
+  const raw = String(formData.get("posted_at") ?? "").trim();
+  if (!raw) return undefined;
+  const at = new Date(raw);
+  return Number.isNaN(at.getTime()) ? undefined : at.toISOString();
+}
+
+export async function addNews(formData: FormData): Promise<void> {
+  await requirePerm("news");
+  const body = String(formData.get("body") ?? "").trim().slice(0, 500);
+  const link_url = String(formData.get("link_url") ?? "").trim().slice(0, 500);
+  if (!body)
+    redirect(`/news?error=${encodeURIComponent("A post needs something to say.")}`);
+  const posted_at = newsPostedAt(formData);
+  const { error } = await db.from("news").insert({
+    body,
+    link_url: link_url || null,
+    active: true,
+    ...(posted_at ? { posted_at } : {}),
+  });
+  if (error) {
+    console.error("addNews", error.message);
+    redirect(`/news?error=${encodeURIComponent("Couldn't save , is migration 0117 applied?")}`);
+  }
+  revalidatePath("/news");
+  redirect("/news?saved=1");
+}
+
+export async function updateNews(formData: FormData): Promise<void> {
+  await requirePerm("news");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const link_url = String(formData.get("link_url") ?? "").trim().slice(0, 500);
+  const posted_at = newsPostedAt(formData);
+  const patch = {
+    body: String(formData.get("body") ?? "").trim().slice(0, 500),
+    link_url: link_url || null,
+    ...(posted_at ? { posted_at } : {}),
+  };
+  const { error } = await db.from("news").update(patch).eq("id", id);
+  if (error) {
+    console.error("updateNews", error.message);
+    redirect(`/news?error=${encodeURIComponent("Couldn't update that post.")}`);
+  }
+  revalidatePath("/news");
+  redirect("/news?saved=1");
+}
+
+export async function toggleNews(formData: FormData): Promise<void> {
+  await requirePerm("news");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const { error } = await db
+    .from("news")
+    .update({ active: formData.get("active") === "1" })
+    .eq("id", id);
+  if (error) console.error("toggleNews", error.message);
+  revalidatePath("/news");
+}
+
+export async function deleteNews(formData: FormData): Promise<void> {
+  await requirePerm("news");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const { error } = await db.from("news").delete().eq("id", id);
+  if (error) console.error("deleteNews", error.message);
+  revalidatePath("/news");
+}
+
 export async function addStoryNode(formData: FormData): Promise<void> {
   await requirePerm("story");
   const s = (k: string, max: number) => String(formData.get(k) ?? "").trim().slice(0, max);

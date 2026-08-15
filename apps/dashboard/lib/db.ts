@@ -2446,6 +2446,28 @@ export async function globalSearch(
   };
 }
 
+export interface NewsRow {
+  id: number;
+  body: string;
+  link_url: string | null;
+  posted_at: string;
+  active: boolean;
+}
+
+// Every post, hidden ones included, since this backs the editor rather than the
+// player-facing feed (that one lives on the game server at GET /api/news).
+export async function listNews(): Promise<NewsRow[]> {
+  const { data, error } = await db
+    .from("news")
+    .select("*")
+    .order("posted_at", { ascending: false });
+  if (error) {
+    console.error("listNews", error.message);
+    return [];
+  }
+  return (data ?? []) as NewsRow[];
+}
+
 export interface VaultReward {
   icon?: string;
   label?: string;
