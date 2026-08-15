@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requirePagePerm } from "@/lib/guard";
 import { listSidequests } from "@/lib/db";
-import { addSidequest, toggleSidequest, deleteSidequest } from "@/app/actions";
+import { addSidequest, updateSidequest, toggleSidequest, deleteSidequest } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 export default async function SidequestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; created?: string }>;
+  searchParams: Promise<{ error?: string; created?: string; saved?: string }>;
 }) {
   const access = await requirePagePerm(["sidequests"]);
-  const { error, created } = await searchParams;
+  const { error, created, saved } = await searchParams;
   const quests = await listSidequests();
 
   return (
@@ -35,6 +35,13 @@ export default async function SidequestsPage({
         <Alert>
           <AlertDescription className="font-medium text-emerald-600 dark:text-emerald-400">
             Sidequest added.
+          </AlertDescription>
+        </Alert>
+      )}
+      {saved && (
+        <Alert>
+          <AlertDescription className="font-medium text-emerald-600 dark:text-emerald-400">
+            Sidequest saved.
           </AlertDescription>
         </Alert>
       )}
@@ -160,6 +167,53 @@ export default async function SidequestsPage({
                 </PendingButton>
               </form>
             </div>
+
+            <details className="w-full mt-3 border-t pt-3">
+              <summary className="text-sm cursor-pointer select-none text-muted-foreground hover:text-foreground">
+                Edit
+              </summary>
+              <form action={updateSidequest} className="space-y-3 mt-3">
+                <input type="hidden" name="id" value={q.id} />
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <Label className="block font-normal">
+                    <span className="block text-sm font-medium mb-1.5">Name</span>
+                    <Input name="name" required maxLength={80} defaultValue={q.name} className="w-full text-sm" />
+                  </Label>
+                  <Label className="block font-normal">
+                    <span className="block text-sm font-medium mb-1.5">Region</span>
+                    <Input name="region" maxLength={40} defaultValue={q.region ?? ""} className="w-full text-sm" />
+                  </Label>
+                  <Label className="block font-normal">
+                    <span className="block text-sm font-medium mb-1.5">NPC who gives it</span>
+                    <Input name="npc" maxLength={40} defaultValue={q.npc ?? ""} className="w-full text-sm" />
+                  </Label>
+                </div>
+                <Label className="block font-normal">
+                  <span className="block text-sm font-medium mb-1.5">Description (what to build)</span>
+                  <Input name="description" maxLength={500} defaultValue={q.description ?? ""} className="w-full text-sm" />
+                </Label>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <Label className="block font-normal sm:col-span-2">
+                    <span className="block text-sm font-medium mb-1.5">Reward (shown to players)</span>
+                    <Input name="reward" maxLength={120} defaultValue={q.reward ?? ""} className="w-full text-sm" />
+                  </Label>
+                  <Label className="block font-normal">
+                    <span className="block text-sm font-medium mb-1.5">Min hours (optional gate)</span>
+                    <Input
+                      name="minHours"
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      defaultValue={q.min_hours ?? ""}
+                      className="w-full text-sm"
+                    />
+                  </Label>
+                </div>
+                <PendingButton size="sm" pendingText="Saving…" className="bg-brand text-white border-transparent">
+                  Save changes
+                </PendingButton>
+              </form>
+            </details>
           </Card>
         ))}
         {quests.length === 0 && (

@@ -3020,6 +3020,33 @@ export async function toggleSidequest(formData: FormData): Promise<void> {
   revalidatePath("/sidequests");
 }
 
+export async function updateSidequest(formData: FormData): Promise<void> {
+  await requirePerm("sidequests");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const name = String(formData.get("name") ?? "").trim().slice(0, 80);
+  const region = String(formData.get("region") ?? "").trim().slice(0, 40);
+  const npc = String(formData.get("npc") ?? "").trim().slice(0, 40);
+  const description = String(formData.get("description") ?? "").trim().slice(0, 500);
+  const reward = String(formData.get("reward") ?? "").trim().slice(0, 120);
+  const minHoursRaw = String(formData.get("minHours") ?? "").trim();
+  const minHours = minHoursRaw === "" ? null : Math.max(0, Number(minHoursRaw));
+  if (!name)
+    redirect(`/sidequests?error=${encodeURIComponent("A sidequest needs a name.")}`);
+  if (minHoursRaw !== "" && !Number.isFinite(minHours))
+    redirect(`/sidequests?error=${encodeURIComponent("Minimum hours must be a number.")}`);
+  const { error } = await db
+    .from("sidequests")
+    .update({ name, region, npc, description, reward, min_hours: minHours })
+    .eq("id", id);
+  if (error) {
+    console.error("updateSidequest", error.message);
+    redirect(`/sidequests?error=${encodeURIComponent("Couldn't save the changes.")}`);
+  }
+  revalidatePath("/sidequests");
+  redirect("/sidequests?saved=1");
+}
+
 export async function deleteSidequest(formData: FormData): Promise<void> {
   await requirePerm("sidequests");
   const id = Number(formData.get("id") ?? 0);
