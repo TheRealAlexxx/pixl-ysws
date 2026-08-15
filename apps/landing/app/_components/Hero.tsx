@@ -5,7 +5,7 @@ import { useLocale } from "./LocaleProvider";
 import { Crew } from "./Crew";
 
 const PLAY_URL = "https://pixl.hackclub.com/play";
-const DASH_URL = "https://dash.pixl.hackclub.com";
+const DASH_URL = "https://pixl.hackclub.com/dashboard";
 
 export function Hero() {
   const { dict } = useLocale();
