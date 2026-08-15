@@ -300,7 +300,7 @@
         width: 100%;
       }
       .proj-row-thumb {
-        width: 200px;
+        width: 280px;
         flex-shrink: 0;
         align-self: stretch;
         min-height: 120px;
@@ -323,6 +323,14 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+      }
+      /* the banner is the card's anchor, so an absent one says so rather than
+         leaving a dead rectangle */
+      .thumb-none {
+        font-family: var(--pixel);
+        font-size: 13px;
+        letter-spacing: 1.5px;
+        color: var(--muted);
       }
       .proj-row-body {
         flex: 1;
@@ -365,6 +373,218 @@
           display: none;
         }
       }
+      /* status legend, sits opposite the page title */
+      /* capped so the four states wrap into a 2x2 block beside the button
+         rather than one long row that pushes it off the hero */
+      .legend {
+        display: flex;
+        gap: 7px 20px;
+        flex-wrap: wrap;
+        align-items: center;
+        max-width: 330px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--pixel);
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        color: var(--dim);
+      }
+      .legend-dot {
+        width: 11px;
+        height: 11px;
+        border: 1px solid var(--stroke);
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .legend-dot.status-approved {
+        background: var(--good);
+      }
+      .legend-dot.status-shipped {
+        background: var(--gold);
+      }
+      .legend-dot.status-needs {
+        background: var(--bad);
+      }
+      .legend-dot.muted {
+        background: var(--muted);
+      }
+      .legend-n {
+        color: var(--ink);
+      }
+
+      /* hours toward the active Trial's ship gate */
+      .hours {
+        margin: 20px 0 8px;
+        padding: 20px 22px 15px;
+      }
+      .hours-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-bottom: 13px;
+      }
+      .hours-big {
+        font-family: var(--pixel);
+        font-size: 42px;
+        line-height: 1;
+        letter-spacing: 1px;
+        color: var(--ink);
+      }
+      .hours-goal {
+        font-family: var(--pixel);
+        font-size: 27px;
+        line-height: 1.15;
+        letter-spacing: 1px;
+        color: var(--gold);
+        text-align: right;
+      }
+      .hours-sub {
+        font-family: var(--sans);
+        font-size: 13px;
+        letter-spacing: 0;
+        color: var(--faint);
+        margin-top: 7px;
+      }
+      .hours-goal .hours-sub {
+        text-align: right;
+      }
+      .hours-ticks {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 7px;
+        font-family: var(--pixel);
+        font-size: 12px;
+        color: var(--faint);
+      }
+
+      /* links along the bottom of a project card */
+      .proj-links {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13.5px;
+      }
+      .proj-links a {
+        font-family: var(--pixel);
+        font-size: 14px;
+        letter-spacing: 1px;
+        color: var(--teal);
+        text-decoration: none;
+      }
+      .proj-links a:hover {
+        color: var(--teal-hover);
+        text-decoration: underline;
+      }
+      .proj-links .ht {
+        color: var(--faint);
+        font-family: var(--sans);
+      }
+
+      .list-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 24px 0 8px;
+      }
+
+      /* action log + news, side by side under the list */
+      .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+        margin-top: 26px;
+      }
+      .feed {
+        padding: 18px 20px 20px;
+      }
+      .feed-h {
+        font-family: var(--pixel);
+        font-size: 19px;
+        letter-spacing: 1px;
+        color: var(--gold);
+        margin-bottom: 16px;
+      }
+      .log-row {
+        display: flex;
+        gap: 12px;
+        padding-bottom: 16px;
+        position: relative;
+      }
+      /* the thread joining one entry to the next, stopping at the last */
+      .log-row:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 14px;
+        bottom: 0;
+        width: 1px;
+        background: var(--stroke);
+      }
+      .log-dot {
+        width: 11px;
+        height: 11px;
+        margin-top: 3px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--muted);
+        position: relative;
+        z-index: 1;
+      }
+      .log-dot.created,
+      .log-dot.trial {
+        background: var(--teal);
+      }
+      .log-dot.shipped,
+      .log-dot.journal {
+        background: var(--gold);
+      }
+      .log-dot.approved,
+      .log-dot.earned {
+        background: var(--good);
+      }
+      .log-dot.rejected {
+        background: var(--bad);
+      }
+      .log-txt {
+        font-size: 14.5px;
+        color: var(--ink);
+        line-height: 1.4;
+      }
+      .log-when {
+        font-size: 12.5px;
+        color: var(--faint);
+        margin-top: 3px;
+      }
+      .news-row {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 14px;
+        font-size: 14.5px;
+        line-height: 1.5;
+      }
+      .news-date {
+        font-family: var(--pixel);
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        color: var(--gold);
+        flex-shrink: 0;
+        width: 52px;
+        padding-top: 1px;
+      }
+      .news-body {
+        color: var(--dim);
+      }
+      .news-body a {
+        color: var(--teal);
+      }
+
       .note-strip {
         font-family: var(--sans);
         font-size: 13.5px;
@@ -876,10 +1096,12 @@
           </div>
         </div>
         <div class="hero-actions">
+          <div class="legend" id="legend"></div>
           <a class="btn" href="#new" id="new-btn">+ NEW PROJECT</a>
         </div>
       </section>
 
+      <div id="hours-slot"></div>
       <div id="ht-slot"></div>
       <div id="invites-slot"></div>
       <div id="join-code-slot"></div>
@@ -934,6 +1156,8 @@
       let stats = null;
       let projects = [];
       let trials = []; // Trials the player has accepted and not yet finished
+      let activity = []; // synthesized action log, newest first
+      let news = []; // program news, newest first
       let activeTrial = null; // the Trial the player arrived to build for, if any
       let hasBirthday = true; // assume yes until we hear otherwise — avoids a flash of the banner
       let form = null;
@@ -1123,6 +1347,109 @@
 
       /* ---------- list view ---------- */
 
+      // The four states worth counting at a glance. Banned and rejected fold
+      // into "needs changes" here, the same way statusInfo colors them.
+      const LEGEND = [
+        ["APPROVED", "status-approved", (p) => p.status === "approved" && !p.rejected_at],
+        ["IN REVIEW", "status-shipped", (p) => p.status === "shipped"],
+        [
+          "NEEDS CHANGES",
+          "status-needs",
+          (p) => p.status === "needs_changes" || !!p.rejected_at || !!p.banned_at,
+        ],
+        ["UNSHIPPED", "muted", (p) => !p.status || p.status === "draft"],
+      ];
+
+      function renderLegend() {
+        const slot = $("legend");
+        if (!slot) return;
+        if (projects.length === 0) {
+          slot.innerHTML = "";
+          return;
+        }
+        slot.innerHTML = LEGEND.map(([label, cls, match]) => {
+          const n = projects.filter(match).length;
+          return `
+        <span class="legend-item">
+          <span class="legend-dot ${cls}"></span>${label}
+          <span class="legend-n">${n}</span>
+        </span>`;
+        }).join("");
+      }
+
+      // The Trial the hours bar measures against: the one with a project on it,
+      // otherwise whichever Trial the player took on first.
+      function barTrial() {
+        return (
+          trials.find((t) =>
+            projects.some((p) => Number(p.sidequest_id) === Number(t.id)),
+          ) ||
+          activeTrial ||
+          trials[0] ||
+          null
+        );
+      }
+
+      function renderHours() {
+        const slot = $("hours-slot");
+        const t = barTrial();
+        const linked = t
+          ? projects.find((p) => Number(p.sidequest_id) === Number(t.id))
+          : null;
+        // No Trial in flight, so there's no gate to draw. Fall back to the raw
+        // tracked total rather than inventing a threshold.
+        const need = t && t.min_hours != null ? Number(t.min_hours) : 0;
+        const secs = linked
+          ? linkedSeconds(linked)
+          : stats && stats.connected
+            ? stats.totalSeconds
+            : 0;
+        const hours = secs / 3600;
+        if (!need) {
+          slot.innerHTML = `
+      <div class="hours panel">
+        <div class="hours-top">
+          <div>
+            <div class="hours-big">${Pixl.hours(secs)}</div>
+            <div class="hours-sub">tracked so far${t ? ` · ${Pixl.esc(t.name)} has no minimum` : ""}</div>
+          </div>
+        </div>
+      </div>`;
+          return;
+        }
+        const pct = Math.max(0, Math.min(100, (hours / need) * 100));
+        const tick = (n) => `<span>${Math.round(n)}</span>`;
+        slot.innerHTML = `
+      <div class="hours panel">
+        <div class="hours-top">
+          <div>
+            <div class="hours-big">${Pixl.hours(secs)}</div>
+            <div class="hours-sub">${linked ? `on ${Pixl.esc(linked.name)}` : "no project on this Trial yet"}</div>
+          </div>
+          <div>
+            <div class="hours-goal">${need}H TO SHIP</div>
+            <div class="hours-sub">${Pixl.esc(t.name)}</div>
+          </div>
+        </div>
+        <div class="rbar gold"><i style="width:${pct}%"></i></div>
+        <div class="hours-ticks">
+          ${tick(0)}${tick(need / 4)}${tick(need / 2)}${tick((need * 3) / 4)}${tick(need)}
+        </div>
+      </div>`;
+      }
+
+      function projLinksHtml(p) {
+        const ht = (p.hackatime_projects || []).join(", ");
+        const secs = linkedSeconds(p);
+        return `
+        <div class="proj-links">
+          ${p.repo_url ? `<a href="${Pixl.esc(p.repo_url)}" target="_blank" rel="noopener">CODE</a>` : ""}
+          ${p.demo_url ? `<a href="${Pixl.esc(p.demo_url)}" target="_blank" rel="noopener">DEMO</a>` : ""}
+          ${ht ? `<span class="ht">Hackatime: ${Pixl.esc(ht)}${secs ? ` · ${Pixl.hours(secs)}` : ""}</span>` : `<span class="ht">no hackatime linked</span>`}
+          ${p.pixels_earned ? `<span class="earned">+${Math.round(p.pixels_earned)} px earned</span>` : ""}
+        </div>`;
+      }
+
       function renderList() {
         $("new-btn").style.display = "";
         const view = $("view");
@@ -1133,7 +1460,9 @@
         <h2>NO PROJECTS YET</h2>
         <p>Log what you're building, link it to Hackatime, journal as you go, then ship it for review — approved hours pay out in pixels.</p>
         <a class="btn" href="#new">+ START YOUR FIRST PROJECT</a>
-      </div>`;
+      </div>
+      <div class="panel-grid" id="feeds"></div>`;
+          renderFeeds();
           return;
         }
         view.innerHTML = `
@@ -1142,29 +1471,99 @@
       ${projects
         .map((p) => {
           const [label, cls] = statusInfo(p);
-          const secs = linkedSeconds(p);
           return `
-        <a class="card panel proj-row" href="#p=${p.id}">
-          <div class="proj-row-thumb">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</div>
+        <div class="card panel proj-row" data-href="#p=${p.id}">
+          <div class="proj-row-thumb">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : `<span class="thumb-none">NO IMAGE</span>`}</div>
           <div class="proj-row-body">
             <div class="proj-row-head">
-              <span class="proj-name">${Pixl.esc(p.name)}</span>
+              <a class="proj-name" href="#p=${p.id}">${Pixl.esc(p.name)}</a>
               <span class="chip ${cls}">${label}</span>
               <span class="chip">${LEVELS[(p.level || 1) - 1][0]}</span>
             </div>
-            <div class="proj-meta">
-              ${secs ? `<span class="teal">${Pixl.hours(secs)} coded</span>` : `<span>no hackatime linked</span>`}
-              ${p.pixels_earned ? `<span class="earned">+${Math.round(p.pixels_earned)} px earned</span>` : ""}
-              <span>${Pixl.timeAgo(p.created_at)}</span>
-            </div>
+            ${p.description ? `<div class="proj-meta"><span>${Pixl.esc(p.description)}</span></div>` : ""}
+            ${projLinksHtml(p)}
             ${p.status === "needs_changes" && p.review_note ? `<div class="note-strip">${Pixl.esc(p.review_note)}</div>` : ""}
             ${p.rejected_at && p.reject_reason ? `<div class="note-strip">${Pixl.esc(p.reject_reason)}</div>` : ""}
           </div>
           <div class="proj-row-arrow">›</div>
-        </a>`;
+        </div>`;
         })
         .join("")}
-    </div>`;
+    </div>
+    <div class="list-actions">
+      <a class="btn" href="#new">+ NEW PROJECT</a>
+      <a class="btn dark" href="/docs/shipping/">SHIPPING GUIDE</a>
+    </div>
+    <div class="panel-grid" id="feeds"></div>`;
+        renderFeeds();
+      }
+
+      // The card is a div rather than an anchor so the repo and demo links can
+      // be real links (anchors can't nest), but the whole card should still
+      // navigate. Delegated so it survives every re-render.
+      $("view").addEventListener("click", (e) => {
+        if (e.target.closest("a")) return;
+        const card = e.target.closest(".proj-row[data-href]");
+        if (card) location.hash = card.dataset.href;
+      });
+
+      /* ---------- action log + news ---------- */
+
+      const NEWS_DATE = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      });
+
+      // Both feeds are decoration: if either is empty or its endpoint is down,
+      // its panel just isn't drawn rather than sitting there as an empty box.
+      function renderFeeds() {
+        const slot = $("feeds");
+        if (!slot) return;
+        const log = activity.length
+          ? `
+      <div class="feed panel">
+        <div class="feed-h">ACTION LOG</div>
+        ${activity
+          .map(
+            (a) => `
+          <div class="log-row">
+            <span class="log-dot ${Pixl.esc(a.kind)}"></span>
+            <div>
+              <div class="log-txt">${Pixl.esc(a.text)}</div>
+              <div class="log-when">${Pixl.timeAgo(a.at)}</div>
+            </div>
+          </div>`,
+          )
+          .join("")}
+      </div>`
+          : "";
+        const feed = news.length
+          ? `
+      <div class="feed panel">
+        <div class="feed-h">NEWS</div>
+        ${news
+          .map((n) => {
+            const body = Pixl.esc(n.body);
+            return `
+          <div class="news-row">
+            <span class="news-date">${NEWS_DATE.format(new Date(n.posted_at))}</span>
+            <span class="news-body">${n.link_url ? `<a href="${Pixl.esc(n.link_url)}" target="_blank" rel="noopener">${body}</a>` : body}</span>
+          </div>`;
+          })
+          .join("")}
+      </div>`
+          : "";
+        slot.innerHTML = log + feed;
+      }
+
+      async function loadFeeds() {
+        const [a, n] = await Promise.all([
+          Pixl.api("/api/activity").catch(() => null),
+          Pixl.api("/api/news").catch(() => null),
+        ]);
+        activity = (a && a.activity) || [];
+        news = (n && n.news) || [];
       }
 
       /* ---------- editor view ---------- */
@@ -2365,6 +2764,15 @@
         if (!Pixl.hasToken) return;
         const h = location.hash.replace(/^#/, "");
         $("new-btn").style.display = "";
+        // The legend and hours bar describe the list, so they come off once
+        // you're inside the editor or a single project.
+        const onList = h !== "new" && !h.startsWith("p=");
+        $("legend").style.display = onList ? "" : "none";
+        $("hours-slot").style.display = onList ? "" : "none";
+        if (onList) {
+          renderLegend();
+          renderHours();
+        }
         if (h === "new") {
           $("new-btn").style.display = "none";
           $("view").innerHTML =
@@ -2430,6 +2838,7 @@
             Pixl.api("/api/profile/eligibility"),
             loadProjects(),
             loadTrials(),
+            loadFeeds(),
           ]);
           stats = s.stats || null;
           hasBirthday = !!(elig && elig.ok && elig.birthday);

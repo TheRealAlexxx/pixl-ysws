@@ -265,9 +265,9 @@ const Pixl = (() => {
         ["docs", "DOCS"],
         ["explore", "EXPLORE"],
         ["ideas", "IDEAS"],
-        // VAULT and QUESTS are hidden from the dash for now — not ready for
-        // players. Re-enable when they are.
-        // ["vault", "VAULT"],
+        ["vault", "GOALS"],
+        // QUESTS is hidden from the dash for now — not ready for players.
+        // Re-enable when it is.
         // ["quests", "QUESTS"],
         // STORY (The Chronicle) is disabled in the dash for now — the
         // storyline is surfaced through community goals instead. Re-enable
@@ -330,6 +330,8 @@ const Pixl = (() => {
     report: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="2" width="2" height="12"/><rect x="5" y="3" width="8" height="6"/></svg>`,
     // head and shoulders
     account: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="5" y="2" width="6" height="5"/><rect x="3" y="9" width="10" height="5"/></svg>`,
+    // vault door: hollow frame with a handwheel floating inside it
+    vault: `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="2" width="10" height="2"/><rect x="3" y="12" width="10" height="2"/><rect x="3" y="4" width="2" height="8"/><rect x="11" y="4" width="2" height="8"/><rect x="7" y="5" width="2" height="6"/><rect x="6" y="7" width="4" height="2"/></svg>`,
   };
   // Three-by-three grid, the "more" affordance on the mobile dock.
   const MORE_ICON = `<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="2" y="2" width="3" height="3"/><rect x="7" y="2" width="3" height="3"/><rect x="12" y="2" width="2" height="3"/><rect x="2" y="7" width="3" height="3"/><rect x="7" y="7" width="3" height="3"/><rect x="12" y="7" width="2" height="3"/><rect x="2" y="12" width="3" height="2"/><rect x="7" y="12" width="3" height="2"/><rect x="12" y="12" width="2" height="2"/></svg>`;
