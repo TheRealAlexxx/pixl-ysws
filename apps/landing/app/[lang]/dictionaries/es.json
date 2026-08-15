@@ -62,45 +62,82 @@
     "badge": "La Restauración",
     "title": "Cómo funciona",
     "subtitle": "Pixl transcurre como una historia por temporadas: los capítulos hacen avanzar el mundo, y todo lo que entregas lo repara.",
-    "paths": [
-      {
-        "title": "Toma una prueba",
-        "text": "El Núcleo ya las conoce: problemas que los NPC de las regiones desbloqueadas necesitan resolver. Elige una y entrégala."
+    "flow": {
+      "join": {
+        "title": "Entra al mundo",
+        "text": "Crea tu personaje y entra en Pixl, un mundo 2D que compartes con todos los que están construyendo ahora mismo.",
+        "alt": "Creando un personaje en Pixl"
       },
-      {
-        "title": "Crea lo tuyo propio",
-        "text": "El Núcleo no puede predecir cada invento. Entrega algo original que nunca pidió, y aun así cuenta como Energía de Restauración."
+      "andOr": "y/o",
+      "trial": {
+        "title": "Toma una Prueba",
+        "text": "Un NPC necesita algo real: una web, una app, una pieza de hardware. Elige una y es tuya."
+      },
+      "invent": {
+        "title": "Construye lo tuyo",
+        "text": "O construye algo que nadie pidió. Tu propia idea cuenta exactamente igual."
+      },
+      "ship": {
+        "title": "Entrégalo",
+        "text": "Envía lo que construiste. Un revisor comprueba tus horas y clasifica el proyecto del Rango 1 al Rango 4. Cuanto más difícil, más alto el rango.",
+        "alt": "Paseando por una aldea de Pixl"
+      },
+      "energy": {
+        "title": "Se convierte en Energía de Restauración",
+        "text": "Tus horas multiplicadas por tu rango. Todo lo demás funciona con ese único número.",
+        "perHour": "ER por hora",
+        "tiers": [
+          {
+            "name": "T1 Spark"
+          },
+          {
+            "name": "T2 Signal"
+          },
+          {
+            "name": "T3 Grid"
+          },
+          {
+            "name": "T4 Beacon"
+          }
+        ]
+      },
+      "loop": "entrega otro",
+      "paid": {
+        "title": "Te pagan",
+        "text": "La Energía de Restauración fija la tarifa que paga ese proyecto. Cada proyecto empieza en {floor} píxeles por hora y sube hacia {ceil} según gana energía, así que los proyectos más grandes y difíciles pagan más por hora. Los píxeles compran cosas reales en la tienda.",
+        "scale": "píxeles por hora, por proyecto"
+      },
+      "world": {
+        "title": "El mundo vuelve",
+        "text": "Tu Energía de Restauración también alimenta la meta del capítulo, que todos llenan juntos. Al llenarla la historia avanza: se abre una región nueva, los NPC regresan, aparecen nuevas Pruebas.",
+        "alt": "El mapa del mundo de Pixl"
+      },
+      "chips": [
+        {
+          "title": "Operaciones",
+          "text": "Entre capítulos, eventos temáticos de una semana. Una game jam, un hackathon, una semana creando herramientas."
+        },
+        {
+          "title": "Llegar tarde no pasa nada",
+          "text": "Las regiones desbloqueadas nunca cierran. Llega cuando quieras y construye lo que esté abierto."
+        }
+      ],
+      "example": {
+        "title": "Por ejemplo",
+        "subtitle": "El mismo bucle en tres tamaños. Más horas y un rango más alto significan más energía, y más píxeles.",
+        "h": "h",
+        "tier": "Rango",
+        "re": "Energía de Restauración",
+        "px": "píxeles",
+        "buys": "compra:",
+        "items": [
+          "Blahaj",
+          "Raspberry Pi 5",
+          "iPad"
+        ],
+        "note": "Solo ejemplos. Los precios de la tienda varían por región y cambian con el tiempo."
       }
-    ],
-    "andOr": "y/o",
-    "rhythm": [
-      {
-        "title": "Capítulos (~3 semanas)",
-        "text": "La historia avanza por capítulos. Cada capítulo es un empujón para reparar una parte del mundo: tomas pruebas de las regiones ya desbloqueadas, entregas proyectos reales, y tu trabajo cuenta para el objetivo de restauración del capítulo. Cuando la comunidad lo alcanza, la historia avanza: se abre una nueva región, vuelven nuevos NPC, aparecen nuevas pruebas."
-      },
-      {
-        "title": "Operaciones (~1 semana)",
-        "text": "Entre capítulos, eventos temáticos cortos: una game jam, un hackathon, una semana de crear herramientas. Una semana, un tema, una pieza del mundo de vuelta en línea. Perfecto si quieres algo intenso con una fecha límite clara."
-      },
-      {
-        "title": "¿Llegas tarde? Todo bien",
-        "text": "Las regiones desbloqueadas nunca cierran. Cuando llegues, puedes elegir cualquier prueba disponible, entregarla y ganar tus premios y píxeles como todos. Los capítulos solo deciden qué se desbloquea a continuación, nunca lo que puedes construir."
-      }
-    ],
-    "mechanics": [
-      {
-        "title": "Siempre ganas",
-        "text": "Cada proyecto entregado te da su premio y sus píxeles, sin importar lo que haga el resto de la comunidad."
-      },
-      {
-        "title": "Energía de Restauración",
-        "text": "Las horas de trabajo entregado se convierten en Energía de Restauración. Sigue entregando y sube la tasa que paga cada hora siguiente."
-      },
-      {
-        "title": "Objetivos comunitarios",
-        "text": "Toda la Energía de Restauración también repara el mundo en sí. En los grandes hitos, se desbloquean nuevas regiones, vuelven los NPC y el Núcleo devuelve más de lo que guarda."
-      }
-    ],
+    },
     "ctaTitle": "¿Quieres saber más sobre la historia?",
     "ctaText": "El resto del lore llega cuando Pixl se lance.",
     "liveNow": "¡Pixl ya está en línea!",

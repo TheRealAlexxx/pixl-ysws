@@ -62,45 +62,82 @@
     "badge": "The Restoration",
     "title": "How it works",
     "subtitle": "Pixl runs as a story in seasons: chapters move the world forward, and everything you ship repairs it.",
-    "paths": [
-      {
+    "flow": {
+      "join": {
+        "title": "Join the world",
+        "text": "Make a character and drop into Pixl, a 2D world you share with everyone else who is building right now.",
+        "alt": "Making a character in Pixl"
+      },
+      "andOr": "and/or",
+      "trial": {
         "title": "Take a Trial",
-        "text": "The Core already knows about these: known problems NPCs across unlocked regions need solved. Pick one and ship it."
+        "text": "An NPC needs something real built: a website, an app, a piece of hardware. Pick one and it's yours."
       },
-      {
+      "invent": {
         "title": "Build your own thing",
-        "text": "The Core can't predict every invention. Ship something original it never asked for, and it still counts as Restoration Energy."
+        "text": "Or build something nobody asked for. Your own idea counts exactly the same."
+      },
+      "ship": {
+        "title": "Ship it",
+        "text": "Send in what you built. A reviewer checks your hours and rates the build from Tier 1 to Tier 4. Harder build, higher tier.",
+        "alt": "Walking through a village in Pixl"
+      },
+      "energy": {
+        "title": "It becomes Restoration Energy",
+        "text": "Your hours multiplied by your tier. This one number is what everything else runs on.",
+        "perHour": "RE per hour",
+        "tiers": [
+          {
+            "name": "T1 Spark"
+          },
+          {
+            "name": "T2 Signal"
+          },
+          {
+            "name": "T3 Grid"
+          },
+          {
+            "name": "T4 Beacon"
+          }
+        ]
+      },
+      "loop": "ship another",
+      "paid": {
+        "title": "You get paid",
+        "text": "Restoration Energy sets the rate that build pays. Every project starts at {floor} pixels an hour and climbs toward {ceil} as it earns more energy, so bigger and harder builds pay more per hour. Pixels buy real things in the shop.",
+        "scale": "pixels per hour, per project"
+      },
+      "world": {
+        "title": "The world comes back",
+        "text": "Your Restoration Energy also feeds the chapter goal that everyone fills together. Fill it and the story moves: a new region opens, NPCs return, new Trials appear.",
+        "alt": "The Pixl world map"
+      },
+      "chips": [
+        {
+          "title": "Operations",
+          "text": "Between chapters, one week themed events. A game jam, a hackathon, a week of building tools."
+        },
+        {
+          "title": "Joining late is fine",
+          "text": "Unlocked regions never close. Turn up whenever and build anything that is open."
+        }
+      ],
+      "example": {
+        "title": "For example",
+        "subtitle": "The same loop at three sizes. More hours and a higher tier means more energy, and more pixels.",
+        "h": "h",
+        "tier": "Tier",
+        "re": "Restoration Energy",
+        "px": "pixels",
+        "buys": "buys:",
+        "items": [
+          "Blahaj",
+          "Raspberry Pi 5",
+          "iPad"
+        ],
+        "note": "Examples only. Shop prices vary by region and change over time."
       }
-    ],
-    "andOr": "and/or",
-    "rhythm": [
-      {
-        "title": "Chapters (~3 weeks)",
-        "text": "The story moves forward in chapters. Each chapter is a push to repair a part of the world: you take Trials from the regions already unlocked, ship real projects, and your work counts toward the chapter's restoration goal. When the community hits it, the story advances: a new region opens, new NPCs return, new Trials appear."
-      },
-      {
-        "title": "Operations (~1 week)",
-        "text": "Between chapters, short themed events: a game jam, a hackathon, a tool-building week. One week, one theme, one piece of the world brought back online. Perfect if you want something intense with a clear deadline."
-      },
-      {
-        "title": "Joining late? All good",
-        "text": "Unlocked regions never close. Whenever you arrive, you can pick any available Trial, ship it, and earn your prizes and pixels like everyone else. Chapters only decide what unlocks next, never what you're allowed to build."
-      }
-    ],
-    "mechanics": [
-      {
-        "title": "You always win",
-        "text": "Every shipped project earns you its prize and pixels, no matter what the rest of the community does."
-      },
-      {
-        "title": "Restoration Energy",
-        "text": "Hours of shipped work convert into Restoration Energy. Keep shipping and it lifts the rate every future hour pays."
-      },
-      {
-        "title": "Community goals",
-        "text": "All Restoration Energy also repairs the world itself. At big milestones, new regions unlock, NPCs return and the Core gives back more of what it holds."
-      }
-    ],
+    },
     "ctaTitle": "Want to know more about the story?",
     "ctaText": "The rest of the lore drops when Pixl launches.",
     "liveNow": "Pixl is live!",

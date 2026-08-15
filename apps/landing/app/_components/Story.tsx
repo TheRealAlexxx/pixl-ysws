@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocale } from "./LocaleProvider";
+import { FlowDiagram } from "./Flow";
 import { launchDate } from "../_generated/config";
 
 // Was new Date("2026-08-18T00:00:00") - no timezone, so the countdown hit zero
@@ -99,59 +100,7 @@ export function Story() {
         </motion.p>
       </div>
 
-      <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-center">
-        <motion.div
-          className="bg-[#fffaf7] border-2 border-black px-6 py-5 text-left hover:rotate-0 transition-transform"
-          style={{ boxShadow: `4px 4px 0px #ff8c37`, rotate: "-2deg" }}
-          {...fadeUp}
-          transition={{ duration: 0.5 }}
-        >
-          <p className="font-pixel text-lg mb-2">{t.paths[0].title}</p>
-          <p className="font-sans text-sm md:text-base text-black/60 leading-relaxed">{t.paths[0].text}</p>
-        </motion.div>
-
-        <motion.div
-          className="font-pixel text-black/50 text-sm bg-[#fffaf7] border-2 border-black rounded-full px-3 py-1.5 justify-self-center"
-          style={{ boxShadow: "3px 3px 0px #000" }}
-          {...fadeUp}
-          transition={{ duration: 0.5, delay: 0.08 }}
-        >
-          <motion.span
-            className="inline-block"
-            animate={{ rotate: [0, -8, 8, 0] }}
-            transition={{ duration: 4, delay: 1, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }}
-          >
-            {t.andOr}
-          </motion.span>
-        </motion.div>
-
-        <motion.div
-          className="bg-[#fffaf7] border-2 border-black px-6 py-5 text-left hover:rotate-0 transition-transform"
-          style={{ boxShadow: `4px 4px 0px #ec3750`, rotate: "2deg" }}
-          {...fadeUp}
-          transition={{ duration: 0.5, delay: 0.16 }}
-        >
-          <p className="font-pixel text-lg mb-2">{t.paths[1].title}</p>
-          <p className="font-sans text-sm md:text-base text-black/60 leading-relaxed">{t.paths[1].text}</p>
-        </motion.div>
-      </div>
-
-      <div className="w-full max-w-4xl flex flex-col gap-4">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(t.rhythm as any[]).map((c: any, i: number) => (
-          <motion.div
-            key={c.title}
-            className="bg-[#fffaf7] border-2 border-black px-6 py-5 text-left hover:-translate-y-1 hover:-translate-x-1 transition-transform"
-            style={{ boxShadow: `4px 4px 0px ${["#000", "#ff8c37", "#ec3750"][i]}` }}
-            whileHover={{ boxShadow: `8px 8px 0px ${["#000", "#ff8c37", "#ec3750"][i]}` } as any}
-            {...fadeUp}
-            transition={{ duration: 0.5, delay: i * 0.08 }}
-          >
-            <p className="font-pixel text-xl mb-2">{c.title}</p>
-            <p className="font-sans text-sm md:text-base text-black/60 leading-relaxed">{c.text}</p>
-          </motion.div>
-        ))}
-      </div>
+      <FlowDiagram />
 
       <motion.div
         className="relative max-w-2xl w-full bg-[#fffaf7] border-2 border-black px-6 py-8 text-center flex flex-col items-center gap-5 hover:-translate-y-1 hover:-translate-x-1 transition-transform"
@@ -203,22 +152,6 @@ export function Story() {
         )}
       </motion.div>
 
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(t.mechanics as any[]).map((c: any, i: number) => (
-          <motion.div
-            key={c.title}
-            className="bg-[#fffaf7] border-2 border-black px-5 py-5 text-left hover:-translate-y-1 hover:-translate-x-1 transition-transform"
-            style={{ boxShadow: "4px 4px 0px #ff8c37" }}
-            whileHover={{ boxShadow: "8px 8px 0px #ff8c37" } as any}
-            {...fadeUp}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
-          >
-            <p className="font-pixel text-lg mb-2">{c.title}</p>
-            <p className="font-sans text-sm text-black/60 leading-relaxed">{c.text}</p>
-          </motion.div>
-        ))}
-      </div>
     </section>
   );
 }
