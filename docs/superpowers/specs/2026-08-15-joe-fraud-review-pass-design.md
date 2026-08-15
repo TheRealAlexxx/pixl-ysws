@@ -243,14 +243,20 @@ Added to `apps/dashboard/.env.example`:
 
 ```
 JOE_API_BASE=https://joe.fraud.hackclub.com/api/v1/ysws
-JOE_EVENT_ID=
+JOE_EVENT_ID=pixl
 JOE_API_KEY=
 JOE_WEBHOOK_SECRET=
 ```
 
-`JOE_EVENT_ID` and `JOE_API_KEY` must come from Hack Club. The feature can be
-built and merged without them; the kill switch keeps the current two-pass
-behaviour until they are set.
+Pixl's event slug is `pixl`, confirmed against the live API: a
+`GET /events/pixl/projects` with our key returns `200 {"projects":[]}`, while
+other slugs return `403 API key not authorized for this event`. The event has no
+projects in it yet, so the first pass-1 verdict after deploy will be the first
+record Joe sees.
+
+The key and the webhook secret are real credentials and belong only in
+`apps/dashboard/.env` locally (gitignored) and in the Vercel project environment
+for production. Never in `.env.example`, which carries empty values only.
 
 ## Verification
 
