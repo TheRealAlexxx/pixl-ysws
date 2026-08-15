@@ -4,11 +4,12 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocale } from "./LocaleProvider";
 
-const MAP_WIDTH = 1520;
-const MAP_HEIGHT = 1441;
-// The hub island sits in the top right of the bake and the rest of the map is
-// mostly ocean, so open on the hub rather than on empty water.
-const FOCUS = { x: 1240, y: 240 };
+const MAP_WIDTH = 2248;
+const MAP_HEIGHT = 1449;
+// The hub island sits up top and the rest of the map is mostly ocean, so open
+// on the hub rather than on empty water. Dustline is bottom left and Pixlcraft
+// bottom right, both a drag away.
+const FOCUS = { x: 1230, y: 215 };
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
