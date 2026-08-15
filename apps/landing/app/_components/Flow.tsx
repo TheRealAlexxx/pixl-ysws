@@ -33,17 +33,17 @@ function ArrowHead({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`absolute w-4 h-2.5 bg-black ${className}`}
+      className={`absolute w-6 h-4 bg-black ${className}`}
       style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
     />
   );
 }
 
 /** Straight drop between two stacked nodes. */
-function Down({ height = "h-14" }: { height?: string }) {
+function Down({ height = "h-28" }: { height?: string }) {
   return (
     <div aria-hidden className={`relative w-full ${height} shrink-0`}>
-      <span className="absolute left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-black" />
+      <span className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 bg-black" />
       <ArrowHead className="left-1/2 bottom-0 -translate-x-1/2" />
     </div>
   );
@@ -51,26 +51,26 @@ function Down({ height = "h-14" }: { height?: string }) {
 
 // The branch rows are plain 2-column grids, so the two cards sit at exactly 25%
 // and 75%. Drawing the connectors as positioned spans instead of a scaled SVG
-// keeps every line a crisp 2px at any width, and square corners suit the pixel
+// keeps every line a crisp 4px at any width, and square corners suit the pixel
 // styling better than curves would.
 function Fork({ label, up = false }: { label?: string; up?: boolean }) {
   const stem = up ? "bottom-0" : "top-0";
   const branch = up ? "top-0" : "bottom-0";
   return (
-    <div aria-hidden className="relative w-full h-16 shrink-0">
+    <div aria-hidden className="relative w-full h-36 shrink-0">
       <span
-        className={`absolute left-1/2 ${stem} h-8 w-0.5 -translate-x-1/2 bg-black`}
+        className={`absolute left-1/2 ${stem} h-18 w-1 -translate-x-1/2 bg-black`}
       />
-      <span className="absolute left-1/4 right-1/4 top-1/2 h-0.5 -translate-y-1/2 bg-black max-sm:hidden" />
+      <span className="absolute left-1/4 right-1/4 top-1/2 h-1 -translate-y-1/2 bg-black max-sm:hidden" />
       <span
-        className={`absolute left-1/4 ${branch} h-8 w-0.5 bg-black max-sm:hidden`}
+        className={`absolute left-1/4 ${branch} h-18 w-1 bg-black max-sm:hidden`}
       />
       <span
-        className={`absolute right-1/4 ${branch} h-8 w-0.5 bg-black max-sm:hidden`}
+        className={`absolute right-1/4 ${branch} h-18 w-1 bg-black max-sm:hidden`}
       />
       {/* stacked on mobile: the fork collapses to one line straight through */}
       <span
-        className={`absolute left-1/2 ${branch} h-8 w-0.5 -translate-x-1/2 bg-black sm:hidden`}
+        className={`absolute left-1/2 ${branch} h-18 w-1 -translate-x-1/2 bg-black sm:hidden`}
       />
       {up ? (
         <ArrowHead className="left-1/2 bottom-0 -translate-x-1/2" />
@@ -114,7 +114,7 @@ function Node({
 }) {
   return (
     <motion.div
-      className="w-full bg-[#fffaf7] border-2 border-black flex flex-col sm:flex-row overflow-hidden hover:-translate-y-1 hover:-translate-x-1 transition-transform"
+      className="w-full shrink-0 bg-[#fffaf7] border-2 border-black flex flex-col sm:flex-row overflow-hidden hover:-translate-y-1 hover:-translate-x-1 transition-transform"
       style={{ boxShadow: `6px 6px 0px ${accent}` }}
       {...fadeUp}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -225,7 +225,7 @@ export function FlowDiagram() {
         <MiniCard title={t.trial.title} text={t.trial.text} accent="#ff8c37" />
         {/* the fork collapses on mobile, so the stacked options need a link */}
         <div className="sm:hidden">
-          <Down height="h-10" />
+          <Down height="h-20" />
         </div>
         <MiniCard title={t.invent.title} text={t.invent.text} accent="#ec3750" />
       </div>
@@ -269,13 +269,13 @@ export function FlowDiagram() {
 
         <div
           aria-hidden
-          className="hidden md:block absolute right-0 top-20 bottom-24 w-32"
+          className="hidden md:block absolute right-0 top-20 bottom-28 w-32"
         >
-          <span className="absolute left-0 right-10 top-0 border-t-2 border-dashed border-black" />
-          <span className="absolute right-10 top-0 bottom-0 border-l-2 border-dashed border-black" />
-          <span className="absolute left-0 right-10 bottom-0 border-t-2 border-dashed border-black" />
+          <span className="absolute left-0 right-10 top-0 border-t-4 border-dashed border-black" />
+          <span className="absolute right-10 top-0 bottom-0 border-l-4 border-dashed border-black" />
+          <span className="absolute left-0 right-10 bottom-0 border-t-4 border-dashed border-black" />
           <span
-            className="absolute left-0 top-0 w-2.5 h-4 bg-black -translate-y-1/2"
+            className="absolute left-0 top-0 w-4 h-6 bg-black -translate-y-1/2"
             style={{ clipPath: "polygon(100% 0, 100% 100%, 0 50%)" }}
           />
           <span className="absolute right-0 top-1/2 -translate-y-1/2 w-20 -mr-4 bg-[#F5EED2] py-2 font-pixel text-xs text-black/50 text-center leading-tight">
@@ -315,10 +315,13 @@ export function FlowDiagram() {
         </Node>
 
         <div className="sm:hidden">
-          <Down height="h-10" />
+          <Down height="h-20" />
         </div>
 
-        <div className="flex flex-col gap-4 h-full">
+        {/* no h-full here: the grid row is sized by node 04, and stretching this
+            column to match makes its three cards shrink until node 05 clips its
+            own text away */}
+        <div className="flex flex-col gap-4">
           <Node
             n="05"
             title={t.world.title}
@@ -334,7 +337,7 @@ export function FlowDiagram() {
         </div>
       </div>
 
-      <Down height="h-16" />
+      <Down height="h-36" />
 
       <motion.div
         className="w-full bg-[#fffaf7] border-2 border-black px-6 py-8 sm:px-10 lg:px-12"
