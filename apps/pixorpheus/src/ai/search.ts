@@ -67,15 +67,26 @@ export async function extractSearchQuery(messages: string[]): Promise<string | n
         {
           role: "system",
           content:
-            "If this message needs up-to-date info from the web (current events, news, prices, recent releases, live data, things that change over time), output ONLY the ideal search query in English. If no web search is needed, output SKIP.",
+            "You are a router, not a chat partner. NEVER answer, greet, or talk to the user. If their message needs up-to-date info from the web (current events, news, prices, recent releases, live data, things that change over time), reply with exactly `SEARCH: <query>` where <query> is the ideal web search in English. Otherwise reply with exactly `NONE`. No other output is valid.",
         },
         { role: "user", content: combined },
       ],
       max_tokens: 20,
     });
     const out = res.data.choices?.[0]?.message?.content?.trim();
-    if (!out || out.toUpperCase().startsWith("SKIP")) return null;
-    return out;
+    // Require the affirmative marker rather than trusting anything that
+    // simply isn't a refusal token. This model does not reliably follow the
+    // "say SKIP" half of an instruction like this — asked about "yo pixo
+    // whats up" it answers the greeting instead, and treating that reply as
+    // a query fed whole sentences to Brave and pasted the junk results into
+    // Pixo's context as fact. Anything not shaped like SEARCH: is no search.
+    const match = out?.match(/^\s*SEARCH\s*:\s*(.+)$/is);
+    if (!match) return null;
+    const query = match[1].trim().replace(/^["'`]|["'`]$/g, "").split("\n")[0].trim();
+    // A real search query is a few keywords. Prose here means the model
+    // started chatting again despite the marker.
+    if (!query || query.length > 120 || query.split(/\s+/).length > 16) return null;
+    return query;
   } catch (e) {
     return null;
   }
