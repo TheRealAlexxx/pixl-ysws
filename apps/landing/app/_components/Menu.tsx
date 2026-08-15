@@ -1,10 +1,48 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
+// The bar is fixed and has no backdrop, so section content used to slide under
+// the docs button and the language picker while you read. Rather than give it a
+// background (which would cover the flag and change the look), it gets out of
+// the way: hidden while scrolling down, back the moment you scroll up.
+function useHideOnScrollDown(threshold = 120) {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let last = window.scrollY;
+    let queued = false;
+
+    function onScroll() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        // the 4px deadzone stops momentum jitter from flapping the bar
+        if (y > threshold && y > last + 4) setHidden(true);
+        else if (y < last - 4 || y <= threshold) setHidden(false);
+        last = y;
+        queued = false;
+      });
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [threshold]);
+
+  return hidden;
+}
+
 export function Menu() {
+  const hidden = useHideOnScrollDown();
+
   return (
-    <div className="flex items-center justify-between fixed z-1000 w-full">
+    <div
+      className={`flex items-center justify-between fixed z-1000 w-full transition-transform duration-300 ease-out motion-reduce:transition-none ${
+        hidden ? "-translate-y-full" : "translate-y-0"
+      }`}
+    >
       <a href="https://hackclub.com" target="_blank">
         <img
           src="/hc-logo.png"
