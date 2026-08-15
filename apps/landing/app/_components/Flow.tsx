@@ -232,8 +232,11 @@ export function FlowDiagram() {
 
       <Fork up />
 
-      {/* Ship and Energy share a container so the dashed loop can bracket both */}
-      <div className="relative w-full max-w-4xl md:pr-32 flex flex-col items-center">
+      {/* Ship and Energy share a container so the dashed loop can bracket both.
+          The loop hangs off the right edge instead of taking a padding lane
+          inside: reserving space in here would centre these two nodes off the
+          axis every other stem is drawn on. */}
+      <div className="relative w-full max-w-4xl flex flex-col items-center">
         <Node
           n="02"
           title={t.ship.title}
@@ -269,7 +272,9 @@ export function FlowDiagram() {
 
         <div
           aria-hidden
-          className="hidden md:block absolute right-0 top-20 bottom-28 w-32"
+          // xl and up only: below that the canvas is not wide enough past the
+          // nodes to hold the bracket without pushing the page sideways.
+          className="hidden xl:block absolute left-full top-20 bottom-28 w-32"
         >
           <span className="absolute left-0 right-10 top-0 border-t-4 border-dashed border-black" />
           <span className="absolute right-10 top-0 bottom-0 border-l-4 border-dashed border-black" />
