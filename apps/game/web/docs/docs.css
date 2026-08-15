@@ -2,7 +2,10 @@ body { overflow-y: auto; }
   /* nav | article | on-this-page — left nav matches the main dash sidebar's
      chunky panel look (pixel font, dither bg, gold inset-shadow active state)
      instead of its old standalone "readable docs" identity. */
-  .docs { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr) 240px; min-height: 100vh; align-items: start; }
+  /* Wider than the dash's own --sidebar: these are page titles, not icon-sized
+     nav labels, and at 260px the longer ones wrapped onto two lines. */
+  .docs { --sidebar: 300px;
+    display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr) 240px; min-height: 100vh; align-items: start; }
 
   .docs-nav { position: sticky; top: 0; height: 100vh; overflow-y: auto;
     border-right: 1px solid var(--stroke); background: var(--panel); background-image: var(--dither);
