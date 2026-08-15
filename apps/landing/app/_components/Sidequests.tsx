@@ -4,16 +4,23 @@ import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "./LocaleProvider";
 
+// green / orange / red, indexed by difficulty. Read it off the card's own
+// difficulty, never off its position in the row: the colour used to be
+// LEVEL_COLORS[i % 3], which painted the seventh card (Expert) green and the
+// sixth (Beginner) red.
 const LEVEL_COLORS = ["#4ade80", "#ff8c37", "#ec3750"] as const;
 
-const TAG_KEYS = [
-  ["htmlCss", "web"],
-  ["reactNative", "mobile"],
-  ["networking", "security", "backend"],
-  ["roblox", "lua", "gameDev"],
-  ["pixelArt", "design", "gameDev", "code"],
-  ["pixelArt", "design", "code"],
-  ["robotics", "firmware", "hardware", "code"],
+// Positional metadata for dictionary levels, which carry the copy but no
+// difficulty of their own. One array so tags and difficulty cannot drift apart:
+// adding a level here means adding its row in every dictionary too.
+const LEVEL_META = [
+  { difficulty: 0, tags: ["htmlCss", "web"] },
+  { difficulty: 1, tags: ["reactNative", "mobile"] },
+  { difficulty: 2, tags: ["networking", "security", "backend"] },
+  { difficulty: 0, tags: ["roblox", "lua", "gameDev"] },
+  { difficulty: 1, tags: ["pixelArt", "design", "gameDev", "code"] },
+  { difficulty: 0, tags: ["pixelArt", "design", "code"] },
+  { difficulty: 2, tags: ["robotics", "firmware", "hardware", "code"] },
 ];
 
 function SidequestCard({
@@ -186,11 +193,16 @@ export function Sidequests() {
   const { dict } = useLocale();
   const t = dict.sidequests;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const levels = (t.levels as any[]).map((l: any, i: number) => ({
-    ...l,
-    color: LEVEL_COLORS[i % 3 === 2 ? 2 : i % 3 === 1 ? 1 : 0],
-  }));
-  const tags = t.tags;
+  // Resolved here rather than at render, so a card keeps its own colour and
+  // tags when the marquee duplicates the list.
+  const levels = (t.levels as any[]).map((l: any, i: number) => {
+    const meta = LEVEL_META[i % LEVEL_META.length];
+    return {
+      ...l,
+      color: LEVEL_COLORS[meta.difficulty],
+      tags: meta.tags.map((k) => (t.tags as Record<string, string>)[k]),
+    };
+  });
 
   return (
     <section
@@ -244,14 +256,7 @@ export function Sidequests() {
       <Marquee>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {[...levels, ...levels].map((l: any, i: number) => (
-          <SidequestCard
-            key={i}
-            l={l}
-            tags={TAG_KEYS[i % levels.length].map(
-              (k: string) => (tags as Record<string, string>)[k],
-            )}
-            t={t}
-          />
+          <SidequestCard key={i} l={l} tags={l.tags} t={t} />
         ))}
       </Marquee>
     </section>
