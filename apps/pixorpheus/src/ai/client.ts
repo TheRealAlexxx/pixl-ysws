@@ -70,9 +70,14 @@ async function postOpenRouter(
  * in). Either way the return shape is the same: res.data.choices[0].message.content.
  *
  * Persona chat / roasts / classification model. Gemini 3.1 Flash Lite by
- * default (":nitro" routes to the fastest available provider), cheap and
- * fast for this high-volume bot. Bump to "anthropic/claude-sonnet-4.6" via
+ * default, cheap and fast for this high-volume bot. Override with
  * PIXO_MODEL if you want more punch.
+ *
+ * Routed by latency, NOT by ":nitro". :nitro is exactly equivalent to
+ * provider.sort "throughput", i.e. tokens per second once generation is
+ * already running. Pixo's replies are 2-8 words, so throughput is nearly
+ * irrelevant to it and the whole wait is time-to-first-token, which is what
+ * sort "latency" actually optimizes. Set PIXO_PROVIDER_SORT to override.
  */
 export async function aiCall(
   body: AIRequestBody,
@@ -82,8 +87,9 @@ export async function aiCall(
   if (!openrouterKey) throw new AIError("no credits", NO_CREDITS);
 
   const orBody = {
+    provider: { sort: process.env.PIXO_PROVIDER_SORT || "latency" },
     ...body,
-    model: process.env.PIXO_MODEL || "google/gemini-3.1-flash-lite:nitro",
+    model: process.env.PIXO_MODEL || "google/gemini-3.1-flash-lite",
   };
 
   if (!onDelta) {
