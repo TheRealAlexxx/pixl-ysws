@@ -13,7 +13,20 @@ const COLOR_SELF := Color(1, 0.819608, 0.4)
 const COLOR_OTHER := Color(0.290196, 0.870588, 0.501961)
 const COLOR_NPC := Color(0.62, 0.58, 0.5)
 const COLOR_BG := Color(0.039216, 0.031373, 0.019608, 1.0)
-const COLOR_BORDER := Color(1, 1, 1, 0.14)
+
+# Ornate gold frame drawn around the map instead of the old 1px hairline.
+# The art is 64x64 with 4px of transparent padding, corner ornaments running
+# ~17px in, and plain rails between them, so it's a nine-patch: the corners
+# stay at native pixel size and only the rails stretch. Patch margins have to
+# sit inside the uniform rail region (rows 16-46) or the ornaments smear.
+const FRAME_TEX := preload("res://assets/ui/minimap_frame.png")
+const FRAME_PATCH := 17
+# Distance from the texture's outer edge to the inner opening (4px padding +
+# ~7px of rail). The frame is grown by this much on every side so the map
+# stays fully visible inside the opening rather than being cropped by it.
+const FRAME_INSET := 11.0
+# Transparent padding baked into each edge of the source art.
+const FRAME_PAD := 4.0
 
 var _root: Control
 var _map: Control
@@ -27,24 +40,30 @@ func _ready() -> void:
 	_root.visible = false
 	add_child(_root)
 
-	# Top-right, sized to fit the map plus the shadow's offset so neither
-	# gets clipped by the display container's own bounds.
+	# Top-right, sized to fit the map plus the frame around it plus the
+	# shadow's offset, so none of the three gets clipped by the display
+	# container's own bounds. The map sits FRAME_INSET in from the top-left
+	# so the frame can hang outside it on every side.
+	var widget := MAP_SIZE + FRAME_INSET * 2.0
 	var display := Control.new()
-	display.custom_minimum_size = Vector2(MAP_SIZE + SHADOW_OFFSET, MAP_SIZE + SHADOW_OFFSET)
+	display.custom_minimum_size = Vector2(widget + SHADOW_OFFSET, widget + SHADOW_OFFSET)
 	display.anchor_left = 1.0
 	display.anchor_right = 1.0
-	display.offset_left = -(MARGIN + MAP_SIZE + SHADOW_OFFSET)
+	display.offset_left = -(MARGIN + widget + SHADOW_OFFSET)
 	display.offset_right = -MARGIN
 	display.offset_top = MARGIN
-	display.offset_bottom = MARGIN + MAP_SIZE + SHADOW_OFFSET
+	display.offset_bottom = MARGIN + widget + SHADOW_OFFSET
 	display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(display)
 
+	# Shadow tracks the frame's visible edge, not the texture's bounds, or it
+	# would stick out by the 4px of transparent padding on each side.
+	var shadow_size := widget - FRAME_PAD * 2.0
 	var shadow := Control.new()
-	shadow.position = Vector2(SHADOW_OFFSET, SHADOW_OFFSET)
-	shadow.custom_minimum_size = Vector2(MAP_SIZE, MAP_SIZE)
+	shadow.position = Vector2(FRAME_PAD + SHADOW_OFFSET, FRAME_PAD + SHADOW_OFFSET)
+	shadow.custom_minimum_size = Vector2(shadow_size, shadow_size)
 	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	shadow.draw.connect(func(): shadow.draw_rect(Rect2(Vector2.ZERO, Vector2(MAP_SIZE, MAP_SIZE)), SHADOW_COLOR))
+	shadow.draw.connect(func(): shadow.draw_rect(Rect2(Vector2.ZERO, Vector2(shadow_size, shadow_size)), SHADOW_COLOR))
 	display.add_child(shadow)
 
 	# The map content is drawn into a SubViewport and displayed through a
@@ -63,11 +82,24 @@ func _ready() -> void:
 	viewport.add_child(_map)
 
 	var tex_rect := TextureRect.new()
-	tex_rect.position = Vector2.ZERO
+	tex_rect.position = Vector2(FRAME_INSET, FRAME_INSET)
 	tex_rect.custom_minimum_size = Vector2(MAP_SIZE, MAP_SIZE)
 	tex_rect.texture = viewport.get_texture()
 	tex_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	display.add_child(tex_rect)
+
+	# Added last so it sits over the map's outer edge and hides the seam.
+	var frame := NinePatchRect.new()
+	frame.texture = FRAME_TEX
+	frame.position = Vector2.ZERO
+	frame.size = Vector2(widget, widget)
+	frame.custom_minimum_size = Vector2(widget, widget)
+	frame.patch_margin_left = FRAME_PATCH
+	frame.patch_margin_top = FRAME_PATCH
+	frame.patch_margin_right = FRAME_PATCH
+	frame.patch_margin_bottom = FRAME_PATCH
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	display.add_child(frame)
 
 func _process(_delta: float) -> void:
 	var show := _in_gameplay() and not global.ui_blocked()
@@ -75,24 +107,18 @@ func _process(_delta: float) -> void:
 	if show:
 		_map.queue_redraw()
 
-func _draw_border() -> void:
-	_map.draw_rect(Rect2(Vector2(0.5, 0.5), Vector2(MAP_SIZE - 1.0, MAP_SIZE - 1.0)), COLOR_BORDER, false, 1.0)
-
 func _draw_map() -> void:
 	var full := Rect2(Vector2.ZERO, Vector2(MAP_SIZE, MAP_SIZE))
 	var center := Vector2(MAP_SIZE, MAP_SIZE) / 2.0
 	_map.draw_rect(full, COLOR_BG)
 	var world := get_tree().current_scene
 	if world == null or not "remote_players" in world:
-		_draw_border()
 		return
 	var me = world.get("_local_player")
 	if me == null or not is_instance_valid(me):
-		_draw_border()
 		return
 	var origin: Vector2 = me.global_position
 	_draw_terrain(MapData.scene_key(world), origin, full)
-	_draw_border()
 	for child in world.get_children():
 		if child is CharacterBody2D and child.has_method("npc_id"):
 			_draw_dot(center + (child.global_position - origin) * WORLD_SCALE, COLOR_NPC, 2.0)
