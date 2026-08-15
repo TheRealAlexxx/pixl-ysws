@@ -76,9 +76,8 @@ function ShopItem({ item, index }: { item: { name: string }; index: number }) {
   const tilt = TILTS[index % TILTS.length];
   return (
     // Height drives the size and the width follows the image, so a keyboard is
-    // wide and a plush is narrow, and the negative margin lets neighbours tuck
-    // into each other instead of sitting in even columns.
-    <div className="shrink-0 flex flex-col items-center gap-2 -mx-2 sm:-mx-4">
+    // wide and a plush is narrow instead of everything sitting in even columns.
+    <div className="shrink-0 flex flex-col items-center gap-2 px-3 sm:px-4">
       <div className="h-44 sm:h-60 lg:h-72 flex items-end justify-center">
         <img
           src={ITEM_IMAGES[index]}
