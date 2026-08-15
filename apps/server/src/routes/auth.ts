@@ -347,13 +347,6 @@ router.get("/auth/hackclub/callback", async (req, res) => {
   const me = (await meRes.json()) as HackClubMeResponse;
   const identity = me.identity;
 
-  // TEMP DEBUG: birthday/address sync has never populated a single user (0/248
-  // checked against prod on 2026-08-14) - "birthdate"/"address" are a guessed
-  // OIDC claim name per the comments on extractBirthday/extractAddress below.
-  // Dump the real shape once so we can fix the actual key names, then remove.
-  console.warn("[hca-debug] identity keys:", Object.keys(identity), "scopes:", me.scopes);
-  console.warn("[hca-debug] full identity:", JSON.stringify(identity));
-
   if (pending.purpose === "verify_address") {
     const addr = extractAddress(identity);
     if (addr && pending.userId) {
@@ -471,12 +464,15 @@ router.get("/auth/hackclub/callback", async (req, res) => {
         slack_id: identity.slack_id ?? null,
         email: identity.primary_email ?? null,
         birthday: hcaBirthday ? encryptPII(hcaBirthday) : null,
-        address_line1: hcaAddress ? encryptPII(hcaAddress.address_line1) : null,
-        address_line2: hcaAddress ? encryptPII(hcaAddress.address_line2) : null,
-        address_city: hcaAddress ? encryptPII(hcaAddress.address_city) : null,
-        address_state: hcaAddress ? encryptPII(hcaAddress.address_state) : null,
-        address_country: hcaAddress ? encryptPII(hcaAddress.address_country) : null,
-        address_postal: hcaAddress ? encryptPII(hcaAddress.address_postal) : null,
+        // The address columns are NOT NULL DEFAULT '' , writing null when HCA
+        // has no address on file fails the insert and blocks the signup.
+        // encryptPII returns "" for a missing value, which is what we want.
+        address_line1: encryptPII(hcaAddress?.address_line1),
+        address_line2: encryptPII(hcaAddress?.address_line2),
+        address_city: encryptPII(hcaAddress?.address_city),
+        address_state: encryptPII(hcaAddress?.address_state),
+        address_country: encryptPII(hcaAddress?.address_country),
+        address_postal: encryptPII(hcaAddress?.address_postal),
       })
       .select()
       .single();
