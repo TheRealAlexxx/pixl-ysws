@@ -151,7 +151,7 @@ export function Sidequests() {
         </p>
       </motion.div>
 
-      <Marquee duration={40} className="gap-5" swallowClickAfterDrag>
+      <Marquee duration={24} className="gap-5" swallowClickAfterDrag>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {[...levels, ...levels].map((l: any, i: number) => (
           <SidequestCard key={i} l={l} tags={l.tags} t={t} />
