@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, useMotionValue } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useState } from "react";
 import { useLocale } from "./LocaleProvider";
+import { Marquee } from "./Marquee";
 
 // green / orange / red, indexed by difficulty. Read it off the card's own
 // difficulty, never off its position in the row: the colour used to be
@@ -86,109 +87,6 @@ function SidequestCard({
   );
 }
 
-const MARQUEE_DURATION = 40;
-
-function wrap(value: number, min: number, max: number) {
-  const range = max - min;
-  return min + ((((value - min) % range) + range) % range);
-}
-
-function Marquee({ children }: { children: React.ReactNode }) {
-  const x = useMotionValue(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const halfWidthRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  const lastTsRef = useRef<number | null>(null);
-  const pausedRef = useRef(false);
-  const draggingRef = useRef(false);
-  const draggedRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const dragStartValueRef = useRef(0);
-
-  useEffect(() => {
-    if (!trackRef.current) return;
-    const halfWidth = trackRef.current.scrollWidth / 2;
-    halfWidthRef.current = halfWidth;
-    x.set(-halfWidth);
-
-    function tick(ts: number) {
-      const dt = lastTsRef.current == null ? 0 : ts - lastTsRef.current;
-      lastTsRef.current = ts;
-      if (!pausedRef.current && !draggingRef.current && halfWidthRef.current) {
-        const speed = halfWidthRef.current / (MARQUEE_DURATION * 1000);
-        x.set(wrap(x.get() - speed * dt, -halfWidthRef.current, 0));
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    }
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [x]);
-
-  function onPointerDown(e: React.PointerEvent) {
-    draggingRef.current = true;
-    draggedRef.current = false;
-    dragStartXRef.current = e.clientX;
-    dragStartValueRef.current = x.get();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!draggingRef.current) return;
-    const delta = e.clientX - dragStartXRef.current;
-    if (Math.abs(delta) > 5) draggedRef.current = true;
-    const halfWidth = halfWidthRef.current;
-    if (halfWidth)
-      x.set(wrap(dragStartValueRef.current + delta, -halfWidth, 0));
-  }
-
-  function endDrag() {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
-    if (draggedRef.current) pausedRef.current = false;
-  }
-
-  function onClickCapture(e: React.MouseEvent) {
-    if (draggedRef.current) {
-      e.stopPropagation();
-      e.preventDefault();
-      draggedRef.current = false;
-    }
-  }
-
-  return (
-    <div
-      className="w-full overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
-      style={{
-        maskImage:
-          "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
-      }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-      onClickCapture={onClickCapture}
-      onMouseEnter={() => {
-        pausedRef.current = true;
-      }}
-      onMouseLeave={() => {
-        if (!draggingRef.current) pausedRef.current = false;
-      }}
-    >
-      <motion.div
-        ref={trackRef}
-        className="flex gap-5"
-        style={{ x, width: "max-content" }}
-        draggable={false}
-      >
-        {children}
-      </motion.div>
-    </div>
-  );
-}
-
 export function Sidequests() {
   const { dict } = useLocale();
   const t = dict.sidequests;
@@ -253,7 +151,7 @@ export function Sidequests() {
         </p>
       </motion.div>
 
-      <Marquee>
+      <Marquee duration={40} className="gap-5" swallowClickAfterDrag>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {[...levels, ...levels].map((l: any, i: number) => (
           <SidequestCard key={i} l={l} tags={l.tags} t={t} />

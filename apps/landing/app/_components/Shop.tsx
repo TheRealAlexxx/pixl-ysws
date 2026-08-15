@@ -1,8 +1,8 @@
 "use client";
 
-import { motion, useMotionValue } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { useLocale } from "./LocaleProvider";
+import { Marquee } from "./Marquee";
 
 const ITEM_IMAGES = [
   "/shop/signed-photo.webp",
@@ -88,10 +88,7 @@ function ShopItem({ item, index }: { item: { name: string }; index: number }) {
           // which is what lets a 2.8:1 item like the cookie cutter still come
           // out a decent size, while the real banners stay short and wide.
           className="max-h-full w-auto max-w-[22rem] sm:max-w-[30rem] lg:max-w-[36rem] object-contain"
-          style={{
-            transform: `rotate(${tilt}deg)`,
-            filter: "drop-shadow(6px 8px 0 rgba(0,0,0,0.10))",
-          }}
+          style={{ transform: `rotate(${tilt}deg)` }}
           loading="lazy"
           draggable={false}
         />
@@ -102,87 +99,6 @@ function ShopItem({ item, index }: { item: { name: string }; index: number }) {
       >
         {item.name}
       </p>
-    </div>
-  );
-}
-
-const MARQUEE_DURATION = 75;
-
-function wrap(value: number, min: number, max: number) {
-  const range = max - min;
-  return min + (((value - min) % range) + range) % range;
-}
-
-function Marquee({ children }: { children: React.ReactNode }) {
-  const x = useMotionValue(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const halfWidthRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  const lastTsRef = useRef<number | null>(null);
-  const pausedRef = useRef(false);
-  const draggingRef = useRef(false);
-  const draggedRef = useRef(false);
-  const dragStartXRef = useRef(0);
-  const dragStartValueRef = useRef(0);
-
-  useEffect(() => {
-    if (!trackRef.current) return;
-    const halfWidth = trackRef.current.scrollWidth / 2;
-    halfWidthRef.current = halfWidth;
-    x.set(-halfWidth);
-
-    function tick(ts: number) {
-      const dt = lastTsRef.current == null ? 0 : ts - lastTsRef.current;
-      lastTsRef.current = ts;
-      if (!pausedRef.current && !draggingRef.current && halfWidthRef.current) {
-        const speed = halfWidthRef.current / (MARQUEE_DURATION * 1000);
-        x.set(wrap(x.get() - speed * dt, -halfWidthRef.current, 0));
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    }
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [x]);
-
-  function onPointerDown(e: React.PointerEvent) {
-    draggingRef.current = true;
-    draggedRef.current = false;
-    dragStartXRef.current = e.clientX;
-    dragStartValueRef.current = x.get();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!draggingRef.current) return;
-    const delta = e.clientX - dragStartXRef.current;
-    if (Math.abs(delta) > 5) draggedRef.current = true;
-    const halfWidth = halfWidthRef.current;
-    if (halfWidth) x.set(wrap(dragStartValueRef.current + delta, -halfWidth, 0));
-  }
-
-  function endDrag() {
-    if (!draggingRef.current) return;
-    draggingRef.current = false;
-    if (draggedRef.current) pausedRef.current = false;
-  }
-
-  return (
-    <div
-      className="w-full overflow-hidden cursor-grab active:cursor-grabbing select-none touch-pan-y"
-      style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-      onMouseEnter={() => { pausedRef.current = true; }}
-      onMouseLeave={() => { if (!draggingRef.current) pausedRef.current = false; }}
-    >
-      <motion.div ref={trackRef} className="flex gap-0 pt-4 items-end" style={{ x, width: "max-content" }} draggable={false}>
-        {children}
-      </motion.div>
     </div>
   );
 }
@@ -223,7 +139,7 @@ export function Shop() {
         </motion.p>
       </div>
 
-      <Marquee>
+      <Marquee duration={75} className="pt-4 items-end">
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {[...(t.items as any[]), ...(t.items as any[])].map((item: any, i: number) => (
           <ShopItem key={i} item={item} index={i % t.items.length} />

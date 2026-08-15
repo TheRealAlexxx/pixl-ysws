@@ -404,14 +404,17 @@ export function FlowDiagram() {
                     {t.example.px}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                {/* full width on phones: in a half-width cell the 96px image
+                    left about 40px for the label, which ran off the card and
+                    scrolled the whole page sideways */}
+                <div className="col-span-2 sm:col-span-1 flex items-center gap-3 min-w-0">
                   <img
                     src={row.img}
                     alt=""
                     aria-hidden
-                    className="w-24 h-24 lg:w-28 lg:h-28 object-contain shrink-0"
+                    className="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 object-contain shrink-0"
                   />
-                  <p className="font-sans text-sm text-black/60 leading-tight">
+                  <p className="font-sans text-sm text-black/60 leading-tight min-w-0">
                     {t.example.buys} {t.example.items[i]}
                     <br />
                     <span className="text-black/40 text-xs">

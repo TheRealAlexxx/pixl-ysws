@@ -17,7 +17,10 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
 
   // The dictionary is provided by the layout's LocaleProvider.
   return (
-    <div className="bg-[#F5EED2] min-h-screen text-black font-pixel">
+    // overflow-x-clip so one overflowing element can't make the whole phone
+    // page scroll sideways, which is how the example ladder read as "broken on
+    // mobile" rather than as one bad cell
+    <div className="bg-[#F5EED2] min-h-screen text-black font-pixel overflow-x-clip">
       <Menu />
       <Hero />
       <WTFISTHIS />
