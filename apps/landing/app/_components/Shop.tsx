@@ -3,7 +3,6 @@
 import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useRef } from "react";
 import { useLocale } from "./LocaleProvider";
-import { config } from "../_generated/config";
 
 const ITEM_IMAGES = [
   "/shop/signed-photo.webp",
@@ -69,97 +68,33 @@ const ITEM_IMAGES = [
   "/shop/nintendo-switch-2.webp",
 ];
 
-// Repriced at the payout floor (hours rounded to the nearest 0.5). That floor
-// is the worst rate anyone gets - it only climbs from there as shipped
-// projects build up Restoration Energy.
-const ITEM_PRICES = [
-  125, 125, 150, 150, 150, 150, 150, 150, 175, 150, 225, 150, 250, 225, 150, 225, 225, 275, 325, 350, 650, 350, 425, 475, 500, 650, 725, 575, 725, 725, 725, 725, 1000, 1025, 1425, 1425, 1425, 1425, 1850, 2000, 2150, 2725, 2850, 3350, 3275, 3575, 3725, 4275, 5150, 5725, 5725, 5725, 6425, 7150, 10000, 10000, 17150, 17150, 17900, 22425, 7150,
-];
+// Fixed per position rather than random, so the server and the client agree on
+// every angle and the row doesn't reshuffle on hydration.
+const TILTS = [-5, 3, -2, 6, -4, 2, -6, 4];
 
-const NICHE_INDICES = new Set([0, 1, 10, 12, 18]);
-
-function fmtHours(h: number, lang: string) {
-  return new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(h);
-}
-
-// Spells out both rates every time (not just two bare numbers) so it's clear
-// why there are two: hours needed at the payout floor, then hours needed at
-// the ceiling you reach once you've built up Restoration Energy. Each locale
-// keeps its own currency formatting in the hoursRate template; the rates
-// themselves are substituted in from config so they can't drift from the
-// server's payout maths.
-function hoursRange(price: number, template: string, lang: string) {
-  const lo = price / (config.economy.basePayoutUsd / config.economy.pixelValueUsd);
-  const hi = (lo * config.economy.basePayoutUsd) / config.economy.maxPayoutUsd;
-  return template
-    .replace("{lo}", fmtHours(lo, lang))
-    .replace("{hi}", fmtHours(hi, lang))
-    .replace("{loRate}", fmtRate(config.economy.basePayoutUsd, lang))
-    .replace("{hiRate}", fmtRate(config.economy.maxPayoutUsd, lang));
-}
-
-function fmtRate(usd: number, lang: string) {
-  return new Intl.NumberFormat(lang, {
-    style: "currency",
-    currency: "USD",
-    // narrowSymbol keeps the French form as "3,50 $" rather than "3,50 $US",
-    // which is what the hand-written template used to say.
-    currencyDisplay: "narrowSymbol",
-    // Whole dollars stay whole ("$6"), cents keep their cents ("$3.50").
-    minimumFractionDigits: Number.isInteger(usd) ? 0 : 2,
-  }).format(usd);
-}
-
-function ShopCard({
-  item,
-  index,
-  rateTemplate,
-  lang,
-}: {
-  item: { name: string; description: string };
-  index: number;
-  rateTemplate: string;
-  lang: string;
-}) {
-  const accent = NICHE_INDICES.has(index) ? "#ec3750" : "#ff8c37";
-  const price = ITEM_PRICES[index];
+function ShopItem({ item, index }: { item: { name: string }; index: number }) {
+  const tilt = TILTS[index % TILTS.length];
   return (
-    <div
-      className="relative flex flex-col border-2 border-black bg-[#fffaf7] w-44 shrink-0"
-      style={{ boxShadow: `4px 4px 0px ${accent}` }}
-    >
-      {NICHE_INDICES.has(index) && (
-        <img
-          src="/pixel_currency_red-removebg-preview.png"
-          alt=""
-          className="absolute -top-9 -right-9 w-24 h-24 pointer-events-none z-10"
-        />
-      )}
-      <div className="h-32 border-b-2 border-black flex items-center justify-center p-2 bg-white">
+    <div className="shrink-0 w-40 sm:w-52 lg:w-60 flex flex-col items-center gap-3 px-2">
+      <div className="h-36 sm:h-44 lg:h-52 w-full flex items-end justify-center">
         <img
           src={ITEM_IMAGES[index]}
           alt={item.name}
           className="max-w-full max-h-full object-contain"
+          style={{
+            transform: `rotate(${tilt}deg)`,
+            filter: "drop-shadow(6px 8px 0 rgba(0,0,0,0.10))",
+          }}
           loading="lazy"
           draggable={false}
         />
       </div>
-
-      <div className="px-3 py-2.5 flex flex-col gap-1 flex-1">
-        <p className="font-pixel text-xs leading-snug">{item.name}</p>
-        <p className="text-black/60 text-[11px] leading-snug font-sans flex-1">{item.description}</p>
-        <div className="flex flex-col gap-1 mt-1">
-          <span
-            className="self-start font-pixel text-[11px] text-white px-2 py-0.5 border-2 border-black"
-            style={{ background: accent, boxShadow: "2px 2px 0px #000" }}
-          >
-            {price} px
-          </span>
-          <span className="text-black/40 text-[9px] leading-snug font-sans">
-            {hoursRange(price, rateTemplate, lang)}
-          </span>
-        </div>
-      </div>
+      <p
+        className="font-pixel text-xs sm:text-sm text-center leading-snug text-black/70"
+        style={{ transform: `rotate(${tilt / 2}deg)` }}
+      >
+        {item.name}
+      </p>
     </div>
   );
 }
@@ -238,7 +173,7 @@ function Marquee({ children }: { children: React.ReactNode }) {
       onMouseEnter={() => { pausedRef.current = true; }}
       onMouseLeave={() => { if (!draggingRef.current) pausedRef.current = false; }}
     >
-      <motion.div ref={trackRef} className="flex gap-4 pt-9" style={{ x, width: "max-content" }} draggable={false}>
+      <motion.div ref={trackRef} className="flex gap-4 pt-4 items-end" style={{ x, width: "max-content" }} draggable={false}>
         {children}
       </motion.div>
     </div>
@@ -246,7 +181,7 @@ function Marquee({ children }: { children: React.ReactNode }) {
 }
 
 export function Shop() {
-  const { dict, lang } = useLocale();
+  const { dict } = useLocale();
   const t = dict.shop;
 
   return (
@@ -284,13 +219,7 @@ export function Shop() {
       <Marquee>
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {[...(t.items as any[]), ...(t.items as any[])].map((item: any, i: number) => (
-          <ShopCard
-            key={i}
-            item={item}
-            index={i % t.items.length}
-            rateTemplate={t.hoursRate}
-            lang={lang}
-          />
+          <ShopItem key={i} item={item} index={i % t.items.length} />
         ))}
       </Marquee>
 

@@ -10,11 +10,13 @@ import {
   reForHours,
 } from "../_generated/config";
 
-// Every number in this section is derived, never typed in: the tier rates, the
-// px/hr floor and ceiling and the example ladder all come out of
-// packages/config/pixl.json via the generated copy. The one number deliberately
-// left out is the chapter goal, which lives in vault_levels and moves per
-// chapter, so the copy talks about filling the goal without naming it.
+// The tier rates, the px/hr floor and ceiling and every RE and pixel figure in
+// the ladder are computed from packages/config/pixl.json via the generated
+// copy, so they follow the economy rather than drifting from it. Only the shop
+// prices below are literals: they are what the item costs in the shop, which
+// lives in the database. The one number deliberately left out is the chapter
+// goal, which sits in vault_levels and moves every chapter, so the copy talks
+// about filling the goal without naming it.
 const LADDER = [
   { hours: 10, tier: 2, img: "/shop/blahaj.webp", price: 575 },
   { hours: 35, tier: 3, img: "/shop/rpi.webp", price: 2000 },
