@@ -5,8 +5,23 @@ export interface AIMessage {
   content: string;
 }
 
+/**
+ * A system message sent as content blocks so a cache breakpoint can be
+ * attached. Everything before the breakpoint has to be byte-identical
+ * between requests or the cache never hits, which is why the per-message
+ * situational text lives in a later user turn instead of inside this.
+ */
+export interface AICachedSystemMessage {
+  role: "system";
+  content: {
+    type: "text";
+    text: string;
+    cache_control?: { type: "ephemeral" };
+  }[];
+}
+
 export interface AIRequestBody {
-  messages: AIMessage[];
+  messages: (AIMessage | AICachedSystemMessage)[];
   max_tokens?: number;
   plugins?: { id: string }[];
   [key: string]: unknown;
