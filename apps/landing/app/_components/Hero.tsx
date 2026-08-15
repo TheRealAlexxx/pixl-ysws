@@ -97,7 +97,7 @@ export function Hero() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              enter the YSWS
+              enter the game
             </motion.a>
             <motion.a
               href={DASH_URL}
