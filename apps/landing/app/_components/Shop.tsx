@@ -83,9 +83,11 @@ function ShopItem({ item, index }: { item: { name: string }; index: number }) {
           src={ITEM_IMAGES[index]}
           alt={item.name}
           // Bounded on both axes. Height alone is not enough: a few items are
-          // wordmarks or key art running 6:1, and those grew to thousands of
-          // pixels wide before the width cap.
-          className="max-h-full w-auto max-w-64 sm:max-w-80 lg:max-w-96 object-contain"
+          // wordmarks or key art running 8:1, and those grew to thousands of
+          // pixels wide before the width cap. The cap is twice the height cap,
+          // which is what lets a 2.8:1 item like the cookie cutter still come
+          // out a decent size, while the real banners stay short and wide.
+          className="max-h-full w-auto max-w-[22rem] sm:max-w-[30rem] lg:max-w-[36rem] object-contain"
           style={{
             transform: `rotate(${tilt}deg)`,
             filter: "drop-shadow(6px 8px 0 rgba(0,0,0,0.10))",
