@@ -215,6 +215,26 @@ export async function streamedAICall(
   let lastShown: string | null = null;
   let latestFull = "";
 
+  /**
+   * Every chat.update for this message goes through one chain, so Slack
+   * receives them in the order we issued them.
+   *
+   * These used to be fired concurrently and never awaited. Two edits of the
+   * same message were then racing over the network, and a slow preview edit
+   * ("gabin") could land AFTER the final complete reply ("gabin built the
+   * bot...") and silently clobber it. On screen that reads as Pixo starting
+   * to answer and then stopping mid-word, which is exactly what people saw.
+   * Chaining costs nothing here: the throttle already limits how many of
+   * these exist, and finalize awaits the chain so it always writes last.
+   */
+  let editChain: Promise<unknown> = Promise.resolve();
+  const enqueueEdit = (text: string): Promise<unknown> => {
+    editChain = editChain.then(() =>
+      client.chat.update({ channel: postParams.channel, ts: ts!, text }).catch(() => {}),
+    );
+    return editChain;
+  };
+
   const pushUpdate = (full: string, force = false) => {
     if (!ts) return;
     const display = safeDisplayText(full, { stripSkip });
@@ -223,7 +243,7 @@ export async function streamedAICall(
     if (!force && now - lastUpdate < STREAM_UPDATE_INTERVAL_MS) return;
     lastUpdate = now;
     lastShown = display;
-    client.chat.update({ channel: postParams.channel, ts: ts!, text: fmt(display) }).catch(() => {});
+    enqueueEdit(fmt(display));
   };
 
   // Post the placeholder and start asking the model at the same time — the
@@ -268,14 +288,20 @@ export async function streamedAICall(
         if (safeText) await client.chat.postMessage({ ...postParams, text: safeText });
         return;
       }
+      // Let every queued preview edit land first, then write the real reply
+      // as the last edit. Without this the closing edit races the previews
+      // and a half-finished one can win, leaving a truncated answer.
+      await editChain;
       if (!safeText) {
         await client.chat.delete({ channel: postParams.channel, ts }).catch(() => {});
         return;
       }
-      await client.chat.update({ channel: postParams.channel, ts, text: safeText }).catch(() => {});
+      await enqueueEdit(safeText);
     },
     async discard() {
-      if (ts) await client.chat.delete({ channel: postParams.channel, ts }).catch(() => {});
+      if (!ts) return;
+      await editChain;
+      await client.chat.delete({ channel: postParams.channel, ts }).catch(() => {});
     },
   };
 }
