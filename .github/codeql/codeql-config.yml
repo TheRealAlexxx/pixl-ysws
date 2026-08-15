@@ -1,0 +1,9 @@
+name: "Pixl CodeQL config"
+
+# js/missing-rate-limiting only recognises a fixed list of npm limiter packages
+# (express-rate-limit and friends). apps/server rolls its own in src/rateLimit.ts
+# and mounts it globally in src/index.ts, so the query sees every route handler
+# as unprotected and files one alert per handler: 87 of them, all false.
+query-filters:
+  - exclude:
+      id: js/missing-rate-limiting
