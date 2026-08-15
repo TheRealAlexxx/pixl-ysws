@@ -82,7 +82,10 @@ function ShopItem({ item, index }: { item: { name: string }; index: number }) {
         <img
           src={ITEM_IMAGES[index]}
           alt={item.name}
-          className="h-full w-auto max-w-none object-contain"
+          // Bounded on both axes. Height alone is not enough: a few items are
+          // wordmarks or key art running 6:1, and those grew to thousands of
+          // pixels wide before the width cap.
+          className="max-h-full w-auto max-w-64 sm:max-w-80 lg:max-w-96 object-contain"
           style={{
             transform: `rotate(${tilt}deg)`,
             filter: "drop-shadow(6px 8px 0 rgba(0,0,0,0.10))",
