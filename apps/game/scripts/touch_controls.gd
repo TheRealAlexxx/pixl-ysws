@@ -118,7 +118,10 @@ func _in_gameplay() -> bool:
 func _process(_delta: float) -> void:
 	if _root == null:
 		return
-	var in_game := _in_gameplay() and not global.ui_blocked()
+	# Dialogue.is_open is checked alongside ui_blocked() everywhere else too:
+	# the dialogue box doesn't take a ui_blockers slot, so without this the
+	# joystick stays live and you can walk off mid-conversation.
+	var in_game := _in_gameplay() and not Dialogue.is_open and not global.ui_blocked()
 	_root.visible = in_game
 	if not in_game:
 		_release_joystick()
