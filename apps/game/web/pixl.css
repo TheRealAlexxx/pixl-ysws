@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Rubik:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Poppins:wght@300;400;500;600;700&display=swap');
 /* ─────────────────────────────────────────────────────────────────────────
    PIXL — shared web-shell design system.
 
    The look: a restored fragment of Pixl. A HUD/menu screen that could plausibly
    ship *inside* the game — a pixel-art outpost UI floating over the Void, not a
    dark SaaS panel. Chunky Pixelify Sans display type for labels/headings
-   (never for paragraphs), a clean Rubik for body copy, pixel-notch corners on
+   (never for paragraphs), a clean Poppins for body copy, pixel-notch corners on
    the hero HUD panels.
 
    Palette: LEDGER, dark and light, practical and warm rather than
@@ -47,9 +47,9 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
      same in both themes, like a real e-commerce thumbnail always does. */
   --img-slot:#fdf6ee;
   /* Pixelify Sans is the blocky pixel/retro display face — labels, nav,
-     buttons, headings. Rubik carries all body copy + data-dense areas.
+     buttons, headings. Poppins carries all body copy + data-dense areas.
      --pixel stays the var name for the display face (used everywhere). */
-  --sans:'Rubik',system-ui,-apple-system,sans-serif;
+  --sans:'Poppins',system-ui,-apple-system,sans-serif;
   --pixel:'Pixelify Sans',ui-monospace,system-ui,sans-serif;
   /* neo-brutalist hard offset shadows (no blur, the block "pop") plus the
      dithered-scanline texture layered onto panels. Generated from
