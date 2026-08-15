@@ -1,14 +1,11 @@
 import type { WebClient } from "@slack/web-api";
 import { aiPost } from "../ai/client.js";
 import { ensureUserName, getDisplayName, resolveUserMentions } from "../memory/users.js";
-import { botIdentity } from "../slack/identity.js";
 import type { AIMessage } from "../ai/types.js";
 
 export interface PendingReplyMessage {
   user: string;
   text: string;
-  /** Other bots have no user id to look a display name up from, so carry theirs. */
-  name?: string;
 }
 
 export interface PendingReply {
@@ -17,7 +14,6 @@ export interface PendingReply {
   threadTs?: string;
   userId: string;
   isMention: boolean;
-  roastPixie: boolean;
   lastMsgTs?: string;
   timer?: ReturnType<typeof setTimeout>;
 }
@@ -86,15 +82,7 @@ export async function seedThreadHistory(
     const seeded: AIMessage[] = msgs
       .filter((m) => m.text)
       .map((m) => {
-        // Only Pixo's own posts are "assistant" — other bots in the thread used to
-        // get seeded as Pixo, so it read their canned lines as things it had said.
-        if (m.bot_id === botIdentity.appId || (m.user && m.user === botIdentity.userId)) {
-          return { role: "assistant" as const, content: resolveUserMentions(m.text!) };
-        }
-        if (m.bot_id) {
-          const botName = (m as any).bot_profile?.name || (m as any).username || "some bot";
-          return { role: "user" as const, content: `[${botName}]: ${resolveUserMentions(m.text!)}` };
-        }
+        if (m.bot_id) return { role: "assistant" as const, content: resolveUserMentions(m.text!) };
         const name = getDisplayName(m.user) || m.user || "someone";
         return {
           role: "user" as const,

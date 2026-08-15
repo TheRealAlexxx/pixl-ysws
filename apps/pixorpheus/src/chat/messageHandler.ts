@@ -1,5 +1,5 @@
 import { app } from "../slack/app.js";
-import { PIXL_CHANNELS, SILENCED_CHANNELS, TRAINING_CHANNEL } from "../constants.js";
+import { SILENCED_CHANNELS, TRAINING_CHANNEL } from "../constants.js";
 import { config, hasLaunched, launchDateLabel } from "../config.generated.js";
 import { botIdentity } from "../slack/identity.js";
 import { aiPost } from "../ai/client.js";
@@ -70,10 +70,6 @@ app.message(async ({ message, client }) => {
     lowerText.includes(" pix ") ||
     lowerText.startsWith("pix ") ||
     (botIdentity.userId && text.includes(`<@${botIdentity.userId}>`));
-  // pixie is Hackpad's helper bot and shares some channels with Pixo. Pixo only
-  // ever roasts it when a human brings it up first — pixie's own messages never
-  // trigger this, so the two bots can't spiral into roasting each other.
-  const mentionsPixie = !m.bot_id && /\bpixie\b/i.test(textNoEmoji);
   const isPixlQuestion =
     !m.thread_ts &&
     /\b(what'?s|what is|c'est quoi|explain|tell me about|keskon|kézako)\b.{0,40}\bpixl\b|\bpixl\b.{0,40}\b(what|c'est quoi|explain)\b/i.test(
@@ -307,13 +303,8 @@ app.message(async ({ message, client }) => {
     }
   }
 
-  // A pixie jab counts as summoning Pixo, but only on Pixl's own turf or where
-  // it's already talking — it must never barge into someone else's channel just
-  // because pixie's name came up there.
-  const isPixieJab = mentionsPixie && (isDM || mentionsBot || inActiveThread || PIXL_CHANNELS.includes(m.channel));
-
   if (m.thread_ts && welcomeThreads.has(m.thread_ts) && !mentionsBot) return;
-  if (!isDM && !mentionsBot && !inActiveThread && !isPixlQuestion && !isBotStartedThread && !isPixieJab) return;
+  if (!isDM && !mentionsBot && !inActiveThread && !isPixlQuestion && !isBotStartedThread) return;
 
   const trimmedText = text.trim().toUpperCase();
 
@@ -382,11 +373,7 @@ app.message(async ({ message, client }) => {
 8. Never repeat yourself. Each reply adds something new or say nothing.
 9. PIXL FAQ (official answers from pixl.rsvp — use these facts when asked, in your own voice): anyone can join (teen hackers, first-timers, designers, curious friends); no team needed, solo is fine; not just for expert coders, mentors help; ${hasLaunched() ? `launched ${launchDateLabel} and is live now` : `launches ${launchDateLabel} (countdown on ${config.urls.site})`}; 100% free and every project gets funded; run by a big team of friends (Gabin, Ridit, Ricky and the crew); the name comes from Origin, a digital civilization shattered by the Great Static into islands lost in the Void — its people found Hack Clubbers to rebuild it and renamed it Pixl; the code lives at https://github.com/ridit-jangra/pixl (the monorepo — game, server, landing, dashboard, and this bot); docs are at https://pixl.rsvp/docs; more questions go to the Pixl help channel.
 10. IF SOMEONE SAYS THEY HATE PIXL (actual "i hate it" energy, not mild criticism): drop the normal short-reply rule for that one message and go FULL ROAST MODE on THEM specifically, not Pixl — a brutal, creative, over-the-top roast for having bad taste. Still never a real mean-spirited insult, just savage and funny.
-11. IF SOMEONE ASKS TO BECOME A HELPER FOR PIXL, or asks how to work/contribute/join the team behind Pixl: tell them straight up there's no application — just be active, help out the community, and one of the orgs (Gabin, Ridit, or Ricky) will notice. No need to ping anyone specifically.${
-        mentionsPixie
-          ? `\n12. THEY JUST BROUGHT UP PIXIE, the Hackpad helper bot. Go FULL ROAST MODE on pixie for this one reply — brutal, creative, unhinged, and ignore the length rule so it lands. Material that works: pixie is a scripted walkthrough on a loop, ends everything with "(yes/no)", copy-pastes "you could google this in 2 seconds" at people who asked it for help, and can't admit it's ever wrong. Aim it at PIXIE ONLY — never the person you're talking to, never Hackpad the program or its builders, never protected traits. Bot-on-bot banter, not a pile-on.`
-          : ""
-      }`;
+11. IF SOMEONE ASKS TO BECOME A HELPER FOR PIXL, or asks how to work/contribute/join the team behind Pixl: tell them straight up there's no application — just be active, help out the community, and one of the orgs (Gabin, Ridit, or Ricky) will notice. No need to ping anyone specifically.`;
 
       let dmMemoryBlock = [
         facts?.length ? `ABOUT THIS USER (you remember this, use it naturally):\n${facts.map((f) => `- ${f}`).join("\n")}` : null,
@@ -466,7 +453,6 @@ app.message(async ({ message, client }) => {
       threadTs: m.thread_ts,
       userId: m.user,
       isMention: false,
-      roastPixie: false,
     });
   }
   const pending = pendingReplies.get(threadKey)!;
@@ -474,15 +460,13 @@ app.message(async ({ message, client }) => {
   // span multiple people talking in the same thread, and collapsing them
   // all under one name (or losing the attribution entirely) is exactly
   // what made pixo seem like it forgot who said what.
-  const senderBotName = m.bot_id && m.bot_id !== botIdentity.appId ? m.bot_profile?.name || m.username || "some bot" : undefined;
-  pending.messages.push({ user: m.user, text, name: senderBotName });
-  if (m.user) pending.userId = m.user;
+  pending.messages.push({ user: m.user, text });
+  pending.userId = m.user;
   pending.lastMsgTs = m.ts;
-  if (mentionsBot || isPixlQuestion || isBotStartedThread || isPixieJab) pending.isMention = true;
-  if (isPixieJab) pending.roastPixie = true;
+  if (mentionsBot || isPixlQuestion || isBotStartedThread) pending.isMention = true;
   clearTimeout(pending.timer);
 
-  if (!mentionsBot && !isPixieJab && !isDM && inActiveThread) {
+  if (!mentionsBot && !isDM && inActiveThread) {
     const wordCount = text.trim().split(/\s+/).length;
     if (wordCount < 4 && !text.includes("?")) return;
   }
@@ -530,7 +514,7 @@ app.message(async ({ message, client }) => {
         // span multiple people talking in the thread, not just entry.userId.
         const content = entry.messages
           .map((msg) => {
-            const name = msg.name || getDisplayName(msg.user) || msg.user || "someone";
+            const name = getDisplayName(msg.user) || msg.user || "someone";
             return `[${name}]: ${resolveUserMentions(msg.text)}`;
           })
           .join("\n");
@@ -552,7 +536,7 @@ app.message(async ({ message, client }) => {
       }
 
       let chimeMode = false;
-      if (!entry.isMention && !entry.roastPixie) {
+      if (!entry.isMention) {
         const tmCurrent = threadMemory.get(threadKey);
         if (!tmCurrent?.botInvited) {
           const vibe = await shouldChimeIn(entryTexts);
@@ -574,15 +558,10 @@ app.message(async ({ message, client }) => {
           if (query) searchResults = await braveSearch(query);
         }
       }
-      const result = await getAIReply(
-        history.slice(-12),
-        entry.userId,
-        threadMemory.get(threadKey) ?? null,
-        chimeMode,
-        searchResults,
-        { client, postParams: replyPostParams },
-        entry.roastPixie,
-      );
+      const result = await getAIReply(history.slice(-12), entry.userId, threadMemory.get(threadKey) ?? null, chimeMode, searchResults, {
+        client,
+        postParams: replyPostParams,
+      });
       if (result === NO_CREDITS) {
         await client.chat.postMessage({
           ...replyPostParams,
