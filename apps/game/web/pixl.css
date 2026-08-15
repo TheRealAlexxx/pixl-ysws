@@ -448,26 +448,40 @@ select.field{cursor:pointer}
    in the image, which is why there is no heading here. */
 .gate{
   position:fixed;inset:0;z-index:9999;
-  display:flex;align-items:flex-end;justify-content:center;
-  padding:0 24px 14vh;
-  background:#f5eed2 url("/img/boot-splash.png") no-repeat center 28% / min(520px,72vw) auto;
-  image-rendering:pixelated;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;background:#f5eed2;
 }
-.gate-card{text-align:center;max-width:460px}
-.gate-card p{color:#6b5c46;font-size:15px;line-height:1.7;margin-bottom:26px}
-/* the landing's CTA, same cream face and chunky offset border */
+/* the splash is a real element, not a background image: as a background its
+   position was a percentage of the viewport, so on a tall window the wordmark
+   floated hundreds of pixels above the copy. in flow, the gap is just a margin */
+.gate-card{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;max-width:620px;
+}
+/* native 1000px wide puts the wordmark at the same 640px the game's own
+   loading screen draws it at, and keeps the pixels 1:1. the file carries 35%
+   blank above the wordmark and 37% below, so the negative margins crop that
+   padding back off, scaled to the rendered width rather than fixed. */
+.gate-splash{
+  --sw:min(1000px,92vw);
+  display:block;width:var(--sw);height:auto;image-rendering:pixelated;
+  margin-top:calc(var(--sw) * -0.19);
+  margin-bottom:calc(var(--sw) * -0.20);
+}
+.gate-card p{color:#6b5c46;font-size:16px;line-height:1.7;margin-bottom:28px;max-width:34em}
+/* the landing's dash CTA: black face, cream ink, chunky offset border */
 .btn-enter{
-  display:inline-block;font-family:var(--pixel);font-size:30px;line-height:1;
-  padding:14px 34px;background:#f5eed2;color:#000;text-decoration:none;
+  display:inline-block;font-family:var(--pixel);font-size:32px;line-height:1;
+  padding:14px 36px;background:#000;color:#f5eed2;text-decoration:none;
   border:2px solid #000;border-right-width:8px;border-bottom-width:8px;
   transition:transform .15s ease,border-bottom-width .15s ease;
 }
 .btn-enter:hover{border-bottom-width:12px;transform:translate(-4px,-4px)}
 .btn-enter:active{border-bottom-width:4px;transform:translate(0,2px)}
-/* short viewports: shrink the splash and pull the copy up so they never meet */
-@media (max-height:640px){
-  .gate{background-size:min(360px,60vw) auto;background-position:center 24%;padding-bottom:8vh}
+@media (max-height:620px){
+  .gate-splash{--sw:min(560px,70vw)}
   .btn-enter{font-size:24px;padding:12px 26px}
+  .gate-card p{font-size:14px;margin-bottom:20px}
 }
 
 /* ── misc ── */

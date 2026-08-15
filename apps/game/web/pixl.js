@@ -173,6 +173,7 @@ const Pixl = (() => {
     document.body.insertAdjacentHTML("beforeend", `
       <div class="gate">
         <div class="gate-card">
+          <img class="gate-splash" src="/img/boot-splash.png" alt="Pixl">
           <p>This page is part of the Pixl world. Hop into the game and walk up to the shop, an NPC, or press the shortcut key to open it with your account.</p>
           <a class="btn-enter" href="${GAME}">Enter the Game</a>
         </div>
