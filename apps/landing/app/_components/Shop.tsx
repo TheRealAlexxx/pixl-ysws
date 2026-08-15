@@ -75,12 +75,15 @@ const TILTS = [-5, 3, -2, 6, -4, 2, -6, 4];
 function ShopItem({ item, index }: { item: { name: string }; index: number }) {
   const tilt = TILTS[index % TILTS.length];
   return (
-    <div className="shrink-0 w-40 sm:w-52 lg:w-60 flex flex-col items-center gap-3 px-2">
-      <div className="h-36 sm:h-44 lg:h-52 w-full flex items-end justify-center">
+    // Height drives the size and the width follows the image, so a keyboard is
+    // wide and a plush is narrow, and the negative margin lets neighbours tuck
+    // into each other instead of sitting in even columns.
+    <div className="shrink-0 flex flex-col items-center gap-2 -mx-2 sm:-mx-4">
+      <div className="h-44 sm:h-60 lg:h-72 flex items-end justify-center">
         <img
           src={ITEM_IMAGES[index]}
           alt={item.name}
-          className="max-w-full max-h-full object-contain"
+          className="h-full w-auto max-w-none object-contain"
           style={{
             transform: `rotate(${tilt}deg)`,
             filter: "drop-shadow(6px 8px 0 rgba(0,0,0,0.10))",
@@ -90,7 +93,7 @@ function ShopItem({ item, index }: { item: { name: string }; index: number }) {
         />
       </div>
       <p
-        className="font-pixel text-xs sm:text-sm text-center leading-snug text-black/70"
+        className="font-pixel text-xs sm:text-sm text-center leading-snug text-black/70 max-w-36 sm:max-w-44"
         style={{ transform: `rotate(${tilt / 2}deg)` }}
       >
         {item.name}
@@ -173,7 +176,7 @@ function Marquee({ children }: { children: React.ReactNode }) {
       onMouseEnter={() => { pausedRef.current = true; }}
       onMouseLeave={() => { if (!draggingRef.current) pausedRef.current = false; }}
     >
-      <motion.div ref={trackRef} className="flex gap-4 pt-4 items-end" style={{ x, width: "max-content" }} draggable={false}>
+      <motion.div ref={trackRef} className="flex gap-0 pt-4 items-end" style={{ x, width: "max-content" }} draggable={false}>
         {children}
       </motion.div>
     </div>
