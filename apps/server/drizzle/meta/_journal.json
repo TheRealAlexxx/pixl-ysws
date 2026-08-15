@@ -792,6 +792,13 @@
       "when": 1782000111000,
       "tag": "0111_project_peak",
       "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1782000112000,
+      "tag": "0117_news",
+      "breakpoints": true
     }
   ]
 }
