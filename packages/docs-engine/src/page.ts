@@ -78,8 +78,8 @@ export function renderPage({ doc, nav, siteUrl, prev, next }: PageInput): string
 <meta name="twitter:description" content="${esc(doc.meta.description)}">
 <meta name="twitter:image" content="${image}">
 <link rel="icon" href="/index.icon.png">
-<link rel="stylesheet" href="/pixl.css">
-<link rel="stylesheet" href="/docs/docs.css">
+<link rel="stylesheet" href="/pixl.css?v=2">
+<link rel="stylesheet" href="/docs/docs.css?v=2">
 </head>
 <body>
 <div class="docs">
@@ -115,7 +115,7 @@ export function renderPage({ doc, nav, siteUrl, prev, next }: PageInput): string
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin="anonymous"></script>
-<script src="/docs/docs.js"></script>
+<script src="/docs/docs.js?v=2"></script>
 </body>
 </html>
 `;

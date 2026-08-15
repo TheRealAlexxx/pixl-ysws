@@ -70,7 +70,10 @@ async function runHandler(handler: NodeStyleHandler, url: URL): Promise<Response
   return new Response(body ?? null, { status: statusCode, headers });
 }
 
-async function serveStatic(pathname: string): Promise<Response | null> {
+async function serveStatic(
+  pathname: string,
+  ifNoneMatch?: string | null,
+): Promise<Response | null> {
   let rel: string;
   try {
     rel = decodeURIComponent(pathname);
@@ -88,9 +91,22 @@ async function serveStatic(pathname: string): Promise<Response | null> {
 
     const file = Bun.file(path);
     if (await file.exists()) {
-      return new Response(file, {
-        headers: withIsolation(new Headers({ "Content-Type": file.type }), pathname),
-      });
+      // Nothing here is content-hashed: pixl.css, the shell pages and the Godot
+      // bundle all keep their names across deploys. Without this Cloudflare
+      // hands out the previous build for hours after a deploy. no-cache still
+      // caches, it just revalidates, and the size+mtime ETag turns that into a
+      // 304 rather than a re-download.
+      const etag = `W/"${file.size.toString(16)}-${Math.floor(file.lastModified).toString(16)}"`;
+      const headers = withIsolation(
+        new Headers({ "Content-Type": file.type }),
+        pathname,
+      );
+      headers.set("Cache-Control", "no-cache");
+      headers.set("ETag", etag);
+      if (ifNoneMatch === etag) {
+        return new Response(null, { status: 304, headers });
+      }
+      return new Response(file, { headers });
     }
   }
 
@@ -111,13 +127,15 @@ Bun.serve({
       return runHandler(shopItemMeta, url);
     }
 
-    const direct = await serveStatic(pathname);
+    const ifNoneMatch = request.headers.get("if-none-match");
+
+    const direct = await serveStatic(pathname, ifNoneMatch);
     if (direct) return direct;
 
     // vercel.json rewrite: /docs/:slug -> /docs/index.html, so the docs shell
     // renders client-side for every page built out of docs/*.md.
     if (/^\/docs\/[^/]+\/?$/.test(pathname)) {
-      const docs = await serveStatic("/docs/index.html");
+      const docs = await serveStatic("/docs/index.html", ifNoneMatch);
       if (docs) return docs;
     }
 
