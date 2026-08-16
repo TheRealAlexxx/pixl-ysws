@@ -799,6 +799,13 @@
       "when": 1782000112000,
       "tag": "0117_news",
       "breakpoints": true
+    },
+    {
+      "idx": 114,
+      "version": "7",
+      "when": 1782000113000,
+      "tag": "0118_notifications",
+      "breakpoints": true
     }
   ]
 }
