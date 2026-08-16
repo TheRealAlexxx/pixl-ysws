@@ -524,7 +524,23 @@ app.message(async ({ message, client }) => {
     if (!isDM) phParams.thread_ts = threadKey;
     pending.placeholder = client.chat
       .postMessage({ ...phParams, text: "…" })
-      .then((r) => r.ts)
+      .then((r) => {
+        // A thread_ts pointing at a message that no longer exists doesn't error —
+        // Slack just silently posts a plain, un-threaded message instead. That's
+        // exactly what happens when someone deletes the message they mentioned
+        // Pixo in before this post reaches Slack. An orphaned reply with no
+        // context is worse than none, so catch it here and drop the reply.
+        if (phParams.thread_ts && r.message?.thread_ts !== phParams.thread_ts) {
+          if (r.ts) client.chat.delete({ channel: m.channel, ts: r.ts }).catch(() => {});
+          const entry = pendingReplies.get(threadKey);
+          if (entry) {
+            clearTimeout(entry.timer);
+            pendingReplies.delete(threadKey);
+          }
+          return undefined;
+        }
+        return r.ts;
+      })
       .catch(() => undefined);
   }
 
