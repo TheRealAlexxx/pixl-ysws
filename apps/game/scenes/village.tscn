@@ -2817,32 +2817,13 @@ dialogue = "Built something? Talk to me to log your project."
 skin = "cvc:4"
 opens_projects = true
 
-[node name="Mangoman" parent="." unique_id=967392462 instance=ExtResource("48_npcs")]
-position = Vector2(-430, -50)
-npc_name = "Mangoman"
-dialogue = "Mango? Mango. The bridges link the whole village together."
-skin = "cvc:2"
-
-[node name="Imu" parent="." unique_id=1598029634 instance=ExtResource("48_npcs")]
-position = Vector2(-410, -160)
-npc_name = "Imu"
-dialogue = "I watch over the village from the shadows."
-skin = "cvc:6"
-
-[node name="Gabin" parent="." unique_id=1600952998 instance=ExtResource("48_npcs")]
-position = Vector2(150, 20)
-npc_name = "Gabin"
-dialogue = "Hi hi~ I'm Gabin! Cutest one in the village, obviously.
-Don't be shy, come hang out with me anytime!"
-skin = "cv1:b1h0t4o1"
-custom_hair = "Hairstyles_ponytail_5.png"
-
-[node name="Ricky" parent="." unique_id=1966649830 instance=ExtResource("48_npcs")]
-position = Vector2(190, 20)
-npc_name = "Ricky"
-dialogue = "Yo, I'm Ricky. Gabin dragged me here but honestly?
-This village is pretty cool."
-skin = "cv1:b1h4t2o1"
+[node name="Pixo" parent="." unique_id=284719003 instance=ExtResource("48_npcs")]
+position = Vector2(170, -20)
+npc_name = "Pixo"
+dialogue = "Hey! I'm Pixo. Got questions about how any of this works? Ask away."
+skin = "cvc:1"
+faq = true
+wanders = false
 
 [node name="Ridit" parent="." unique_id=771144221 instance=ExtResource("48_npcs")]
 visible = false

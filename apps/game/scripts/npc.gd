@@ -2,6 +2,28 @@ extends CharacterBody2D
 
 const MONOCRAFT := preload("res://assets/fonts/PixelifySans.ttf")
 
+# Canned FAQ content for `faq` mode, kept short and sourced from docs/*.md so it
+# stays accurate without a live AI call. Extend this list rather than adding new
+# export vars if more topics come up.
+const FAQ_ENTRIES := [
+	{
+		"q": "What's a Trial?",
+		"a": "Trials come from NPCs around the world who need help with something real, like Rill's well gauge or Mabel's noticeboard. Take one on, or build your own idea instead, that's an Invention. Both count the same toward Restoration Energy.",
+	},
+	{
+		"q": "How does RE and payout work?",
+		"a": "Every hour you ship becomes Restoration Energy, or RE. It never goes down. RE decides what an hour of your work pays, and your level's just a readout of how much you've built up. Pixels are what you spend; RE decides how many pixels an hour earns you.",
+	},
+	{
+		"q": "How do I ship a project?",
+		"a": "Finish building it, write up what you made and what you learned, submit it for review, get approved, then pixels and rewards land in your account.",
+	},
+	{
+		"q": "What's the shop?",
+		"a": "Pixels come out of shipping, and the shop's where they go. Everything in it is a real object or service that gets mailed to you, scoped to your region.",
+	},
+]
+
 @export var npc_name: String = "Villager"
 @export_multiline var dialogue: String = "Hello there!"
 @export var skin: String = "cvc:1"
@@ -10,6 +32,9 @@ const MONOCRAFT := preload("res://assets/fonts/PixelifySans.ttf")
 @export var opens_projects: bool = false
 @export var opens_explore: bool = false
 @export var quest_project: bool = false
+# FAQ mode: a canned question picker (no live AI call) sourced from docs/*.md,
+# with a "take me to the docs" fallback for anything not covered.
+@export var faq: bool = false
 # Trial-giver mode: this NPC hands out a real Trial (a sidequests row, matched by
 # trial_name). On accept it records the unlock and the player builds toward it.
 # The same pattern is reused by every Trial NPC.
@@ -253,9 +278,38 @@ func _unhandled_input(event: InputEvent) -> void:
 			_start_trial_quest()
 		elif quest_project:
 			_start_project_quest()
+		elif faq:
+			_start_faq()
 		else:
 			Dialogue.open(npc_name, dialogue.split("\n"))
 		_update_prompt()
+
+# FAQ picker: pick a canned question, get a canned answer, loop back to the
+# question list so a player can ask several things in one conversation.
+func _start_faq() -> void:
+	var labels := PackedStringArray()
+	var ids := PackedStringArray()
+	for i in FAQ_ENTRIES.size():
+		labels.append(String(FAQ_ENTRIES[i]["q"]))
+		ids.append(str(i))
+	labels.append("Take me to the docs")
+	ids.append("docs")
+	labels.append("That's all, thanks")
+	ids.append("done")
+	Dialogue.ask(npc_name, PackedStringArray([dialogue]), labels, ids)
+	var picked: Array = await Dialogue.chosen
+	var choice := String(picked[1]) if picked.size() > 1 else "done"
+	if choice == "docs":
+		Dialogue.open(npc_name, ["Let's get you the real thing."])
+		Dialogue.closed.connect(func(): WebPages.open("docs"), CONNECT_ONE_SHOT)
+	elif choice == "done":
+		Dialogue.open(npc_name, ["Anytime. Come find me if something else comes up."])
+	else:
+		var idx := choice.to_int()
+		if idx >= 0 and idx < FAQ_ENTRIES.size():
+			Dialogue.open(npc_name, [String(FAQ_ENTRIES[idx]["a"])])
+			Dialogue.closed.connect(_start_faq, CONNECT_ONE_SHOT)
+	_update_prompt()
 
 func _start_project_quest() -> void:
 	if _quest_pending:
