@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePagePerm } from "@/lib/guard";
+import { decryptPII } from "@/lib/crypto";
 import {
   getProject,
   listShippedProjects,
@@ -30,6 +31,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 export const dynamic = "force-dynamic";
+
+function ageFrom(bday: string | null | undefined): number | null {
+  if (!bday) return null;
+  const b = new Date(bday);
+  if (isNaN(b.getTime())) return null;
+  const now = new Date();
+  let a = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+  return a;
+}
 
 function fmtHM(hours: number): string {
   const h = Math.floor(hours);
@@ -352,6 +364,13 @@ export default async function ReviewDetail({
                 </a>
               </Button>
             )}
+            {p.repo_url && (
+              <Button asChild variant="secondary" size="sm">
+                <a href={`${p.repo_url.replace(/\/$/, "")}#readme`} target="_blank" rel="noreferrer">
+                  README ↗
+                </a>
+              </Button>
+            )}
             {p.demo_url && (
               <Button asChild variant="secondary" size="sm">
                 <a href={p.demo_url} target="_blank" rel="noreferrer">
@@ -360,6 +379,73 @@ export default async function ReviewDetail({
               </Button>
             )}
           </div>
+
+          {/* Eligibility check — YSWS submission guideline gaps (exclusions,
+              builder unified-DB fields, README). */}
+          {(() => {
+            const u = p.users as
+              | {
+                  first_name?: string | null;
+                  last_name?: string | null;
+                  real_name?: string | null;
+                  email?: string | null;
+                  birthday?: string | null;
+                  address_line1?: string | null;
+                  address_line2?: string | null;
+                  address_city?: string | null;
+                  address_state?: string | null;
+                  address_country?: string | null;
+                  address_postal?: string | null;
+                }
+              | null
+              | undefined;
+            // PII (name/email/birthday/address) is encrypted at rest; decryptPII
+            // also passes legacy plaintext through unchanged.
+            const dec = (v: string | null | undefined) => decryptPII(v) || "";
+            const birthday = dec(u?.birthday);
+            const builderAge = ageFrom(birthday);
+            const fullName = [dec(u?.first_name), dec(u?.last_name)].filter(Boolean).join(" ") || u?.real_name || "—";
+            const country = dec(u?.address_country);
+            const address =
+              [dec(u?.address_line1), dec(u?.address_line2), dec(u?.address_city), dec(u?.address_state), dec(u?.address_postal), country]
+                .filter(Boolean)
+                .join(", ") || "—";
+            return (
+              <div className="rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-4 text-sm space-y-2">
+                <div className="font-semibold text-amber-800 dark:text-amber-300">Eligibility check</div>
+                <ul className="list-disc pl-5 space-y-0.5 text-amber-900/90 dark:text-amber-200/90">
+                  <li>
+                    <strong>Not</strong> a school assignment, and <strong>not</strong> built as paid Hack Club work — both
+                    are ineligible for the unified database.
+                  </li>
+                  <li>Repo has a usable README and the live demo actually works.</li>
+                </ul>
+                <details className="text-amber-900/90 dark:text-amber-200/90">
+                  <summary className="cursor-pointer font-medium select-none">
+                    Builder details (name · email · age · shipping)
+                  </summary>
+                  <div className="mt-2 grid gap-1 sm:grid-cols-2">
+                    <div>
+                      <span className="text-muted-foreground">Name:</span> {fullName}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Email:</span> {dec(u?.email) || "—"}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Age:</span>{" "}
+                      {builderAge != null ? `${builderAge}${birthday ? ` (born ${birthday})` : ""}` : "—"}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Country:</span> {country || "—"}
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-muted-foreground">Address:</span> {address}
+                    </div>
+                  </div>
+                </details>
+              </div>
+            );
+          })()}
 
           <div className="text-xs text-muted-foreground">
             Submitted {ago(p.shipped_at)} · {fmtHM(hours)} logged
