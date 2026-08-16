@@ -86,14 +86,15 @@ export function Hero() {
               <span className="text-[#ec3750]">{t.weShip}</span> {t.realPrizes}
             </p>
           </motion.div>
-          <motion.img
-            src="/pixl-logo-hc.png"
-            alt="Pixl"
-            className="w-56 sm:w-80 md:w-[28rem] lg:w-[34rem] select-none"
+          <motion.p
+            className="font-pixel text-[#ec3750] text-[6rem] sm:text-[9rem] md:text-[13rem] lg:text-[16rem] select-none leading-none"
+            style={{ textShadow: "var(--pixl-shadow)" }}
             initial={{ opacity: 0, y: -80, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          />
+          >
+            Pixl
+          </motion.p>
           <motion.div
             className="flex flex-col items-center w-full"
             initial={{ opacity: 0, y: 32 }}
