@@ -2821,3 +2821,5 @@ route_path = NodePath("../Sheep3Route")
 [connection signal="body_exited" from="DoorTrigger" to="DoorTrigger" method="_on_body_exited"]
 [connection signal="body_entered" from="DoorTrigger2" to="DoorTrigger2" method="_on_body_entered"]
 [connection signal="body_exited" from="DoorTrigger2" to="DoorTrigger2" method="_on_body_exited"]
+[connection signal="body_entered" from="DoorTrigger4" to="DoorTrigger4" method="_on_body_entered"]
+[connection signal="body_exited" from="DoorTrigger4" to="DoorTrigger4" method="_on_body_exited"]
