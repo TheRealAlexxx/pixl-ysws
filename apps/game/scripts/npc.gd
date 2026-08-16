@@ -69,6 +69,7 @@ var _route: Path2D
 var _route_offset: float = 0.0
 var _stuck_time: float = 0.0
 var _last_pos: Vector2
+static var _dust_tex: ImageTexture
 
 func _ready() -> void:
 	_base_frames = $AnimatedSprite2D.sprite_frames
@@ -461,3 +462,51 @@ func set_present(present: bool) -> void:
 	if not present:
 		_in_range = false
 		_update_prompt()
+
+# One-shot pixel-dust burst used when a Trial-giver relocates between the open
+# world and the village. Spawned on the parent (not self) so it keeps playing
+# even if this call is immediately followed by set_present(false).
+func play_teleport_fx() -> void:
+	var fx := CPUParticles2D.new()
+	fx.texture = _teleport_dust_texture()
+	fx.z_index = 25
+	fx.amount = 18
+	fx.lifetime = 0.5
+	fx.one_shot = true
+	fx.explosiveness = 1.0
+	fx.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	fx.emission_sphere_radius = 4.0
+	fx.direction = Vector2(0, -1)
+	fx.spread = 180.0
+	fx.gravity = Vector2.ZERO
+	fx.initial_velocity_min = 40.0
+	fx.initial_velocity_max = 90.0
+	fx.damping_min = 40.0
+	fx.damping_max = 80.0
+	fx.scale_amount_min = 1.0
+	fx.scale_amount_max = 2.0
+	fx.color = Color(1, 0.85, 0.1)
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.7, 1.0])
+	ramp.colors = PackedColorArray([
+		Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0),
+	])
+	fx.color_ramp = ramp
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	fx.material = mat
+	var parent := get_parent()
+	if parent == null:
+		return
+	parent.add_child(fx)
+	fx.global_position = global_position + Vector2(0, -20)
+	fx.emitting = true
+	await get_tree().create_timer(fx.lifetime + 0.1).timeout
+	fx.queue_free()
+
+func _teleport_dust_texture() -> ImageTexture:
+	if _dust_tex == null:
+		var img := Image.create(4, 4, false, Image.FORMAT_RGBA8)
+		img.fill(Color(1, 1, 1, 1))
+		_dust_tex = ImageTexture.create_from_image(img)
+	return _dust_tex
