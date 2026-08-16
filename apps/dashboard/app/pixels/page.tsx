@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePagePerm } from "@/lib/guard";
 import { listPixelTransactions } from "@/lib/db";
+import { config } from "@/app/_generated/config";
 import { PixelAdjustForm } from "@/app/_components/PixelAdjustForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -108,8 +109,8 @@ export default async function PixelsPage({
     <div>
       <h1 className="text-2xl font-semibold text-foreground tracking-tight mb-1">Pixels log</h1>
       <p className="text-sm text-muted-foreground mb-5">
-        Every pixel movement , who it went to, how many, why, and who granted it. 1 hour = 5
-        pixels · 10 pixels = $1 · whole pixels only.
+        Every pixel movement , who it went to, how many, why, and who granted it. 1 pixel = $
+        {config.economy.pixelValueUsd.toFixed(2)} · whole pixels only.
       </p>
 
       {error && (
@@ -130,21 +131,21 @@ export default async function PixelsPage({
           <Card className="p-4 gap-0 h-full transition-[box-shadow] hover:ring-hc-green/50">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Given out</div>
             <div className="text-2xl font-bold mt-1 tabular-nums text-hc-green">{fmt(issued)}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">≈ ${(issued * 0.07).toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">≈ ${(issued * config.economy.pixelValueUsd).toFixed(2)}</div>
           </Card>
         </Link>
         <Link href={qp({ filter: "spent" })} className="block">
           <Card className="p-4 gap-0 h-full transition-[box-shadow] hover:ring-brand/50">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Spent / removed</div>
             <div className="text-2xl font-bold mt-1 tabular-nums text-brand">{fmt(-spent)}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">≈ ${(-spent * 0.07).toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">≈ ${(-spent * config.economy.pixelValueUsd).toFixed(2)}</div>
           </Card>
         </Link>
         <Link href={qp({ filter: "all" })} className="block">
           <Card className="p-4 gap-0 h-full transition-[box-shadow] hover:ring-foreground/25">
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Net in wallets</div>
             <div className="text-2xl font-bold mt-1 tabular-nums">{fmt(net)}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">≈ ${(net * 0.07).toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">≈ ${(net * config.economy.pixelValueUsd).toFixed(2)}</div>
           </Card>
         </Link>
       </div>
