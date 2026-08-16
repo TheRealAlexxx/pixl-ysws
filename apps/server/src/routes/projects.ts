@@ -469,12 +469,19 @@ router.post("/api/projects/:id/ship", async (req, res) => {
       .sidequests;
     const minHours = trial?.min_hours != null ? Number(trial.min_hours) : null;
     if (minHours != null && trackedSeconds < minHours * 3600) {
-      return res.status(400).json({
-        ok: false,
-        error: "trial_hours_below_minimum",
-        need: minHours,
-        have: Math.round((trackedSeconds / 3600) * 10) / 10,
-      });
+      // The player can choose to ship anyway (client shows this as an explicit
+      // confirm) - they keep the pixels for the hours they actually worked,
+      // they just don't get credited toward this Trial (no prize), same as
+      // shipping their own idea. Ask once, then respect acceptNoTrialPrize.
+      if (req.body?.acceptNoTrialPrize !== true) {
+        return res.status(400).json({
+          ok: false,
+          error: "trial_hours_below_minimum",
+          need: minHours,
+          have: Math.round((trackedSeconds / 3600) * 10) / 10,
+        });
+      }
+      sidequestId = null;
     }
   }
 

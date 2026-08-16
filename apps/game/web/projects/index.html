@@ -2460,7 +2460,7 @@
         return b;
       }
 
-      async function ship(p, isUpdate) {
+      async function ship(p, isUpdate, acceptNoTrialPrize) {
         const body = {
           otherYsws: $("s-ysws") ? $("s-ysws").checked : false,
           eligibilityAttested: $("s-eligible") ? $("s-eligible").checked : false,
@@ -2469,16 +2469,25 @@
           body.updateNotes = $("f-update-notes").value.trim();
         // 0 / absent tells the server this ship isn't for a Trial (clears any link).
         if ($("s-trial")) body.sidequestId = Number($("s-trial").value) || 0;
+        if (acceptNoTrialPrize) body.acceptNoTrialPrize = true;
         $("s-ship").disabled = true;
         Pixl.toast("Checking your repo and demo…");
         const r = await Pixl.send("POST", `/api/projects/${p.id}/ship`, body);
         $("s-ship").disabled = false;
         if (!r.ok) {
-          if (r.error === "trial_hours_below_minimum" && r.need != null)
-            return Pixl.toast(
-              `This Trial needs at least ${r.need}h tracked, you're at ${r.have}h.`,
-              true,
-            );
+          if (r.error === "trial_hours_below_minimum" && r.need != null) {
+            const proceed = await Pixl.confirm({
+              title: "Not quite there yet",
+              body:
+                `This Trial needs at least ${r.need}h tracked, you're at ${r.have}h. ` +
+                `You can still ship it, you'll get pixels for the hours you put in, ` +
+                `but not this Trial's prize.`,
+              confirmText: "Ship anyway, no prize",
+              cancelText: "Keep building",
+            });
+            if (proceed) return ship(p, isUpdate, true);
+            return;
+          }
           return Pixl.toast(err(r.error), true);
         }
         Pixl.toast("SHIPPED! It's in the review queue.");
