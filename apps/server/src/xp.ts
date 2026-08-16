@@ -6,6 +6,7 @@ import {
   pxPerHourFor,
   rePerHour,
   reForHours,
+  reForProject,
   reForLevel,
 } from "./config.generated.js";
 
@@ -24,6 +25,7 @@ export {
   pxPerHourFor,
   rePerHour,
   reForHours,
+  reForProject,
   reForLevel,
 };
 
@@ -31,6 +33,7 @@ interface ProjectRow {
   approved_hours: number | null;
   hackatime_seconds: number | null;
   level: number | null;
+  sidequest_id: number | null;
 }
 
 // approved_hours is set by a reviewer; before that lands, fall back to whatever
@@ -44,7 +47,7 @@ function hoursOf(p: ProjectRow): number {
 }
 
 function reOf(p: ProjectRow): number {
-  return reForHours(hoursOf(p), Number(p.level) || 1);
+  return reForProject(hoursOf(p), Number(p.level) || 1, p.sidequest_id != null);
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -73,7 +76,7 @@ async function approvedProjectsFor(
 ): Promise<ProjectRow[]> {
   let q = supabase
     .from("projects")
-    .select("id, approved_hours, hackatime_seconds, level")
+    .select("id, approved_hours, hackatime_seconds, level, sidequest_id")
     .eq("user_id", userId)
     .eq("status", "approved")
     .is("banned_at", null);
@@ -97,7 +100,7 @@ export async function levelFor(userId: string, excludeProjectId?: number): Promi
 export async function communityEnergy(): Promise<number> {
   const { data } = await supabase
     .from("projects")
-    .select("approved_hours, hackatime_seconds, level")
+    .select("approved_hours, hackatime_seconds, level, sidequest_id")
     .eq("status", "approved")
     .is("banned_at", null);
   return Math.round((data ?? []).reduce((s, p) => s + reOf(p as ProjectRow), 0));

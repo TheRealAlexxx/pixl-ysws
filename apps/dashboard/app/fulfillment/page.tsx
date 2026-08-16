@@ -11,8 +11,12 @@ import {
   cancelOrder,
   addFulfillerAction,
   removeFulfillerAction,
+  flagOrderOverBudget,
+  clearOrderFlag,
 } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
+import { Disclosure } from "@/app/_components/Disclosure";
+import { config } from "@/app/_generated/config";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -43,7 +47,14 @@ function slackLink(id: string): string {
   return `https://slack.com/app_redirect?channel=${id}`;
 }
 
-const TAB_KEYS = ["pending", "ordered", "credited", "shipped", "done", "cancelled", "all", "fulfillers"] as const;
+// What the order's pixels are actually worth in dollars, i.e. the ceiling a
+// fulfiller has to source the item under. Mirrors the px figure 1:1 so the two
+// badges always describe the same amount.
+function usdBudget(pricePx: number): string {
+  return (pricePx * config.economy.pixelValueUsd).toFixed(2);
+}
+
+const TAB_KEYS = ["pending", "ordered", "credited", "shipped", "done", "cancelled", "flagged", "all", "fulfillers"] as const;
 type TabKey = (typeof TAB_KEYS)[number];
 
 async function FulfillerManager() {
@@ -116,6 +127,8 @@ export default async function FulfillmentPage({
     active === "pending" && !mineOnly
       ? orders.length
       : (await listShopOrders("pending", 1)).length;
+  const flaggedCount =
+    active === "flagged" && !mineOnly ? orders.length : (await listShopOrders("flagged", 50)).length;
   const handles = await slackHandles(orders.map((o) => o.player_slack));
 
   const tabs: { key: TabKey; label: string }[] = [
@@ -125,6 +138,7 @@ export default async function FulfillmentPage({
     { key: "shipped", label: "Shipped" },
     { key: "done", label: "Done" },
     { key: "cancelled", label: "Cancelled" },
+    { key: "flagged", label: `Over budget${flaggedCount > 0 ? ` (${flaggedCount})` : ""}` },
     { key: "all", label: "All" },
     ...(access.isSuper ? [{ key: "fulfillers" as TabKey, label: "Fulfillers" }] : []),
   ];
@@ -151,6 +165,12 @@ export default async function FulfillmentPage({
         Orders players placed in the shop with pixels. Claim one to place the real order , it moves
         into your queue and walks through <em>ordered → credited → shipped</em>. Enter tracking when
         it ships and Pixo DMs it to the buyer. Cancel any time before it ships to refund the pixels.
+      </p>
+      <p className="text-sm text-muted-foreground mb-5 max-w-2xl">
+        Every order shows a <span className="text-foreground font-medium">budget</span>, what the
+        player&apos;s pixels are worth at ${config.economy.pixelValueUsd.toFixed(2)} per pixel. Buy
+        it for that or less. If the cheapest you can find is over budget, don&apos;t place the order:
+        flag it with what you found and an owner picks it up from the Over budget tab.
       </p>
 
       <div className="flex items-center gap-3 flex-wrap mb-4">
@@ -188,7 +208,9 @@ export default async function FulfillmentPage({
         <Card className="p-8 text-center text-muted-foreground text-sm">
           {active === "pending"
             ? "No orders waiting to be claimed. Nice and clear."
-            : mineOnly
+            : active === "flagged"
+              ? "Nothing over budget right now."
+              : mineOnly
               ? "Nothing in your queue here."
               : "Nothing here yet."}
         </Card>
@@ -264,6 +286,13 @@ function OrderCard({
             <Badge variant="success" className="tabular-nums">
               {o.price} px
             </Badge>
+            <Badge
+              variant="secondary"
+              className="tabular-nums"
+              title={`${o.price} px x $${config.economy.pixelValueUsd.toFixed(2)}. Source it at or under this, otherwise flag it instead of ordering.`}
+            >
+              ${usdBudget(o.price)} budget
+            </Badge>
             <Badge variant={STATUS_BADGE[o.status] ?? "secondary"} className="capitalize">
               {STAGE_LABEL[o.status] ?? o.status}
             </Badge>
@@ -310,12 +339,65 @@ function OrderCard({
           {o.status === "cancelled" && o.note && (
             <div className="text-xs text-muted-foreground mt-1">{o.note}</div>
           )}
+          {o.flagged_at && (
+            <div className="text-xs mt-1 rounded border border-rose-500/30 bg-rose-500/10 px-2 py-1">
+              <span className="font-semibold">Over budget:</span> {o.flag_note}
+              <span className="text-muted-foreground">
+                {" "}
+                (flagged by {o.flagged_by || "a fulfiller"} on {fmtDate(o.flagged_at)})
+              </span>
+            </div>
+          )}
         </div>
         <StageSteps status={o.status} />
       </div>
 
       {actionable && <OrderActions order={o} mine={mine} canManage={canManage} />}
+      {actionable && o.status !== "shipped" && <FlagControls order={o} canManage={canManage} />}
     </Card>
+  );
+}
+
+// Sourcing escalation. A fulfiller who can't buy the item for what the player's
+// pixels are worth flags it here instead of ordering it over budget; an owner
+// clears the flag once they've decided what to do about it.
+function FlagControls({ order: o, canManage }: { order: ShopOrderRow; canManage: boolean }) {
+  if (o.flagged_at) {
+    if (!canManage) return null;
+    return (
+      <form action={clearOrderFlag}>
+        <input type="hidden" name="id" value={o.id} />
+        <PendingButton variant="outline" pendingText="Clearing…">
+          Clear flag
+        </PendingButton>
+      </form>
+    );
+  }
+  return (
+    <Disclosure summary={`Can't source it for $${usdBudget(o.price)}?`}>
+      <form action={flagOrderOverBudget} className="flex items-end gap-2 flex-wrap pt-2">
+        <input type="hidden" name="id" value={o.id} />
+        <label className="block flex-1 min-w-64">
+          <span className="block text-xs font-medium text-muted-foreground mb-1">
+            What&apos;s the cheapest you found, and where?
+          </span>
+          <Input
+            name="flagNote"
+            maxLength={300}
+            required
+            placeholder="Cheapest is $95 on Amazon, $88 refurb on eBay"
+            className="w-full text-sm"
+          />
+        </label>
+        <PendingButton
+          variant="outline"
+          pendingText="Flagging…"
+          className="text-rose-600 border-rose-200 dark:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600"
+        >
+          Flag over budget
+        </PendingButton>
+      </form>
+    </Disclosure>
   );
 }
 

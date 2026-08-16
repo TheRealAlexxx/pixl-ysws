@@ -30,6 +30,7 @@ const tokens: Record<string, string> = {
   maxLevel: String(E.levelBands[E.levelBands.length - 1].throughLevel),
   kickerUsd: `$${E.tierKickerUsdPerStep.toFixed(2)}`,
   kickerHours: String(E.tierKickerHours),
+  trialBonusRe: String(E.trialBonusRe),
   t1: String(E.tierRePerHour[0]),
   t2: String(E.tierRePerHour[1]),
   t3: String(E.tierRePerHour[2]),

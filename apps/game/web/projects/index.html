@@ -637,6 +637,37 @@
         line-height: 1.5;
         opacity: 0.75;
       }
+      /* the one-or-the-other reward claim, shown once a Trial ship is approved */
+      .trial-claim {
+        border: 1px solid color-mix(in srgb, var(--gold) 60%, var(--stroke));
+        border-radius: var(--radius-sm);
+        background: color-mix(in srgb, var(--gold) 12%, var(--panel));
+        padding: 16px 18px;
+        margin-bottom: 16px;
+      }
+      .trial-claim-h {
+        font-family: var(--pixel, var(--sans));
+        color: var(--gold);
+        font-size: 17px;
+        letter-spacing: 0.02em;
+        margin-bottom: 6px;
+      }
+      .trial-claim p {
+        font-family: var(--sans);
+        font-size: 13.5px;
+        line-height: 1.6;
+        margin: 0 0 12px;
+      }
+      .trial-claim-opts {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .trial-claim-taken {
+        font-family: var(--sans);
+        font-size: 13.5px;
+        color: var(--teal);
+      }
       .tl-list {
         display: flex;
         flex-direction: column;
@@ -923,17 +954,33 @@
         color: var(--bad);
       }
       .journal-note {
-        font-size: 13px;
-        line-height: 1.6;
-        color: var(--dim);
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-left: 3px solid var(--teal);
+        font-family: var(--sans);
+        font-size: 13.5px;
+        line-height: 1.65;
+        color: var(--ink);
+        background: color-mix(in srgb, var(--teal) 12%, var(--panel));
+        border: 1px solid color-mix(in srgb, var(--teal) 45%, var(--stroke));
+        border-left: 4px solid var(--teal);
         border-radius: var(--radius-sm);
-        padding: 10px 14px;
-        margin-bottom: 12px;
+        padding: 13px 16px;
+        margin-bottom: 14px;
       }
-      .journal-note strong { color: var(--ink); }
+      .journal-note .jn-h {
+        display: block;
+        font-family: var(--pixel, var(--sans));
+        font-size: 15px;
+        letter-spacing: 0.6px;
+        color: var(--teal);
+        margin-bottom: 4px;
+      }
+      .journal-note strong {
+        color: var(--ink);
+      }
+      .journal-note.compact {
+        font-size: 12.5px;
+        padding: 9px 12px;
+        margin: 0;
+      }
       .journal-entry {
         padding: 14px 16px;
       }
@@ -1497,6 +1544,7 @@
               <a class="proj-name" href="#p=${p.id}">${Pixl.esc(p.name)}</a>
               <span class="chip ${cls}">${label}</span>
               <span class="chip">${LEVELS[(p.level || 1) - 1][0]}</span>
+              ${p.trial_reward_choice === "pending" ? `<span class="chip gold">TRIAL REWARD WAITING</span>` : ""}
             </div>
             ${p.description ? `<div class="proj-meta"><span>${Pixl.esc(p.description)}</span></div>` : ""}
             ${projLinksHtml(p)}
@@ -1838,6 +1886,7 @@
       </div>
       ${p.status === "needs_changes" && p.review_note ? `<div class="note-strip" style="margin-bottom:14px">REVIEWER: ${Pixl.esc(p.review_note)}</div>` : ""}
       ${p.rejected_at ? `<div class="note-strip" style="margin-bottom:14px">REJECTED${p.reject_reason ? ": " + Pixl.esc(p.reject_reason) : ""}, fix it up and ship again.</div>` : ""}
+      ${trialRewardHtml(p)}
       ${inReview ? "" : trialBriefHtml(trialForProject(p))}
       ${formHtml(p)}
 
@@ -1852,6 +1901,10 @@
           <div class="ship-item"><span class="${p.demo_url ? "ok" : "no"}">${p.demo_url ? "+" : "-"}</span> Demo link added</div>
           <div class="ship-item"><span class="${p.image_url ? "ok" : "no"}">${p.image_url ? "+" : "-"}</span> Thumbnail uploaded</div>
           <div class="ship-item" id="ship-ht">${shipHtLine()}</div>
+        </div>
+        <div class="journal-note compact">
+          <strong>Journal entries are optional, not required to ship.</strong> They're also what reviewers use to
+          justify your hours, so an empty journal is the fastest way to get deflated.
         </div>
         ${inReview ? "" : trialPickerHtml(p)}
         ${
@@ -1890,9 +1943,10 @@
 
       <div class="section-h">JOURNAL</div>
       <div class="journal-note">
-        <strong>Journaling isn't mandatory</strong> — but it's genuinely worth it. Logging what you build as you go
-        justifies your hours to reviewers and protects you from <strong>deflation</strong> (approved hours getting cut).
-        A few honest lines per session make your work easy to trust.
+        <span class="jn-h">JOURNALING IS OPTIONAL, BUT IT PAYS</span>
+        Nobody is making you journal. It's still the best thing you can do for your payout: your entries are what
+        justify your hours to a reviewer, so a journaled project rarely gets <strong>deflated</strong> (hours cut
+        at review). A few honest lines per session is enough: what you built, what broke, where the time went.
       </div>
       <div class="composer panel">
         <div class="md-editor">
@@ -1930,6 +1984,14 @@
 
         bindForm(p);
         if (inReview) lockForm();
+        if ($("tr-item") && $("tr-px")) {
+          const prize = p.trial_prize_name || "the Trial reward";
+          const heldPx = Math.round(Number(p.trial_held_px) || 0);
+          $("tr-item").addEventListener("click", () =>
+            claimTrialReward(p, "item", prize, heldPx),
+          );
+          $("tr-px").addEventListener("click", () => claimTrialReward(p, "pixels", prize, heldPx));
+        }
         if ($("s-ship") && !inReview)
           $("s-ship").addEventListener("click", async () => {
             const blockers = shipBlockers(p, isUpdate);
@@ -2121,9 +2183,10 @@
 
       <div class="section-h">JOURNAL</div>
       <div class="journal-note">
-        <strong>Journaling isn't mandatory</strong> — but it's genuinely worth it. Logging what you build as you go
-        justifies your hours to reviewers and protects you from <strong>deflation</strong> (approved hours getting cut).
-        A few honest lines per session make your work easy to trust.
+        <span class="jn-h">JOURNALING IS OPTIONAL, BUT IT PAYS</span>
+        Nobody is making you journal. It's still the best thing you can do for your payout: your entries are what
+        justify your hours to a reviewer, so a journaled project rarely gets <strong>deflated</strong> (hours cut
+        at review). A few honest lines per session is enough: what you built, what broke, where the time went.
       </div>
       <div class="composer panel">
         <div class="md-editor">
@@ -2853,9 +2916,61 @@
         <div class="trial-brief-h">BUILDING FOR TRIAL: ${Pixl.esc(t.name)}${t.region ? ` · ${Pixl.esc(t.region)}` : ""}</div>
         ${t.description ? `<p class="trial-brief-desc">${Pixl.esc(t.description)}</p>` : ""}
         ${t.min_hours != null ? `<div class="trial-brief-hours">Minimum <b>${Pixl.esc(String(t.min_hours))}h</b> tracked to ship for this Trial.</div>` : ""}
-        ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b></div>` : ""}
+        ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b>, or the pixels this project earns. Once it's approved you pick one, not both.</div>` : ""}
         <div class="trial-brief-note">Build to this spec. When you ship, it's flagged for this Trial in the picker below (change it if you're building something else).</div>
       </div>`;
+      }
+
+      // A Trial ship pays one way or the other. Once it's approved the payout
+      // sits held until the player picks here: the Trial's prize, or the pixels
+      // their hours earned. Whichever they skip is gone.
+      function trialRewardHtml(p) {
+        const choice = p.trial_reward_choice || "";
+        if (!choice) return "";
+        const prize = p.trial_prize_name || "the Trial reward";
+        if (choice === "item")
+          return `<div class="trial-claim"><div class="trial-claim-taken">Trial reward claimed: <b>${Pixl.esc(prize)}</b>. Track it in <a href="/orders/">your orders</a>.</div></div>`;
+        if (choice === "pixels")
+          return `<div class="trial-claim"><div class="trial-claim-taken">You took the pixels for this Trial instead of the reward.</div></div>`;
+        const px = Math.round(Number(p.trial_held_px) || 0);
+        return `
+      <div class="trial-claim">
+        <div class="trial-claim-h">PICK YOUR TRIAL REWARD</div>
+        <p>
+          ${Pixl.esc(p.sidequest_name || "This Trial")} is done. Take the reward, or take the pixels this
+          project earned. It's one or the other, and it's final, so pick the one you actually want.
+        </p>
+        <div class="trial-claim-opts">
+          <button class="btn" id="tr-item">TAKE ${Pixl.esc(prize.toUpperCase())}</button>
+          <button class="btn dark" id="tr-px">TAKE ${px} PIXELS</button>
+        </div>
+      </div>`;
+      }
+
+      async function claimTrialReward(p, choice, prize, px) {
+        const body =
+          choice === "item"
+            ? `You'll get "${prize}" and give up the ${px} pixels this project earned. This can't be undone.`
+            : `You'll get ${px} pixels and give up "${prize}". This can't be undone.`;
+        if (
+          !(await Pixl.confirm({
+            title: choice === "item" ? "Take the reward?" : "Take the pixels?",
+            body,
+            confirmText: choice === "item" ? "Take the reward" : "Take the pixels",
+          }))
+        )
+          return;
+        for (const id of ["tr-item", "tr-px"]) if ($(id)) $(id).disabled = true;
+        const r = await Pixl.send("POST", `/api/projects/${p.id}/trial-reward`, { choice });
+        if (!r.ok) {
+          for (const id of ["tr-item", "tr-px"]) if ($(id)) $(id).disabled = false;
+          return Pixl.toast(err(r.error), true);
+        }
+        Pixl.toast(
+          choice === "item" ? `"${prize}" is on the way, check your orders.` : `+${px} pixels.`,
+        );
+        await loadProjects();
+        renderProject(p.id);
       }
 
       // The Trial to brief for a given project: its own linked Trial if set, else

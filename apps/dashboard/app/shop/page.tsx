@@ -9,6 +9,7 @@ import { OptionsEditor } from "@/app/_components/OptionsEditor";
 import { AddShopItemForm } from "@/app/_components/AddShopItemForm";
 import { BulkUploadShopItemsForm } from "@/app/_components/BulkUploadShopItemsForm";
 import { parseOptionGroups } from "@/lib/shopOptions";
+import { config } from "@/app/_generated/config";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -189,6 +190,13 @@ export default async function ShopPage({
                     <span className="font-semibold">{item.name}</span>
                     <Badge variant="success" className="tabular-nums">
                       {item.price} px
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="tabular-nums"
+                      title="What fulfillers can spend sourcing this item"
+                    >
+                      ${(item.price * config.economy.pixelValueUsd).toFixed(2)}
                     </Badge>
                     <Badge variant="secondary">
                       {SHOP_CATEGORY_LABELS[item.category] ?? SHOP_CATEGORY_LABELS.other}

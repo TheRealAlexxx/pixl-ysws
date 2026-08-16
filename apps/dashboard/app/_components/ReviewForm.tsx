@@ -102,19 +102,25 @@ function TierAndPayout({
   tier,
   onTier,
   playerReBefore,
+  forTrial,
 }: {
   hours: number;
   tier: number;
   onTier: (t: number) => void;
   playerReBefore: number;
+  forTrial: boolean;
 }) {
   const perHour = rePerHour(tier);
-  const projectRe = reForHours(hours, tier);
+  const hoursRe = reForHours(hours, tier);
+  const trialBonusRe = forTrial ? config.economy.trialBonusRe : 0;
+  const projectRe = hoursRe + trialBonusRe;
   const reAfter = playerReBefore + projectRe;
   // Averaged across this project's own RE only (0 -> projectRe), matching
   // creditBeneficiary exactly - the player's lifetime RE doesn't move the rate.
-  const rate = pxPerHourOver(0, projectRe);
-  const usdRate = averageUsdPerHourOver(0, projectRe);
+  // Hours-based RE only: the flat Trial bonus counts toward level and the vault
+  // but deliberately never moves the payout rate, same as creditBeneficiary.
+  const rate = pxPerHourOver(0, hoursRe);
+  const usdRate = averageUsdPerHourOver(0, hoursRe);
   // Flat tier bonus on the project's first hours - the thing that makes tier
   // visible on a short project, where the RE ramp alone is worth cents.
   const kickerUsd = tierKickerUsd(hours, tier);
@@ -150,8 +156,14 @@ function TierAndPayout({
           <span className="text-muted-foreground">
             This project · {hours}h × {perHour} RE/h
           </span>
-          <span className="font-medium">{round1(projectRe).toLocaleString()} RE</span>
+          <span className="font-medium">{round1(hoursRe).toLocaleString()} RE</span>
         </div>
+        {trialBonusRe > 0 && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Trial bonus (flat, every Trial)</span>
+            <span className="font-medium">+{trialBonusRe.toLocaleString()} RE</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Their RE before → after</span>
           <span className="font-medium">
@@ -189,6 +201,12 @@ function TierAndPayout({
             {px.toLocaleString()} px · ${usd.toFixed(2)}
           </span>
         </div>
+        {forTrial && (
+          <div className="text-[11px] text-muted-foreground leading-snug pt-1">
+            Trial ship: this payout is held, not credited. The maker picks the Trial reward or
+            these pixels once you approve it, and only gets the one they pick.
+          </div>
+        )}
       </div>
       <p className="text-[11px] text-muted-foreground leading-snug">
         Changing the tier here saves it with your verdict. Community-goal bonuses and any
@@ -366,6 +384,7 @@ export function ReviewForm({
         tier={tierState}
         onTier={setTierState}
         playerReBefore={playerReBefore}
+        forTrial={!!trial}
       />
       {trial?.minHours != null && (
         <div

@@ -409,6 +409,30 @@ async function acceptedCollaboratorUserIds(projectId: number): Promise<string[]>
   return (data ?? []).map((r) => r.user_id as string);
 }
 
+// The Trial a project was shipped for (see [[trial-ship-review-reward]] in
+// project memory) , carries an optional min-hours gate and a prize.
+type LinkedTrial = {
+  id: number;
+  name: string;
+  reward: string;
+  min_hours: number | null;
+  prize_shop_item_id: number | null;
+};
+
+// What a Trial actually hands over: its linked catalog item if it has one,
+// otherwise the free-text reward, fulfilled by hand as a $0 custom order.
+async function trialPrizeFor(trial: LinkedTrial): Promise<{ itemId: number | null; name: string }> {
+  if (trial.prize_shop_item_id) {
+    const { data: prizeItem } = await db
+      .from("shop_items")
+      .select("id, name")
+      .eq("id", trial.prize_shop_item_id)
+      .maybeSingle();
+    if (prizeItem) return { itemId: prizeItem.id as number, name: prizeItem.name as string };
+  }
+  return { itemId: null, name: trial.reward || trial.name };
+}
+
 interface BeneficiaryPayout {
   totalPx: number;
   deltaPx: number;
@@ -437,6 +461,7 @@ async function creditBeneficiary(
   by: string,
   otherBeneficiaryIds: string[] = [],
   tier = 1,
+  holdPixels = false,
 ): Promise<BeneficiaryPayout> {
   let goalMult = 1;
   let goalNote = "";
@@ -506,7 +531,11 @@ async function creditBeneficiary(
 
   const totalPx = Math.round((creditHours * pxRate + kickerPx) * goalMult);
   const deltaPx = totalPx - alreadyPx;
-  await creditProjectPixels(userId, projectId, totalPx, creditHours, by);
+  // Trial ships settle later: the maker picks the Trial prize *or* these
+  // pixels, so the payout is computed now and only credited once they choose
+  // (projects.trial_reward_choice). Everything below still runs , the referral
+  // boost and the referrer's own payout aren't the maker's pixels to hold.
+  if (!holdPixels) await creditProjectPixels(userId, projectId, totalPx, creditHours, by);
 
   // Referrer payout: pays once per referral, on the first qualifying ship.
   // Skipped if the referrer is also a credited beneficiary (owner or
@@ -587,7 +616,7 @@ export async function reviewProject(formData: FormData): Promise<void> {
   const { data: current } = await db
     .from("projects")
     .select(
-      "status, user_id, name, first_pass_by, first_pass_hours, first_pass_verdict, shipped_at, sidequest_id, trial_prize_order_id",
+      "status, user_id, name, first_pass_by, first_pass_hours, first_pass_verdict, shipped_at, sidequest_id, trial_reward_choice",
     )
     .eq("id", projectId)
     .single();
@@ -601,15 +630,6 @@ export async function reviewProject(formData: FormData): Promise<void> {
   const stage = String(current.status);
   const back = `/review/${projectId}`;
 
-  // The Trial this project was shipped for, if any (see [[trial-ship-review-reward]]
-  // in project memory) , carries an optional min-hours gate and prize.
-  type LinkedTrial = {
-    id: number;
-    name: string;
-    reward: string;
-    min_hours: number | null;
-    prize_shop_item_id: number | null;
-  };
   let linkedTrial: LinkedTrial | null = null;
   if (current.sidequest_id) {
     const { data: sq } = await db
@@ -895,6 +915,13 @@ export async function reviewProject(formData: FormData): Promise<void> {
     .maybeSingle();
   const tierUsed = Math.min(Math.max(Number(tierRow?.level) || 1, 1), 4);
 
+  // A Trial ship pays one way or the other, never both: the maker picks the
+  // Trial prize or the pixels once it's approved. Until they've picked the
+  // pixels, the payout is held rather than credited. Only the owner's pixels
+  // are held , collaborators are paid for their hours either way.
+  const trialChoice = String(current.trial_reward_choice ?? "");
+  const holdForTrial = !!linkedTrial && trialChoice !== "pixels";
+
   const ownerPayout = await creditBeneficiary(
     project.user_id,
     project.id,
@@ -904,11 +931,21 @@ export async function reviewProject(formData: FormData): Promise<void> {
     by,
     collaborators.map((c) => c.user_id),
     tierUsed,
+    holdForTrial,
   );
   const { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx } = ownerPayout;
 
+  const trialPrize = linkedTrial ? await trialPrizeFor(linkedTrial) : null;
+
   let credited: string;
-  if (alreadyPx > 0 && deltaPx > 0) {
+  if (holdForTrial && trialChoice !== "item") {
+    credited =
+      `\n\nTrial "${linkedTrial!.name}" complete. Now pick your reward on the project page: ` +
+      `"${trialPrize!.name}" shipped to you, or ${totalPx} pixels. It's one or the other, ` +
+      `whichever you don't take is gone.`;
+  } else if (holdForTrial) {
+    credited = `\n\nYou took "${trialPrize!.name}" as your Trial reward on this one, so no pixels for it.`;
+  } else if (alreadyPx > 0 && deltaPx > 0) {
     credited = `\n\n+${deltaPx} pixels for what's new (${totalPx} pixels total for this project , ${creditHours}h approved).`;
   } else if (alreadyPx > 0 && deltaPx <= 0) {
     credited = `\n\nNo new pixels this time , this project already earned ${alreadyPx} pixels.`;
@@ -918,13 +955,23 @@ export async function reviewProject(formData: FormData): Promise<void> {
         ? `\n\n${totalPx} pixels credited (${approvedHours}h approved of ${claimedHours}h logged).`
         : `\n\n${totalPx} pixels credited for ${creditHours}h approved.`;
   }
-  if (deltaPx > 0)
+  // The flat Trial bonus counts toward level and the community vault, but
+  // deliberately not into pxRate above , the rate is meant to track the hours
+  // actually worked, and a flat kicker there would pay the bonus twice.
+  const trialBonusRe = linkedTrial ? config.economy.trialBonusRe : 0;
+  const shipRe = ownerPayout.projectRe + trialBonusRe;
+  const reLine =
+    ` this ship earned ${Math.round(shipRe)} RE` +
+    (trialBonusRe > 0 ? ` (${trialBonusRe} of it a Trial bonus)` : "") +
+    `, putting you at level ${levelForRe(xpBefore + shipRe)}.`;
+  if (deltaPx > 0 && !(holdForTrial && trialChoice === "item"))
     credited +=
       ` Your rate: ${Math.round(pxRate)} px/h ($${(pxRate * config.economy.pixelValueUsd).toFixed(2)}/hr)` +
       (ownerPayout.kickerPx > 0
         ? ` plus a T${tierUsed} bonus of ${Math.round(ownerPayout.kickerPx)} px`
         : "") +
-      ` , this ship earned ${Math.round(ownerPayout.projectRe)} RE, putting you at level ${levelForRe(xpBefore + ownerPayout.projectRe)}.`;
+      ` ,${reLine}`;
+  else if (linkedTrial) credited += ` Either way,${reLine}`;
   if (goalNote && deltaPx > 0) credited += goalNote;
   if (referralNote && deltaPx > 0) credited += referralNote;
 
@@ -1008,50 +1055,23 @@ export async function reviewProject(formData: FormData): Promise<void> {
     await logModAction(project.user_id, "bounty_awarded", `${bounty.name}: +${reward} pixels (${project.name})`, by);
   }
 
-  // Trial prize: granted once per project, alongside (not instead of) the
-  // normal per-hour pixel credit above. Prefers a linked catalog item; falls
-  // back to a $0 order with the Trial's free-text reward as the item name,
-  // same as any custom order ops fulfils by hand.
-  if (linkedTrial && !current.trial_prize_order_id) {
-    let prizeItemId: number | null = null;
-    let prizeName = linkedTrial.reward || linkedTrial.name;
-    if (linkedTrial.prize_shop_item_id) {
-      const { data: prizeItem } = await db
-        .from("shop_items")
-        .select("id, name")
-        .eq("id", linkedTrial.prize_shop_item_id)
-        .maybeSingle();
-      if (prizeItem) {
-        prizeItemId = prizeItem.id as number;
-        prizeName = prizeItem.name as string;
-      }
-    }
-    if (prizeName) {
-      const { data: order, error: orderError } = await db
-        .from("shop_orders")
-        .insert({
-          user_id: project.user_id,
-          item_id: prizeItemId,
-          item_name: prizeName,
-          option: `Trial: ${linkedTrial.name}`,
-          price: 0,
-          status: "pending",
-        })
-        .select("id")
-        .single();
-      if (!orderError && order) {
-        await db.from("projects").update({ trial_prize_order_id: order.id }).eq("id", projectId);
-        credited += ` Trial "${linkedTrial.name}" complete , "${prizeName}" added to your orders!`;
-        await logModAction(
-          project.user_id,
-          "trial_prize_granted",
-          `${linkedTrial.name}: ${prizeName} (${project.name})`,
-          by,
-        );
-      } else if (orderError) {
-        console.error("reviewProject (trial prize)", orderError.message);
-      }
-    }
+  // Trial payout: nothing is handed over here. The approval just opens the
+  // choice (prize or the held pixels) and the player settles it themselves from
+  // the project page , see the trial-reward route in apps/server. Re-approvals
+  // of an already-settled Trial ship leave the choice alone.
+  if (holdForTrial && trialChoice !== "item") {
+    const { error: choiceError } = await db
+      .from("projects")
+      .update({ trial_reward_choice: "pending", trial_held_px: totalPx })
+      .eq("id", projectId);
+    if (choiceError) console.error("reviewProject (trial choice)", choiceError.message);
+    else
+      await logModAction(
+        project.user_id,
+        "trial_reward_pending",
+        `${linkedTrial!.name}: ${trialPrize!.name} or ${totalPx} px (${project.name})`,
+        by,
+      );
   }
 
   await notifyOwner(
@@ -1176,6 +1196,13 @@ export async function reReviewProject(formData: FormData): Promise<void> {
   // were credited independently, so each gets their own clawback too.
   let revoked = await revokeProjectPixels(project.user_id, project.id, by);
   await reverseReferralForRevokedProject(project.user_id, project.id, by);
+  // An unclaimed Trial reward goes back in the box with the verdict. One
+  // already taken stays taken , the prize order is out the door by then.
+  await db
+    .from("projects")
+    .update({ trial_reward_choice: "", trial_held_px: 0 })
+    .eq("id", projectId)
+    .eq("trial_reward_choice", "pending");
   for (const collaboratorId of await acceptedCollaboratorUserIds(projectId)) {
     const collabRevoked = await revokeProjectPixels(collaboratorId, project.id, by);
     revoked += collabRevoked;
@@ -2785,6 +2812,40 @@ export async function claimOrder(formData: FormData): Promise<void> {
     body: placedBody,
   });
   await dmOrEmail(order.user_id, "Order placed! 📦", placedBody);
+  revalidatePath("/fulfillment");
+}
+
+// Over budget: the cheapest the fulfiller could find it for is more than the
+// player's pixels are worth. Nothing gets ordered , the flag parks it for an
+// owner to decide (source it anyway, talk to the player, or cancel & refund).
+export async function flagOrderOverBudget(formData: FormData): Promise<void> {
+  const access = await requireFulfiller();
+  const id = Number(formData.get("id") ?? 0);
+  const note = String(formData.get("flagNote") ?? "").trim().slice(0, 300);
+  if (!id || !note) return;
+  const { error } = await db
+    .from("shop_orders")
+    .update({
+      flagged_at: new Date().toISOString(),
+      flagged_by: actorName(access),
+      flag_note: note,
+    })
+    .eq("id", id)
+    .in("status", ["pending", "ordered", "credited"]);
+  if (error) throw new Error(error.message);
+  revalidatePath("/fulfillment");
+}
+
+// Owner has dealt with it, put the order back in the normal flow.
+export async function clearOrderFlag(formData: FormData): Promise<void> {
+  await requirePerm("fulfillment");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const { error } = await db
+    .from("shop_orders")
+    .update({ flagged_at: null, flagged_by: "", flag_note: "" })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
   revalidatePath("/fulfillment");
 }
 

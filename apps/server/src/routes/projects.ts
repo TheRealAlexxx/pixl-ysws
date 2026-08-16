@@ -81,9 +81,12 @@ router.get("/api/projects", async (req, res) => {
         (earned.get(t.project_id as number) ?? 0) + Number(t.amount),
       );
   }
-  // Resolve the linked Trial name for any project shipped for one, so the client
-  // can show it without a second round-trip.
+  // Resolve the linked Trial name, and what the Trial actually hands over, for
+  // any project shipped for one - so the client can show the name and (for an
+  // approved ship still waiting on the reward choice) both sides of that choice
+  // without a second round-trip.
   const trialName = new Map<number, string>();
+  const trialPrize = new Map<number, string>();
   const trialIds = [
     ...new Set(
       projects.map((p) => p.sidequest_id as number | null).filter((x): x is number => !!x),
@@ -92,9 +95,29 @@ router.get("/api/projects", async (req, res) => {
   if (trialIds.length > 0) {
     const { data: sqs } = await supabase
       .from("sidequests")
-      .select("id, name")
+      .select("id, name, reward, prize_shop_item_id")
       .in("id", trialIds);
-    for (const s of sqs ?? []) trialName.set(s.id as number, s.name as string);
+    const itemIds = [
+      ...new Set(
+        (sqs ?? [])
+          .map((s) => s.prize_shop_item_id as number | null)
+          .filter((x): x is number => !!x),
+      ),
+    ];
+    const itemName = new Map<number, string>();
+    if (itemIds.length > 0) {
+      const { data: items } = await supabase.from("shop_items").select("id, name").in("id", itemIds);
+      for (const i of items ?? []) itemName.set(i.id as number, i.name as string);
+    }
+    for (const s of sqs ?? []) {
+      trialName.set(s.id as number, s.name as string);
+      trialPrize.set(
+        s.id as number,
+        itemName.get(s.prize_shop_item_id as number) ??
+          (s.reward as string) ??
+          (s.name as string),
+      );
+    }
   }
   res.json({
     ok: true,
@@ -103,6 +126,9 @@ router.get("/api/projects", async (req, res) => {
       pixels_earned: earned.get(p.id as number) ?? 0,
       sidequest_name: p.sidequest_id
         ? (trialName.get(p.sidequest_id as number) ?? null)
+        : null,
+      trial_prize_name: p.sidequest_id
+        ? (trialPrize.get(p.sidequest_id as number) ?? null)
         : null,
     })),
   });
@@ -584,6 +610,121 @@ router.post("/api/projects/:id/unship", async (req, res) => {
     return res.status(500).json({ ok: false });
   }
   res.json({ ok: true, project: data });
+});
+
+// Settle an approved Trial ship: the prize, or the pixels the payout math held
+// back at approval. One or the other, once, and only by the owner - the review
+// deliberately credits nothing until this lands (see reviewProject in the
+// dashboard). Conditioning the update on trial_reward_choice still being
+// 'pending' is what stops a double-click paying both sides.
+router.post("/api/projects/:id/trial-reward", async (req, res) => {
+  const token = typeof req.query.token === "string" ? req.query.token : "";
+  const session = token ? verifySessionToken(token) : null;
+  if (!session) return res.status(401).json({ ok: false });
+
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ ok: false });
+  const choice = String(req.body?.choice ?? "");
+  if (choice !== "item" && choice !== "pixels")
+    return res.status(400).json({ ok: false, error: "bad_choice" });
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, name, status, approved_hours, sidequest_id, trial_reward_choice, trial_held_px")
+    .eq("id", id)
+    .eq("user_id", session.userId)
+    .maybeSingle();
+  if (!project) return res.status(404).json({ ok: false });
+  if (project.status !== "approved" || project.trial_reward_choice !== "pending")
+    return res.status(400).json({ ok: false, error: "nothing_to_claim" });
+
+  // A Trial can be deleted out from under an approved ship (it has happened,
+  // see [[trial-npc-link-drift]]). That must not strand the player's pixels, so
+  // only the prize branch actually needs the row.
+  const { data: trial } = await supabase
+    .from("sidequests")
+    .select("id, name, reward, prize_shop_item_id")
+    .eq("id", project.sidequest_id as number)
+    .maybeSingle();
+  if (!trial && choice === "item")
+    return res.status(400).json({ ok: false, error: "trial_missing" });
+  const trialLabel = (trial?.name as string) || "this Trial";
+
+  // Claim the choice first. If someone else's request already took it, this
+  // matches no rows and we stop before paying anything out.
+  const { data: claimed } = await supabase
+    .from("projects")
+    .update({ trial_reward_choice: choice })
+    .eq("id", id)
+    .eq("user_id", session.userId)
+    .eq("trial_reward_choice", "pending")
+    .select("id")
+    .maybeSingle();
+  if (!claimed) return res.status(409).json({ ok: false, error: "already_claimed" });
+
+  const heldPx = Math.max(Number(project.trial_held_px) || 0, 0);
+
+  if (choice === "pixels") {
+    const { error } = await supabase.rpc("credit_project_pixels", {
+      p_user_id: session.userId,
+      p_project_id: id,
+      p_amount: heldPx,
+      p_hours: Number(project.approved_hours) || 0,
+      p_created_by: "trial_reward",
+    });
+    if (error) {
+      console.error("[projects] trial pixels payout failed", error);
+      await supabase.from("projects").update({ trial_reward_choice: "pending" }).eq("id", id);
+      return res.status(500).json({ ok: false });
+    }
+    void addNotification(
+      session.userId,
+      "Trial reward: pixels",
+      `You took the pixels for "${trialLabel}". ${heldPx} pixels are in your wallet.`,
+    );
+    return res.json({ ok: true, choice, pixels: heldPx });
+  }
+
+  // The prize itself: a $0 order, so it walks the same fulfilment pipeline as
+  // anything bought with pixels. Prefers the Trial's linked catalog item, falls
+  // back to its free-text reward as a custom order ops fulfils by hand.
+  let itemId: number | null = null;
+  let itemName = (trial.reward as string) || (trial.name as string);
+  if (trial.prize_shop_item_id) {
+    const { data: prizeItem } = await supabase
+      .from("shop_items")
+      .select("id, name")
+      .eq("id", trial.prize_shop_item_id)
+      .maybeSingle();
+    if (prizeItem) {
+      itemId = prizeItem.id as number;
+      itemName = prizeItem.name as string;
+    }
+  }
+  const { data: order, error: orderError } = await supabase
+    .from("shop_orders")
+    .insert({
+      user_id: session.userId,
+      item_id: itemId,
+      item_name: itemName,
+      option: `Trial: ${trial.name}`,
+      price: 0,
+      status: "pending",
+    })
+    .select("id")
+    .single();
+  if (orderError || !order) {
+    console.error("[projects] trial prize order failed", orderError);
+    await supabase.from("projects").update({ trial_reward_choice: "pending" }).eq("id", id);
+    return res.status(500).json({ ok: false });
+  }
+  await supabase.from("projects").update({ trial_prize_order_id: order.id }).eq("id", id);
+  void addNotification(
+    session.userId,
+    "Trial reward claimed",
+    `"${itemName}" is on its way for finishing "${trial.name}". Track it in your orders.`,
+  );
+  res.json({ ok: true, choice, item: itemName });
 });
 
 // True for the project's owner, or an accepted collaborator (view/log-hours

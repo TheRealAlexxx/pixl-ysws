@@ -83,6 +83,16 @@ export function reForHours(hours: number, tier: number): number {
 }
 
 /**
+ * RE an approved project actually banks. Same as reForHours, plus a flat bonus
+ * when the ship was submitted for a Trial - the same bonus for every Trial, so
+ * doing Trials is always worth more than shipping the same hours solo. Anything
+ * summing lifetime or community RE has to go through this, not reForHours.
+ */
+export function reForProject(hours: number, tier: number, forTrial: boolean): number {
+  return reForHours(hours, tier) + (forTrial ? E.trialBonusRe : 0);
+}
+
+/**
  * Player level from lifetime RE. Levels are cosmetic - they never feed the
  * payout, which comes straight off RE. Early bands are cheap so a beginner on a
  * tier-1 project levels up within a couple of hours; later bands cost more.

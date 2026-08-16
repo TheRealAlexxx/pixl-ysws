@@ -27,6 +27,7 @@ export const config = {
     ],
     "tierKickerUsdPerStep": 0.5,
     "tierKickerHours": 40,
+    "trialBonusRe": 25,
     "levelBands": [
       {
         "throughLevel": 10,
@@ -64,6 +65,16 @@ export function rePerHour(tier: number): number {
 export function reForHours(hours: number, tier: number): number {
   const h = Number.isFinite(hours) ? Math.max(hours, 0) : 0;
   return h * rePerHour(tier);
+}
+
+/**
+ * RE an approved project actually banks. Same as reForHours, plus a flat bonus
+ * when the ship was submitted for a Trial - the same bonus for every Trial, so
+ * doing Trials is always worth more than shipping the same hours solo. Anything
+ * summing lifetime or community RE has to go through this, not reForHours.
+ */
+export function reForProject(hours: number, tier: number, forTrial: boolean): number {
+  return reForHours(hours, tier) + (forTrial ? E.trialBonusRe : 0);
 }
 
 /**

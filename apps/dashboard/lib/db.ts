@@ -1,5 +1,5 @@
 import { decryptPII } from "./crypto";
-import { reForHours } from "@/app/_generated/config";
+import { reForProject } from "@/app/_generated/config";
 
 // Orchard Postgres over DATABASE_URL. pgCompat connects lazily, so this module
 // stays importable while Next prerenders static pages (e.g. /_not-found)
@@ -1858,6 +1858,11 @@ export interface ShopOrderRow {
   shipped_at: string | null;
   done_at: string | null;
   tracking: string;
+  // Over-budget flag: the item can't be sourced for what the player's pixels
+  // are worth, so it's parked for an owner instead of ordered.
+  flagged_at: string | null;
+  flagged_by: string;
+  flag_note: string;
   player_name: string;
   player_slack: string | null;
 }
@@ -1866,7 +1871,10 @@ export interface ShopOrderRow {
 // resolved in a follow-up query so the team can reach out about delivery.
 export async function listShopOrders(status?: string, limit = 500): Promise<ShopOrderRow[]> {
   let q = db.from("shop_orders").select("*");
-  if (status) q = q.eq("status", status);
+  // "flagged" cuts across the stages rather than being one of them , an order
+  // is flagged while still sitting at whatever stage it was flagged in.
+  if (status === "flagged") q = q.not("flagged_at", "is", null);
+  else if (status) q = q.eq("status", status);
   const { data, error } = await q.order("created_at", { ascending: false }).limit(limit);
   if (error) {
     console.error("listShopOrders", error.message);
@@ -2662,7 +2670,7 @@ export async function getShopSalesSeries(days = 30): Promise<ShopSalesPoint[]> {
 export async function lifetimeRe(userId: string, excludeProjectId?: number): Promise<number> {
   let q = db
     .from("projects")
-    .select("id, approved_hours, hackatime_seconds, level")
+    .select("id, approved_hours, hackatime_seconds, level, sidequest_id")
     .eq("user_id", userId)
     .eq("status", "approved")
     .is("banned_at", null);
@@ -2675,7 +2683,12 @@ export async function lifetimeRe(userId: string, excludeProjectId?: number): Pro
           p.approved_hours != null
             ? Number(p.approved_hours)
             : (Number(p.hackatime_seconds) || 0) / 3600;
-        return s + (Number.isFinite(h) ? reForHours(h, Number(p.level) || 1) : 0);
+        return (
+          s +
+          (Number.isFinite(h)
+            ? reForProject(h, Number(p.level) || 1, p.sidequest_id != null)
+            : 0)
+        );
       }, 0) * 10,
     ) / 10
   );

@@ -18,4 +18,4 @@ In between chapters there are operations, shorter one week events built around a
 
 ## Showing up late is fine
 
-Regions don't close once they're unlocked. Whenever you join, you can pick from any trial that's currently available and ship it for the same pixels and prizes as everyone else. Chapters only decide what unlocks next, they don't gate what you're allowed to build.
+Regions don't close once they're unlocked. Whenever you join, you can pick from any trial that's currently available and ship it for the same rewards as everyone else. Chapters only decide what unlocks next, they don't gate what you're allowed to build.

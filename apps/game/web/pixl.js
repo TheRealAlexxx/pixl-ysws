@@ -28,6 +28,7 @@ const Pixl = (() => {
       ],
       "tierKickerUsdPerStep": 0.5,
       "tierKickerHours": 40,
+      "trialBonusRe": 25,
       "levelBands": [
         {
           "throughLevel": 10,
