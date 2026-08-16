@@ -400,6 +400,10 @@ func _start_trial_quest() -> void:
 	var choice := String(picked[1]) if picked.size() > 1 else "no"
 	if choice == "accept":
 		await _accept_trial(tid)
+		TrialFx.mark(trial_name, "active")
+		play_teleport_fx()
+		await get_tree().create_timer(0.35).timeout
+		set_present(false)
 		Dialogue.open(npc_name, ["Then it's yours. Get building — I'll be around your village if you need me."])
 		# Fresh accept → run the Builder Terminal walkthrough, tuned to this Trial.
 		var accept_path := "projects?onboard=first-project&trial=%d" % tid if tid > 0 else "projects?onboard=first-project"
