@@ -38,6 +38,7 @@ const PERM_INFO: Record<string, { label: string; desc: string }> = {
   events: { label: "Events", desc: "Create and run events" },
   sidequests: { label: "Trials", desc: "Manage trials and the NPCs who hand them out" },
   story: { label: "Story", desc: "Edit story nodes and chapters" },
+  news: { label: "News", desc: "Post and edit news items" },
   goals: { label: "Community goals", desc: "Set and adjust community goals" },
   referrals: { label: "Referrals", desc: "View and manage referrals" },
   ideas: { label: "Ideas", desc: "Moderate the ideas board" },
@@ -66,8 +67,12 @@ function PermToggles({
             className="mt-0.5"
           />
           <span className="min-w-0">
-            <span className="block text-sm font-medium leading-none">{PERM_INFO[p].label}</span>
-            <span className="block text-xs text-muted-foreground mt-1">{PERM_INFO[p].desc}</span>
+            <span className="block text-sm font-medium leading-none">
+              {PERM_INFO[p]?.label ?? p}
+            </span>
+            <span className="block text-xs text-muted-foreground mt-1">
+              {PERM_INFO[p]?.desc ?? "No description yet."}
+            </span>
           </span>
         </Label>
       ))}
