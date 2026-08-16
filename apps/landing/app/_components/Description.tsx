@@ -34,7 +34,7 @@ const cardVariants = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function VideoCard({ s, t }: { s: any; t: any }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const comingSoon = s.step >= 3;
+  const comingSoon = s.step >= 4;
 
   useEffect(() => {
     const isTouch = window.matchMedia("(hover: none)").matches;
