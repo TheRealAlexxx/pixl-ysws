@@ -414,14 +414,14 @@ func _start_trial_quest() -> void:
 	_update_prompt()
 
 func _find_trial(quests: Array) -> Dictionary:
-	# Prefer the exact Trial this NPC was assigned by name.
+	# Match this NPC's assigned Trial by exact name. No fallback to "some other
+	# starter Trial" here on purpose — that used to silently swap in an unrelated
+	# quest whenever a Trial got renamed *or deleted* in the dashboard, which made
+	# a deletion invisible instead of surfacing it. A genuine rename should update
+	# this NPC's trial_name in the same change; a real deletion should fall through
+	# to the caller's empty-trial flavor-text branch, not hand out a random quest.
 	for q in quests:
 		if typeof(q) == TYPE_DICTIONARY and String(q.get("name", "")) == trial_name:
-			return q
-	# Fallback so a name drift (e.g. the seeded Trial was renamed) can't leave the
-	# giver with nothing to hand out: take the first active starter Trial.
-	for q in quests:
-		if typeof(q) == TYPE_DICTIONARY and bool(q.get("starter", false)):
 			return q
 	return {}
 
