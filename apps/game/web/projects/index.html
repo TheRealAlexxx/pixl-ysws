@@ -619,6 +619,12 @@
         line-height: 1.6;
         margin: 0 0 8px;
       }
+      .trial-brief-hours {
+        font-family: var(--sans);
+        font-size: 13.5px;
+        color: var(--dim);
+        margin-bottom: 8px;
+      }
       .trial-brief-reward {
         font-family: var(--sans);
         font-size: 13.5px;
@@ -2824,6 +2830,7 @@
       <div class="trial-brief">
         <div class="trial-brief-h">BUILDING FOR TRIAL: ${Pixl.esc(t.name)}${t.region ? ` · ${Pixl.esc(t.region)}` : ""}</div>
         ${t.description ? `<p class="trial-brief-desc">${Pixl.esc(t.description)}</p>` : ""}
+        ${t.min_hours != null ? `<div class="trial-brief-hours">Minimum <b>${Pixl.esc(String(t.min_hours))}h</b> tracked to ship for this Trial.</div>` : ""}
         ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b></div>` : ""}
         <div class="trial-brief-note">Build to this spec. When you ship, it's flagged for this Trial in the picker below (change it if you're building something else).</div>
       </div>`;
