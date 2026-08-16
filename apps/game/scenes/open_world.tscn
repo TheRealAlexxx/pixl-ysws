@@ -5688,7 +5688,7 @@ position = Vector2(10, -7)
 shape = SubResource("RectangleShape2D_7uuev")
 
 [node name="Ridit" parent="." unique_id=900000001 instance=ExtResource("80_npcs")]
-position = Vector2(-910, 607)
+position = Vector2(-804, 460)
 npc_name = "Ridit"
 dialogue = "Howdy, partner. Welcome to the Dustline."
 skin = "cvc:3"
@@ -5712,7 +5712,7 @@ trial_reminder = "How's the draft coming? Map, tileset, two NPCs, a hook — the
 wanders = false
 
 [node name="Rill" parent="." unique_id=900000003 instance=ExtResource("80_npcs")]
-position = Vector2(-958, 763)
+position = Vector2(-1134, 703)
 npc_name = "Rill"
 dialogue = "Carry enough water out here and you start wondering how deep the well really is."
 skin = "cvc:7"
@@ -5724,7 +5724,7 @@ trial_reminder = "Gauge still coming along? Sensor down the shaft, readout up to
 wanders = false
 
 [node name="Cass" parent="." unique_id=900000004 instance=ExtResource("80_npcs")]
-position = Vector2(-838, 703)
+position = Vector2(-763, 684)
 npc_name = "Cass"
 dialogue = "Two hundred years and the relay's never gone quiet. I aim to keep it that way."
 skin = "cvc:8"
