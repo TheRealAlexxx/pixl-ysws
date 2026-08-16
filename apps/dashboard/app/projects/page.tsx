@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requirePagePerm, canView } from "@/lib/guard";
 import { listProjects, collaboratorsByProject } from "@/lib/db";
-import { StatusBadge, PeakBadge } from "@/app/_components/ProjectBadges";
+import { StatusBadge, BeaconBadge } from "@/app/_components/ProjectBadges";
 import { Badge } from "@/components/ui/badge";
 import { slackHandles } from "@/lib/slack";
 import { Button } from "@/components/ui/button";
@@ -94,7 +94,7 @@ export default async function ProjectsPage({
                 <TableCell className="p-3">
                   <div className="flex items-center gap-1.5">
                     <StatusBadge status={p.status} />
-                    {p.is_peak && <PeakBadge />}
+                    {p.is_peak && <BeaconBadge />}
                     {p.archived_at && <Badge variant="secondary">Archived</Badge>}
                   </div>
                 </TableCell>

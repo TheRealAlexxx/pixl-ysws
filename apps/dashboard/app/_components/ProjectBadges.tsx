@@ -70,9 +70,9 @@ export function TypeBadge({ type }: { type?: string | null }) {
   return <Badge tone="gray">{TYPE_LABELS[type] ?? type}</Badge>;
 }
 
-// Reviewer-nominated standout project. Cosmetic only - see toggleProjectPeak.
-export function PeakBadge() {
-  return <Badge tone="amber">★ Peak</Badge>;
+// Reviewer-nominated standout project. Cosmetic only, see toggleProjectPeak.
+export function BeaconBadge() {
+  return <Badge tone="amber">★ Beacon</Badge>;
 }
 
 export function ShipBadges({

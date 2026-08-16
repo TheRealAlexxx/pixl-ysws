@@ -14,7 +14,7 @@ import {
 } from "@/app/actions";
 import {
   LevelBadge,
-  PeakBadge,
+  BeaconBadge,
   ShipBadges,
   StatusBadge,
 } from "@/app/_components/ProjectBadges";
@@ -96,7 +96,7 @@ export default async function ProjectPage({
               {project.name}
             </h1>
             <StatusBadge status={project.status} />
-            {project.is_peak && <PeakBadge />}
+            {project.is_peak && <BeaconBadge />}
             <LevelBadge level={project.level} />
             <ShipBadges project={project} />
             {project.archived_at && (
@@ -263,7 +263,7 @@ export default async function ProjectPage({
 
       {canPeak && (
         <Card className="p-4 mb-8 gap-0">
-          <div className="font-pixel text-xl mb-1">Peak</div>
+          <div className="font-pixel text-xl mb-1">Beacon</div>
           <p className="text-sm text-muted-foreground mb-3">
             Nominate a standout project. Purely cosmetic , shown wherever this
             project is displayed publicly, never a payout change.
@@ -276,7 +276,7 @@ export default async function ProjectPage({
               className={project.is_peak ? "" : "bg-amber-500 text-black hover:bg-amber-600 border-transparent"}
               pendingText={project.is_peak ? "Removing…" : "Marking…"}
             >
-              {project.is_peak ? "Remove Peak" : "★ Mark as Peak"}
+              {project.is_peak ? "Remove Beacon" : "★ Mark as Beacon"}
             </PendingButton>
           </form>
         </Card>

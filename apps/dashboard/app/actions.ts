@@ -1367,10 +1367,12 @@ export async function archiveProject(formData: FormData): Promise<void> {
   revalidatePath("/", "layout");
 }
 
-// Any reviewer can nominate a project as "Peak" - a cosmetic badge shown
+// Any reviewer can nominate a project as a "Beacon" - a cosmetic badge shown
 // wherever the project is displayed publicly (explore, project page), never
 // a payout/pixel effect. Gated on "review" rather than "ban", unlike the
 // staff actions above, since this is a grading call any reviewer can make.
+// Internal name (isPeak, is_peak, project_peak_marked) stays as-is, this is
+// a display rename only, not worth a DB migration.
 export async function toggleProjectPeak(formData: FormData): Promise<void> {
   const access = await requirePerm("review");
   const by = actorName(access);
