@@ -65,7 +65,7 @@ func _layout_name_label() -> void:
 	nl.custom_minimum_size = Vector2.ZERO
 	await get_tree().process_frame
 	nl.reset_size()
-	nl.position = Vector2(-nl.size.x * nl.scale.x / 2.0, -36.0 - nl.size.y * nl.scale.y)
+	nl.position = Vector2(-nl.size.x * nl.scale.x / 2.0, -33.0 - nl.size.y * nl.scale.y)
 
 func set_skin(desc: String) -> void:
 	skin = desc

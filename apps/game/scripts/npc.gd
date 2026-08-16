@@ -122,7 +122,7 @@ func _ready() -> void:
 		add_child(_quest_marker)
 	await get_tree().process_frame
 	nl.reset_size()
-	nl.position = Vector2(-nl.size.x * nl.scale.x / 2.0, -42.0 - nl.size.y * nl.scale.y)
+	nl.position = Vector2(-nl.size.x * nl.scale.x / 2.0, -33.0 - nl.size.y * nl.scale.y)
 	if _quest_marker:
 		_quest_marker.reset_size()
 		_quest_marker.position = Vector2(

@@ -806,6 +806,20 @@
       "when": 1782000113000,
       "tag": "0118_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1782000114000,
+      "tag": "0119_npcs",
+      "breakpoints": true
+    },
+    {
+      "idx": 116,
+      "version": "7",
+      "when": 1782000115000,
+      "tag": "0120_seed_npcs",
+      "breakpoints": true
     }
   ]
 }

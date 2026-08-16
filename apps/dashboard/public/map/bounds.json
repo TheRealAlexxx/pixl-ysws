@@ -1,0 +1,22 @@
+{
+  "_note": "GENERATED from apps/game/assets/map/bounds.json by `bun run map:sync` - do not edit",
+  "downscale": 1,
+  "worlds": {
+    "open_world": {
+      "h": 1449,
+      "ih": 1449,
+      "iw": 2248,
+      "w": 2248,
+      "x": -1374,
+      "y": -518
+    },
+    "village": {
+      "h": 465,
+      "ih": 465,
+      "iw": 975,
+      "w": 975,
+      "x": -623,
+      "y": -336
+    }
+  }
+}

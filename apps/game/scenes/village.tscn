@@ -48,7 +48,6 @@
 [ext_resource type="PackedScene" uid="uid://cabik8jgmamjt" path="res://scenes/cow.tscn" id="45_v06ig"]
 [ext_resource type="PackedScene" uid="uid://cr5ql2lricsg4" path="res://scenes/chicken.tscn" id="46_beyr0"]
 [ext_resource type="PackedScene" uid="uid://qsa6uqsdg76b" path="res://scenes/sheep.tscn" id="47_1baa2"]
-[ext_resource type="PackedScene" uid="uid://bnpcpixl00001" path="res://scenes/npc.tscn" id="48_npcs"]
 
 [sub_resource type="Curve2D" id="Curve2D_graze_big"]
 _data = {
@@ -2809,35 +2808,6 @@ route_path = NodePath("../SheepRoute")
 z_index = 10
 position = Vector2(-481, -74)
 route_path = NodePath("../Sheep3Route")
-
-[node name="Pip" parent="." unique_id=375969893 instance=ExtResource("48_npcs")]
-position = Vector2(120, -81)
-npc_name = "Pip"
-dialogue = "Built something? Talk to me to log your project."
-skin = "cvc:4"
-opens_projects = true
-
-[node name="Pixo" parent="." unique_id=284719003 instance=ExtResource("48_npcs")]
-position = Vector2(170, -20)
-npc_name = "Pixo"
-dialogue = "Hey! I'm Pixo. Got questions about how any of this works? Ask away."
-faq = true
-wanders = false
-
-[node name="Ridit" parent="." unique_id=771144221 instance=ExtResource("48_npcs")]
-visible = false
-position = Vector2(180, -140)
-npc_name = "Ridit"
-dialogue = "Howdy again, partner."
-skin = "cvc:3"
-quest_trial = true
-trial_name = "The Wall at the Sixteen Colors"
-trial_checkin = true
-quest_done = "Mabel's wall is back up, partner. Proud of you.
-The frontier's wide open now — plenty more Trials where that came from."
-trial_reminder = "Come to check on your work, partner. How's The Wall at the Sixteen Colors comin'?
-Get the noticeboard site posting and filterin', log your hours, ship it when it's real. I'll open the ledger."
-wanders = false
 
 [connection signal="body_entered" from="DoorTrigger" to="DoorTrigger" method="_on_body_entered"]
 [connection signal="body_exited" from="DoorTrigger" to="DoorTrigger" method="_on_body_exited"]

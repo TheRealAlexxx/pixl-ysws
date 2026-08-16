@@ -4,6 +4,7 @@ var can_transition: bool = false
 
 func _ready() -> void:
 	super._ready()
+	await spawn_world_npcs()
 	_sync_trial_givers()
 	await get_tree().create_timer(0.3).timeout
 	can_transition = true

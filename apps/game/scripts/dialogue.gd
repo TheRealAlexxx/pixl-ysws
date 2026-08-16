@@ -265,6 +265,10 @@ func _set_portrait(tex: Texture2D) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_open:
 		return
+	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		close()
+		return
 	# While the choice buttons are up, [E] is inert — the player must click one.
 	# Before that (prompt still typing / more prompt lines), [E] advances.
 	if _choosing and _choices.visible:

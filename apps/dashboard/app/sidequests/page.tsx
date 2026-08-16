@@ -1,47 +1,82 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePagePerm } from "@/lib/guard";
 import { listSidequests } from "@/lib/db";
 import { addSidequest, updateSidequest, toggleSidequest, deleteSidequest } from "@/app/actions";
+import { NpcsTab } from "@/app/sidequests/NpcsTab";
 import { PendingButton } from "@/app/_components/PendingButton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const dynamic = "force-dynamic";
 
+// Trials and the NPCs who hand them out are edited together: a Trial-giver is
+// just an NPC pointing at a Trial, so splitting them across two pages meant
+// bouncing between them to wire one up. Tabs live in the URL so the server
+// actions can redirect straight back to the one you were on.
+const TABS = [
+  { key: "trials", label: "Trials" },
+  { key: "npcs", label: "NPCs" },
+];
+
 export default async function SidequestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; created?: string; saved?: string }>;
+  searchParams: Promise<{ error?: string; created?: string; saved?: string; tab?: string }>;
 }) {
   const access = await requirePagePerm(["sidequests"]);
-  const { error, created, saved } = await searchParams;
+  const { error, created, saved, tab } = await searchParams;
   const quests = await listSidequests();
+  const activeTab = tab === "npcs" ? "npcs" : "trials";
+  const isNpc = created === "npc" || saved === "npc";
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">Sidequests</h1>
+        <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+          Trials &amp; NPCs
+        </h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-          The quest log every player sees in-game (J key). Players will unlock quests by
-          talking to the NPC you name here , the unlock wiring comes with the NPC work;
-          for now this is the master list.
+          The quest log every player sees in-game (J key), and the characters who hand
+          those quests out.
         </p>
+      </div>
+
+      <div className="inline-flex items-center rounded-lg border border-border p-0.5 bg-card">
+        {TABS.map((t) => (
+          <Button
+            key={t.key}
+            asChild
+            variant="ghost"
+            size="sm"
+            className={
+              activeTab === t.key
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                : ""
+            }
+          >
+            <Link href={t.key === "trials" ? "/sidequests" : "/sidequests?tab=npcs"}>
+              {t.label}
+            </Link>
+          </Button>
+        ))}
       </div>
 
       {created && (
         <Alert>
           <AlertDescription className="font-medium text-emerald-600 dark:text-emerald-400">
-            Sidequest added.
+            {isNpc ? "NPC added." : "Trial added."}
           </AlertDescription>
         </Alert>
       )}
       {saved && (
         <Alert>
           <AlertDescription className="font-medium text-emerald-600 dark:text-emerald-400">
-            Sidequest saved.
+            {isNpc ? "NPC saved." : "Trial saved."}
           </AlertDescription>
         </Alert>
       )}
@@ -51,8 +86,12 @@ export default async function SidequestsPage({
         </Alert>
       )}
 
+      {activeTab === "npcs" && <NpcsTab quests={quests} />}
+
+      {activeTab === "trials" && (
+      <>
       <Card className="p-5 md:p-6 gap-0">
-        <div className="text-base font-semibold mb-4">Add a sidequest</div>
+        <div className="text-base font-semibold mb-4">Add a trial</div>
         <form action={addSidequest} className="space-y-4">
           <div className="grid sm:grid-cols-3 gap-4">
             <Label className="block font-normal">
@@ -116,7 +155,7 @@ export default async function SidequestsPage({
             </Label>
           </div>
           <PendingButton className="bg-brand text-white border-transparent" pendingText="Adding…">
-            Add sidequest
+            Add trial
           </PendingButton>
         </form>
       </Card>
@@ -160,7 +199,7 @@ export default async function SidequestsPage({
                   variant="outline"
                   size="sm"
                   pendingText="Deleting…"
-                  confirm={`Delete sidequest "${q.name}"? This can't be undone.`}
+                  confirm={`Delete trial "${q.name}"? This can't be undone.`}
                   className="text-rose-600 border-rose-200 dark:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600"
                 >
                   Delete
@@ -218,10 +257,12 @@ export default async function SidequestsPage({
         ))}
         {quests.length === 0 && (
           <Card className="p-8 text-center text-muted-foreground text-sm">
-            No sidequests yet , the landing page&apos;s sidequest rewards are good seeds.
+            No trials yet, the landing page&apos;s trial rewards are good seeds.
           </Card>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

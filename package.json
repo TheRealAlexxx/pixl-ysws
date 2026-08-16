@@ -22,7 +22,9 @@
     "config:sync": "bun run packages/config/sync.ts",
     "theme:sync": "bun run packages/theme/sync.ts",
     "docs:build": "bun run packages/docs-engine/build.ts",
-    "previews:build": "bun run packages/docs-engine/build-previews.ts"
+    "previews:build": "bun run packages/docs-engine/build-previews.ts",
+    "map:sync": "bun run packages/map-sync/sync.ts",
+    "npcs:bake": "bun run apps/server/src/scripts/bake-npcs.ts"
   },
   "packageManager": "bun@1.3.13"
 }
