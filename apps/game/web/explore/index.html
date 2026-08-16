@@ -278,7 +278,7 @@ async function showProjects(q = "") {
   const projects = data.projects || [];
   view.querySelector(".spin").remove();
   view.insertAdjacentHTML("beforeend", projects.length === 0
-    ? `<div class="empty-note">NO PROJECTS YET — GO MAKE THE FIRST ONE!</div>`
+    ? `<div class="empty-note">NO PROJECTS YET, GO MAKE THE FIRST ONE!</div>`
     : `<div class="grid">${projects.map(projCard).join("")}</div>`);
 }
 
@@ -318,7 +318,7 @@ async function showLeaderboard(sub) {
             <span class="rank">#${p.rank}</span>
             <span class="bname">${Pixl.esc(p.display_name)}${p.you ? ' <span class="gold">← YOU</span>' : ""}</span>
             <span class="bpx px">${p.pixels.toLocaleString()} PX</span>
-          </div>`).join("") || '<div class="faint">No sprint pixels yet — be first!</div>'}
+          </div>`).join("") || '<div class="faint">No sprint pixels yet, be first!</div>'}
         </div>
         <div class="muted" style="font-size:13px;margin-top:10px">Your sprint total: ${Number(data.sprint.your_pixels || 0).toLocaleString()} PX</div>
       </div>` : "";

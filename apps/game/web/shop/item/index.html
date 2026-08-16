@@ -761,7 +761,7 @@
           $("buy-btn").disabled = false;
           $("buy-btn").textContent = "BUY";
         } else if (r.error === "sold_out") {
-          Pixl.toast("That option just sold out — pick another.", true);
+          Pixl.toast("That option just sold out, pick another.", true);
           await refreshStock();
           $("buy-btn").disabled = false;
           $("buy-btn").textContent = "BUY";
@@ -779,7 +779,7 @@
           return;
         }
         if (!selected.config_options && !stockOk()) {
-          Pixl.toast("That option just sold out — pick another.", true);
+          Pixl.toast("That option just sold out, pick another.", true);
           refreshStock();
           return;
         }

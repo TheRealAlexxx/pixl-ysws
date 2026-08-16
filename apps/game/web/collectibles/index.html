@@ -45,7 +45,7 @@
     <main class="wrap">
       <h1 class="page-title">COLLECTIBLES</h1>
       <div class="page-sub">
-        Spend the upvotes your projects have earned on cosmetics for your Builder. Upvotes are permanent —
+        Spend the upvotes your projects have earned on cosmetics for your Builder. Upvotes are permanent:
         every one someone gives your work stays in your account.
       </div>
       <div class="bal" id="bal" hidden>▲ <span class="up" id="bal-n">0</span> UPVOTES</div>
@@ -96,9 +96,9 @@
           balance = r.balance;
           c.owned = true;
           render();
-          Pixl.toast("Got it — " + c.name + " is yours.");
+          Pixl.toast("Got it, " + c.name + " is yours.");
         } else if (r.error === "insufficient_upvotes") {
-          Pixl.toast("Not enough upvotes yet — earn more by getting your projects upvoted.", true);
+          Pixl.toast("Not enough upvotes yet: earn more by getting your projects upvoted.", true);
         } else if (r.error === "already_owned") {
           c.owned = true; render();
         } else {

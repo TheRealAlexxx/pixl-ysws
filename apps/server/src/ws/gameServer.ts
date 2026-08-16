@@ -349,7 +349,7 @@ async function punishChat(
           type: "chat",
           userId: "__pixl__",
           displayName: "Pixl",
-          text: `⚠ Warning ${outcome.count}/7 — keep the chat clean. 7 violations = automatic ban.`,
+          text: `⚠ Warning ${outcome.count}/7: keep the chat clean. 7 violations = automatic ban.`,
         }),
       );
   } catch (e) {

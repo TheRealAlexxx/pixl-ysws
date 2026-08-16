@@ -35,7 +35,7 @@ export function buildDoubleDip(input: DoubleDipInput): DoubleDipResult {
     const when = matched.approvedAt
       ? new Date(matched.approvedAt * 1000).toISOString().slice(0, 10)
       : "unknown date";
-    const overlap = `It got ${matched.hours}h there (approved ${when}); the player claims ${claimedHours}h here — ${suggestedCap(claimedHours, matched.hours)}`;
+    const overlap = `It got ${matched.hours}h there (approved ${when}); the player claims ${claimedHours}h here, ${suggestedCap(claimedHours, matched.hours)}`;
     if (project.imported_ysws_entry_id) {
       return {
         systemNote: `SYSTEM: Imported from "${matched.ysws}" (${matched.url}) through the YSWS importer, so the prior ship was declared up front. ${overlap}`,
@@ -48,7 +48,7 @@ export function buildDoubleDip(input: DoubleDipInput): DoubleDipResult {
     }
     return {
       systemNote: `SYSTEM: ${matched.url} already appears in the Hack Club YSWS archive under "${matched.ysws}" but the player did NOT disclose it. Possible double dip. ${overlap}`,
-      flagDetail: `"${project.name}" shipped without disclosure — ${matched.url} found in the YSWS archive (${matched.ysws}, ${matched.hours}h)`,
+      flagDetail: `"${project.name}" shipped without disclosure: ${matched.url} found in the YSWS archive (${matched.ysws}, ${matched.hours}h)`,
     };
   }
 
@@ -58,7 +58,7 @@ export function buildDoubleDip(input: DoubleDipInput): DoubleDipResult {
       ? String(project.imported_ysws_approved_at).slice(0, 10)
       : "unknown date";
     return {
-      systemNote: `SYSTEM: Imported from "${project.imported_from_ysws}" through the YSWS importer, but its links no longer match the archive (edited since import). It got ${priorHours}h there (approved ${when}); the player claims ${claimedHours}h here — ${suggestedCap(claimedHours, priorHours)}`,
+      systemNote: `SYSTEM: Imported from "${project.imported_from_ysws}" through the YSWS importer, but its links no longer match the archive (edited since import). It got ${priorHours}h there (approved ${when}); the player claims ${claimedHours}h here, ${suggestedCap(claimedHours, priorHours)}`,
     };
   }
 

@@ -382,7 +382,7 @@ const Pixl = (() => {
         <div class="theme-menu" id="pixl-theme-menu" hidden></div>
       </div>`;
     const rail = token
-      ? `<div class="rest-chip" id="pixl-rest" title="Core Integrity — the community's Restoration progress" hidden>
+      ? `<div class="rest-chip" id="pixl-rest" title="Core Integrity: the community's Restoration progress" hidden>
             <span class="slot">${RE_ICON}</span>
             <span class="re">—</span>
             <span class="rl">CORE</span>
@@ -667,7 +667,7 @@ const Pixl = (() => {
   const ONBOARDING_STEPS = [
     {
       title: "Let's ship your first project",
-      body: "This is your <b>Builder Terminal</b> — where every project lives. I'll walk you through making your first one and shipping it. Skip anytime.",
+      body: "This is your <b>Builder Terminal</b>, where every project lives. I'll walk you through making your first one and shipping it. Skip anytime.",
     },
     {
       target: "#new-btn",
@@ -678,7 +678,7 @@ const Pixl = (() => {
     {
       target: "#f-name",
       title: "Name it",
-      body: "Say what you're building — like <b>“My portfolio site”</b> or <b>“Weather bot”</b>. Keep it short and real; you can rename it later.",
+      body: "Say what you're building, like <b>“My portfolio site”</b> or <b>“Weather bot”</b>. Keep it short and real; you can rename it later.",
     },
     {
       target: "#f-repo",
@@ -695,7 +695,7 @@ const Pixl = (() => {
     {
       target: "#f-save",
       title: "Create it",
-      body: "Save your project. Now go build it for real — come back whenever you've made progress and journal what you did.",
+      body: "Save your project. Now go build it for real, come back whenever you've made progress and journal what you did.",
     },
     {
       target: "#s-ship",
@@ -703,7 +703,7 @@ const Pixl = (() => {
       body: "Once it runs and you've logged at least <b>1 hour</b> on Hackatime, ship it for review. A reviewer credits you pixels + the prize. That's the whole loop.",
     },
     {
-      title: "That's it — go build",
+      title: "That's it, go build",
       body: "Not sure where to start? I wrote a step-by-step on making your first project. Hit <b>Done</b> to head back into the game whenever you're ready.",
       extra: { label: "Build your first project →", href: "/docs/first-project" },
     },
@@ -724,17 +724,17 @@ const Pixl = (() => {
     const intro = t
       ? {
           title: "Let's build your Trial",
-          body: `Pixo sent you over. You're building for <b>${esc(t.name)}</b> — this is your <b>Builder Terminal</b>. I'll get the project set up here, then you build it to the brief. Pop back to the game anytime; the checklist keeps your place.`,
+          body: `Pixo sent you over. You're building for <b>${esc(t.name)}</b>, this is your <b>Builder Terminal</b>. I'll get the project set up here, then you build it to the brief. Pop back to the game anytime; the checklist keeps your place.`,
         }
       : {
           title: "Let's make your first project",
-          body: "Pixo sent you over. This is your <b>Builder Terminal</b> — I'll get your first project set up here. Pop back to the game anytime; the checklist there keeps your place.",
+          body: "Pixo sent you over. This is your <b>Builder Terminal</b>, I'll get your first project set up here. Pop back to the game anytime; the checklist there keeps your place.",
         };
     const brief = t
       ? [
           {
             title: "What to build",
-            body: `<b>${esc(t.name)}</b>${t.region ? " · " + esc(t.region) : ""}<br><br>${esc(t.description || "")}${t.reward ? `<br><br><b>Reward:</b> ${esc(t.reward)}` : ""}<br><br>Build to this — you'll flag it for the Trial when you ship.`,
+            body: `<b>${esc(t.name)}</b>${t.region ? " · " + esc(t.region) : ""}<br><br>${esc(t.description || "")}${t.reward ? `<br><br><b>Reward:</b> ${esc(t.reward)}` : ""}<br><br>Build to this, you'll flag it for the Trial when you ship.`,
           },
         ]
       : [];
@@ -742,22 +742,22 @@ const Pixl = (() => {
       ? {
           target: "#f-name",
           title: "Name it",
-          body: `Name your project for the Trial — something like <b>“${esc(t.name)}”</b>. Short and real; you can rename it later.`,
+          body: `Name your project for the Trial, something like <b>“${esc(t.name)}”</b>. Short and real; you can rename it later.`,
         }
       : {
           target: "#f-name",
           title: "Name it",
-          body: "Say what you're building — like <b>“My portfolio site”</b>. Short and real; you can rename it later.",
+          body: "Say what you're building, like <b>“My portfolio site”</b>. Short and real; you can rename it later.",
         };
     const closing = t
       ? {
           title: "Now go build it",
-          body: `Head back into the game whenever — your <b>First Trial</b> checklist tracks the rest (build it, then ship it for <b>${esc(t.name)}</b>). Want a starting point? I wrote a first-site walkthrough with code.`,
+          body: `Head back into the game whenever, your <b>First Trial</b> checklist tracks the rest (build it, then ship it for <b>${esc(t.name)}</b>). Want a starting point? I wrote a first-site walkthrough with code.`,
           extra: { label: "First site (code) →", href: "/docs/first-site" },
         }
       : {
           title: "Now go build it",
-          body: "Head back into the game whenever — your <b>First Project</b> checklist tracks the rest (build it, then ship it). Want a starting point? I wrote the whole first site out for you, code and all.",
+          body: "Head back into the game whenever, your <b>First Project</b> checklist tracks the rest (build it, then ship it). Want a starting point? I wrote the whole first site out for you, code and all.",
           extra: { label: "Your first site (code) →", href: "/docs/first-site" },
         };
     return [
@@ -785,7 +785,7 @@ const Pixl = (() => {
       {
         target: "#f-save",
         title: "Create it",
-        body: "Save your project. That's the first checklist item done — hop back to the game and Pixo will point you at what's next.",
+        body: "Save your project. That's the first checklist item done, hop back to the game and Pixo will point you at what's next.",
       },
       closing,
     ];

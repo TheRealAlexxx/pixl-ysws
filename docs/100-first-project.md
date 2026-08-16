@@ -18,7 +18,7 @@ Make a folder, put your project in it, and push it to GitHub so a reviewer can s
 
 ## 3. Install Hackatime before you build
 
-This is the step people forget. Hackatime tracks the hours you spend coding, and those hours are what turn into pixels. Set it up in your editor **first**, then start building — time you spend before it's installed doesn't count. Full walkthrough in the [Hackatime setup guide](/docs/hackatime/).
+This is the step people forget. Hackatime tracks the hours you spend coding, and those hours are what turn into pixels. Set it up in your editor **first**, then start building. Time you spend before it's installed doesn't count. Full walkthrough in the [Hackatime setup guide](/docs/hackatime/).
 
 ## 4. Create the project in your Builder Terminal
 
@@ -26,12 +26,12 @@ Open the projects page, hit **+ NEW PROJECT**, give it a clear name, and paste y
 
 ## 5. Build it
 
-Now actually make the thing. Keep it in the same folder so Hackatime keeps tracking, commit to GitHub as you go, and don't worry about it being perfect — finished beats fancy.
+Now actually make the thing. Keep it in the same folder so Hackatime keeps tracking, commit to GitHub as you go, and don't worry about it being perfect: finished beats fancy.
 
 ## 6. Ship it
 
 When it runs and you've got at least an hour tracked, write up what it does and what you learned, and ship it for review. A reviewer checks it and credits you pixels plus the prize. See [Shipping](/docs/shipping/) and [Submitting](/docs/submitting/) for exactly what reviewers look for.
 
 ::: note That's the loop
-Build, track, ship, get rewarded — then do it again with the next one. Every project after this is the same five steps.
+Build, track, ship, get rewarded, then do it again with the next one. Every project after this is the same five steps.
 :::

@@ -16,7 +16,7 @@ Each chamber has an energy threshold. When the community total passes it, the ch
 
 ## The Chapter 1 community goal
 
-Right now the Vault holds one chamber: **7,500 RE**, community-wide. Every approved hour anyone ships, at any tier, adds to that total. Cross it, and the Core comes fully online — Chapter 1 closes and Chapter 2 opens for everyone, whether you personally shipped the RE that pushed it over or not.
+Right now the Vault holds one chamber: **7,500 RE**, community-wide. Every approved hour anyone ships, at any tier, adds to that total. Cross it, and the Core comes fully online: Chapter 1 closes and Chapter 2 opens for everyone, whether you personally shipped the RE that pushed it over or not.
 
 There's no per-player cut of that 7,500. It's the whole community pulling together inside the chapter's window, so a project doesn't have to be huge to matter: it all adds up.
 

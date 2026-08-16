@@ -174,7 +174,7 @@ async function load() {
   const data = await Pixl.api("/api/ideas" + (params.toString() ? "?" + params.toString() : ""));
   const ideas = data.ideas || [];
   view.innerHTML = ideas.length === 0
-    ? `<div class="empty-note">NO IDEAS YET — POST THE FIRST ONE!</div>`
+    ? `<div class="empty-note">NO IDEAS YET, POST THE FIRST ONE!</div>`
     : `<div class="idea-list">${ideas.map(ideaCard).join("")}</div>`;
 }
 

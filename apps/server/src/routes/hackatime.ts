@@ -88,7 +88,7 @@ router.get("/hackatime/callback", async (req, res) => {
   const code = typeof req.query.code === "string" ? req.query.code : "";
   const state = typeof req.query.state === "string" ? req.query.state : "";
   const userId = state ? verifyState(state) : null;
-  if (!code || !userId) return res.status(400).send(page("Connection failed — invalid request."));
+  if (!code || !userId) return res.status(400).send(page("Connection failed: invalid request."));
 
   try {
     const tokenRes = await fetch(`${BASE}/oauth/token`, {
@@ -117,7 +117,7 @@ router.get("/hackatime/callback", async (req, res) => {
       .select("id");
     if (error || !updated || updated.length === 0) {
       console.error("[hackatime] failed to save token", { userId, error, matched: updated?.length ?? 0 });
-      return res.status(500).send(page("Could not save your connection — no matching account. Try reopening the page from the game."));
+      return res.status(500).send(page("Could not save your connection, no matching account. Try reopening the page from the game."));
     }
 
     console.log("[hackatime] token saved for", userId);

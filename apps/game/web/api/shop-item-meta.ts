@@ -60,7 +60,7 @@ export default async function handler(req: MinimalReq, res: MinimalRes): Promise
           const title = `Pixl · ${item.name}`;
           const description = item.description
             ? item.description.slice(0, 200)
-            : `${item.name} — ${Math.round(item.price).toLocaleString()} px in the Pixl shop.`;
+            : `${item.name}: ${Math.round(item.price).toLocaleString()} px in the Pixl shop.`;
           const pageUrl = `${SITE}/shop/item?id=${id}`;
           const image = `${SITE}/api/shop-og?id=${id}`;
 

@@ -151,7 +151,7 @@ export async function runReportAnalysis(
       await supabase.from("notifications").insert({
         user_id: targetId,
         title: "Chat warning",
-        body: "Your recent chat was flagged as harmful by automated review after a player reported you. Keep it kind — continued behaviour like this leads to a ban.",
+        body: "Your recent chat was flagged as harmful by automated review after a player reported you. Keep it kind: continued behaviour like this leads to a ban.",
       });
     }
   }
@@ -171,10 +171,10 @@ export async function postReportToSlack(
   const url = `${DASH_URL}/reports/${reportId}`;
   const severe = ai != null && ai.verdict.toLowerCase() === "severe" && ai.score >= 80;
   const aiLine = ai
-    ? `\n:robot_face: AI: *${ai.verdict}* (${ai.score}/100) — ${ai.summary}`
+    ? `\n:robot_face: AI: *${ai.verdict}* (${ai.score}/100): ${ai.summary}`
     : "";
   const head = severe
-    ? `<!here> :rotating_light: *SEVERE* report against *${targetName}* — auto-warned, needs review`
+    ? `<!here> :rotating_light: *SEVERE* report against *${targetName}* (auto-warned, needs review)`
     : `:rotating_light: New report against *${targetName}*`;
   const text = `${head}\nReason: ${reason || "_none given_"}${aiLine}\n<${url}|Open in dashboard>`;
   try {

@@ -12,7 +12,7 @@ description: This is the actual code for a tiny personal page you can ship as yo
 
 Open VS Code, make a new folder (call it whatever, e.g. `my-page`), and inside it create two files: `index.html` and `style.css`.
 
-## 2. The page — `index.html`
+## 2. The page: `index.html`
 
 Paste this in. It's a whole webpage: a heading, a line about you, and a couple of links.
 
@@ -38,7 +38,7 @@ Paste this in. It's a whole webpage: a heading, a line about you, and a couple o
 </html>
 ```
 
-## 3. The style — `style.css`
+## 3. The style: `style.css`
 
 HTML on its own looks plain. This makes it look intentional.
 
@@ -58,16 +58,16 @@ a { color: #f4b942; }
 ul { list-style: none; padding: 0; display: flex; gap: 1rem; }
 ```
 
-Double-click `index.html` to open it in your browser. That's your site — live, on your own machine.
+Double-click `index.html` to open it in your browser. That's your site, live on your own machine.
 
 ## 4. Make it yours
 
-Change the name, the sentence, and the links. Add a second paragraph, a photo (`<img src="me.png">`), a list of things you've made — whatever. It only has to be real and yours. If you want more tags to play with, the [HTML guide](/docs/html/) covers the basics.
+Change the name, the sentence, and the links. Add a second paragraph, a photo (`<img src="me.png">`), a list of things you've made, whatever. It only has to be real and yours. If you want more tags to play with, the [HTML guide](/docs/html/) covers the basics.
 
 ## 5. Track, push, ship
 
 Before you spend real time on it, get [Hackatime](/docs/hackatime/) installed so your hours count. Then push the folder to GitHub (the [Git guide](/docs/git/) has the commands), create the project in your Builder Terminal, and ship it. Full checklist in [Build your first project](/docs/first-project/).
 
 ::: note Stuck?
-That's normal — everyone is at first. Ask in the Pixl help channel, or just ship the simplest version that works. Finished beats perfect.
+That's normal, everyone is at first. Ask in the Pixl help channel, or just ship the simplest version that works. Finished beats perfect.
 :::

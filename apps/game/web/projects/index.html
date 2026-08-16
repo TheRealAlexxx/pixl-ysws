@@ -1120,7 +1120,7 @@
       const RE_RATES = Pixl.config.economy.tierRePerHour;
       const LEVELS = [
         ["T1 Spark", "A first spark of Restoration: a simple site, script, or tiny tool."],
-        ["T2 Signal", "A focused app, CLI, or game with clean polish — one system back online."],
+        ["T2 Signal", "A focused app, CLI, or game with clean polish: one system back online."],
         ["T3 Grid", "Multiple systems working together: backend, state, infra."],
         ["T4 Beacon", "Deep systems work: complex architecture and serious scope."],
       ].map(([name, blurb], i) => [name, `${blurb} ${RE_RATES[i]} RE per hour.`]);
@@ -1131,27 +1131,27 @@
         repo_required: "Add a GitHub repo link before shipping.",
         demo_required: "Add a demo / playable link before shipping.",
         image_required: "Upload a thumbnail before shipping.",
-        repo_not_found: "That repo link doesn't load — is it public?",
+        repo_not_found: "That repo link doesn't load. Is it public?",
         demo_unreachable: "The demo link is unreachable.",
         demo_is_repo: "The demo can't be your GitHub repo. Use a playable build or a Releases page.",
         demo_invalid: "That demo link isn't a valid URL.",
         hackatime_hours_required:
           "Link Hackatime projects with at least 1 hour of coding first.",
         hackatime_unavailable:
-          "Hackatime is unreachable right now — try again in a bit.",
+          "Hackatime is unreachable right now, try again in a bit.",
         update_notes_required: "Describe what changed in this update.",
         update_notes_too_short: "Update notes need at least 100 characters.",
         already_shipped: "This one is already in the review queue.",
         project_banned: "This project is banned and can't be shipped.",
         cdn_not_configured: "Image uploads aren't configured on the server.",
-        cdn_failed: "Image upload failed — try again.",
+        cdn_failed: "Image upload failed, try again.",
         journal_too_short:
-          "Log more detail — journals need ~100 characters per hour.",
+          "Log more detail: journals need ~100 characters per hour.",
         not_in_review: "This project isn't in review.",
         trial_hours_below_minimum: "This Trial needs more tracked hours before you can ship it.",
         eligibility_attestation_required: "Confirm this isn't a school assignment or paid Hack Club work before shipping.",
       };
-      const err = (e) => ERRORS[e] || "Something went wrong — try again.";
+      const err = (e) => ERRORS[e] || "Something went wrong, try again.";
 
       let stats = null;
       let projects = [];
@@ -1233,8 +1233,8 @@
         // otherwise some time did land after the cutoff, just not enough yet.
         if (counted === 0)
           return Date.now() < HT_CUTOFF_MS
-            ? `wait for ${HT_CUTOFF_LABEL} — only hours tracked from then on count, and your ${Pixl.hours(total)} is all logged before it`
-            : `track time from ${HT_CUTOFF_LABEL} onward — your ${Pixl.hours(total)} was all logged before then`;
+            ? `wait for ${HT_CUTOFF_LABEL}: only hours tracked from then on count, and your ${Pixl.hours(total)} is all logged before it`
+            : `track time from ${HT_CUTOFF_LABEL} onward: your ${Pixl.hours(total)} was all logged before then`;
         return `≥ 1h tracked from ${HT_CUTOFF_LABEL} onward (you have ${Pixl.hours(counted)} of ${Pixl.hours(total)})`;
       }
 
@@ -1261,7 +1261,7 @@
         el.textContent =
           counted === total
             ? `${Pixl.hours(counted)} selected`
-            : `${Pixl.hours(counted)} counts (of ${Pixl.hours(total)} — rest predates ${HT_CUTOFF_LABEL})`;
+            : `${Pixl.hours(counted)} counts (of ${Pixl.hours(total)}, rest predates ${HT_CUTOFF_LABEL})`;
       }
 
       // Wires the Hackatime picker in whichever form it's rendered in (new
@@ -1274,7 +1274,7 @@
           box.addEventListener("change", () => {
             if (box.checked && box.dataset.beforeCutoff === "1") {
               Pixl.toast(
-                `"${box.value}" has coding time from before ${HT_CUTOFF_LABEL} — only time tracked after ${HT_CUTOFF_LABEL} will count toward shipping.`,
+                `"${box.value}" has coding time from before ${HT_CUTOFF_LABEL}: only time tracked after ${HT_CUTOFF_LABEL} will count toward shipping.`,
               );
             }
             updateHtTotal();
@@ -1295,12 +1295,12 @@
           slot.innerHTML = `
       <div class="ht-bar panel">
         <span class="ht-dot off"></span>
-        <span>HACKATIME NOT CONNECTED — hours can't be counted until you link it.${stats.error ? ` <span class="faint">(${Pixl.esc(stats.error)})</span>` : ""}</span>
+        <span>HACKATIME NOT CONNECTED, hours can't be counted until you link it.${stats.error ? ` <span class="faint">(${Pixl.esc(stats.error)})</span>` : ""}</span>
         <a class="btn" style="margin-left:auto" href="${Pixl.apiUrl("/hackatime/connect")}" target="_blank" rel="noopener" id="ht-connect">🔌 CONNECT</a>
       </div>`;
           $("ht-connect").addEventListener("click", () => {
             Pixl.toast(
-              "Finishing in the new tab — this page will refresh itself.",
+              "Finishing in the new tab, this page will refresh itself.",
             );
             const poll = setInterval(async () => {
               try {
@@ -1458,7 +1458,7 @@
       <div class="connect-card panel">
         <div style="font-size:48px;margin-bottom:12px"></div>
         <h2>NO PROJECTS YET</h2>
-        <p>Log what you're building, link it to Hackatime, journal as you go, then ship it for review — approved hours pay out in pixels.</p>
+        <p>Log what you're building, link it to Hackatime, journal as you go, then ship it for review: approved hours pay out in pixels.</p>
         <a class="btn" href="#new">+ START YOUR FIRST PROJECT</a>
       </div>
       <div class="panel-grid" id="feeds"></div>`;
@@ -1580,7 +1580,7 @@
         // Default to the linked Trial, or auto-select the one accepted Trial.
         const current =
           linkedId != null ? linkedId : trials.length === 1 ? Number(trials[0].id) : "";
-        const options = [`<option value="">Not for a Trial — my own idea</option>`]
+        const options = [`<option value="">Not for a Trial, my own idea</option>`]
           .concat(
             opts.map(
               (t) =>
@@ -1603,7 +1603,7 @@
                 .sort((a, b) => b.seconds - a.seconds)
                 .map(
                   (h) => `
-        <label${h.beforeCutoff ? ` title="Only time coded after ${HT_CUTOFF_LABEL} counts toward shipping — this project has older activity mixed in."` : ""}><input type="checkbox" name="ht" value="${Pixl.esc(h.name)}" data-before-cutoff="${h.beforeCutoff ? "1" : ""}" ${linked.has(h.name) ? "checked" : ""}>
+        <label${h.beforeCutoff ? ` title="Only time coded after ${HT_CUTOFF_LABEL} counts toward shipping: this project has older activity mixed in."` : ""}><input type="checkbox" name="ht" value="${Pixl.esc(h.name)}" data-before-cutoff="${h.beforeCutoff ? "1" : ""}" ${linked.has(h.name) ? "checked" : ""}>
         ${Pixl.esc(h.name)}<span class="h">${Pixl.hours(h.seconds)}</span>${h.beforeCutoff ? `<span class="faint" style="font-size:11px"> ⚠ only time after ${HT_CUTOFF_LABEL} counts</span>` : ""}</label>`,
                 )
                 .join("")
@@ -1674,7 +1674,7 @@
           <input type="checkbox" id="f-update" checked>
           This is an update to a shipped project
         </label>
-        <p class="disclosure-desc">You already shipped this project, so this counts as an update. Tell reviewers what you added or changed since the last approval — a description is required to ship, and they'll only credit the new work.</p>
+        <p class="disclosure-desc">You already shipped this project, so this counts as an update. Tell reviewers what you added or changed since the last approval: a description is required to ship, and they'll only credit the new work.</p>
         <div class="form-row" id="f-update-notes-row">
           <label>WHAT DID YOU CHANGE? *</label>
           <div class="ta-wrap">
@@ -1694,7 +1694,7 @@
           <input type="checkbox" id="f-ai" ${p.used_ai ? "checked" : ""}>
           I used AI on this project
         </label>
-        <p class="disclosure-desc">Tick this if AI was part of your workflow. Reviewers care less about the fact and more about what you did with the output — be honest and specific. Heavy AI use without your own polish gets rejected. Only you and reviewers see this, never the public.</p>
+        <p class="disclosure-desc">Tick this if AI was part of your workflow. Reviewers care less about the fact and more about what you did with the output: be honest and specific. Heavy AI use without your own polish gets rejected. Only you and reviewers see this, never the public.</p>
         <div class="form-row" id="f-ai-notes-row" ${p.used_ai ? "" : "hidden"}>
           <label>WHAT DID YOU USE AI FOR? *</label>
           <div class="ta-wrap">
@@ -1819,7 +1819,7 @@
         ${p.sidequest_name ? `<span class="chip teal">TRIAL: ${Pixl.esc(p.sidequest_name)}</span>` : ""}
       </div>
       ${p.status === "needs_changes" && p.review_note ? `<div class="note-strip" style="margin-bottom:14px">REVIEWER: ${Pixl.esc(p.review_note)}</div>` : ""}
-      ${p.rejected_at ? `<div class="note-strip" style="margin-bottom:14px">REJECTED${p.reject_reason ? ": " + Pixl.esc(p.reject_reason) : ""} — fix it up and ship again.</div>` : ""}
+      ${p.rejected_at ? `<div class="note-strip" style="margin-bottom:14px">REJECTED${p.reject_reason ? ": " + Pixl.esc(p.reject_reason) : ""}, fix it up and ship again.</div>` : ""}
       ${inReview ? "" : trialBriefHtml(trialForProject(p))}
       ${formHtml(p)}
 
@@ -1827,7 +1827,7 @@
       <div id="collab-slot" class="panel" style="padding:14px"><div class="spin"></div></div>
 
       <div class="section-h">SHIP IT</div>
-      ${!hasBirthday ? `<div class="note-strip"><a href="/account">Add your birthday</a> for Hack Club compliance — takes 10 seconds.</div>` : ""}
+      ${!hasBirthday ? `<div class="note-strip"><a href="/account">Add your birthday</a> for Hack Club compliance, takes 10 seconds.</div>` : ""}
       <div class="form-grid panel">
         <div class="ship-list">
           <div class="ship-item"><span class="${p.repo_url ? "ok" : "no"}">${p.repo_url ? "+" : "-"}</span> GitHub repo linked</div>
@@ -1852,7 +1852,7 @@
         ${
           inReview
             ? `
-        <div class="note-strip teal">This project is in the review queue — you can't edit it until it's reviewed. Unship it if you need to make changes.</div>
+        <div class="note-strip teal">This project is in the review queue, you can't edit it until it's reviewed. Unship it if you need to make changes.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn dark" id="s-ship" disabled>IN REVIEW</button>
           <button class="btn" id="s-unship">UNSHIP TO EDIT</button>
@@ -1862,7 +1862,7 @@
           <button class="btn" id="s-ship">
             ${isUpdate ? "SHIP UPDATE" : "SHIP FOR REVIEW"}
           </button>
-          <span class="faint" style="font-size:12px;margin-left:10px">Save your edits first — shipping uses what's saved.</span>
+          <span class="faint" style="font-size:12px;margin-left:10px">Save your edits first, shipping uses what's saved.</span>
         </div>`
         }
       </div>
@@ -1886,7 +1886,7 @@
             <span class="md-sep"></span>
             <button type="button" class="md-btn" data-md="preview" id="j-preview-btn" title="Toggle preview">PREVIEW</button>
           </div>
-          <textarea class="field" id="j-content" maxlength="5000" placeholder="What did you build today? Markdown supported — **bold**, # headings, - lists, links, code blocks. Paste an image to attach it."></textarea>
+          <textarea class="field" id="j-content" maxlength="5000" placeholder="What did you build today? Markdown supported: **bold**, # headings, - lists, links, code blocks. Paste an image to attach it."></textarea>
           <div class="md-preview" id="j-preview" hidden></div>
         </div>
         <input type="file" id="j-img-file" accept="image/png,image/jpeg,image/webp" hidden>
@@ -1911,7 +1911,7 @@
           $("s-ship").addEventListener("click", async () => {
             const blockers = shipBlockers(p, isUpdate);
             if (blockers.length) {
-              Pixl.toast("Can't ship yet — " + blockers.join("; ") + ".", true);
+              Pixl.toast("Can't ship yet: " + blockers.join("; ") + ".", true);
               return;
             }
             // Persist the form first so the Hackatime boxes the player ticked
@@ -1985,7 +1985,7 @@
         </div>`,
               )
               .join("")
-          : `<div class="faint" style="font-size:13px">No collaborators yet — view/log-hours only, they can't edit or ship this project.</div>`
+          : `<div class="faint" style="font-size:13px">No collaborators yet, view/log-hours only, they can't edit or ship this project.</div>`
       }
       ${
         isOwner
@@ -2009,7 +2009,7 @@
             if (r.ok) {
               Pixl.toast("Collaborator removed.");
               renderCollaborators(p);
-            } else Pixl.toast("Couldn't remove them — try again.", true);
+            } else Pixl.toast("Couldn't remove them, try again.", true);
           }),
         );
         const codeBtn = $("collab-code-btn");
@@ -2029,7 +2029,7 @@
               p.join_code = r.code;
               renderCollaborators(p);
               Pixl.toast(`Code generated: ${r.code}`);
-            } else Pixl.toast("Couldn't generate a code — try again.", true);
+            } else Pixl.toast("Couldn't generate a code, try again.", true);
           });
         const search = $("collab-search");
         const results = $("collab-results");
@@ -2062,7 +2062,7 @@
                 if (r.ok) {
                   Pixl.toast("Invite sent!");
                   renderCollaborators(p);
-                } else Pixl.toast(r.reason || "Couldn't send that invite — try again.", true);
+                } else Pixl.toast(r.reason || "Couldn't send that invite, try again.", true);
               }),
             );
           }, 250);
@@ -2168,7 +2168,7 @@
         }
         if (!stats || !stats.connected) {
           slot.innerHTML = `
-        <div class="faint" style="font-size:13px">Hackatime isn't connected — <a href="${Pixl.apiUrl("/hackatime/connect")}" target="_blank" rel="noopener">connect it</a> to track your own hours on this project.</div>`;
+        <div class="faint" style="font-size:13px">Hackatime isn't connected, <a href="${Pixl.apiUrl("/hackatime/connect")}" target="_blank" rel="noopener">connect it</a> to track your own hours on this project.</div>`;
           return;
         }
         const linked = new Set(collabRow.hackatimeProjects || []);
@@ -2192,7 +2192,7 @@
           const r = await Pixl.send("PUT", `/api/collaborators/${collabRow.id}/hackatime`, {
             hackatimeProjects: checked,
           });
-          Pixl.toast(r.ok ? "Saved!" : "Couldn't save — try again.", !r.ok);
+          Pixl.toast(r.ok ? "Saved!" : "Couldn't save, try again.", !r.ok);
         });
       }
 
@@ -2233,7 +2233,7 @@
               await loadProjects();
               await loadPendingInvites();
               route();
-            } else Pixl.toast("Couldn't accept — try again.", true);
+            } else Pixl.toast("Couldn't accept, try again.", true);
           }),
         );
         slot.querySelectorAll("[data-decline]").forEach((btn) =>
@@ -2242,7 +2242,7 @@
             if (r.ok) {
               Pixl.toast("Invite declined.");
               loadPendingInvites();
-            } else Pixl.toast("Couldn't decline — try again.", true);
+            } else Pixl.toast("Couldn't decline, try again.", true);
           }),
         );
       }
@@ -2415,7 +2415,7 @@
               return;
             el.disabled = true;
           });
-        if ($("f-save")) $("f-save").textContent = "IN REVIEW — CAN'T EDIT";
+        if ($("f-save")) $("f-save").textContent = "IN REVIEW: CAN'T EDIT";
       }
 
       async function unship(p) {
@@ -2431,7 +2431,7 @@
         const r = await Pixl.send("POST", `/api/projects/${p.id}/unship`);
         $("s-unship").disabled = false;
         if (!r.ok) return Pixl.toast(err(r.error), true);
-        Pixl.toast("Unshipped — it's a draft again, edit away.");
+        Pixl.toast("Unshipped, it's a draft again, edit away.");
         await loadProjects();
         renderProject(p.id);
       }
@@ -2476,7 +2476,7 @@
         if (!r.ok) {
           if (r.error === "trial_hours_below_minimum" && r.need != null)
             return Pixl.toast(
-              `This Trial needs at least ${r.need}h tracked — you're at ${r.have}h.`,
+              `This Trial needs at least ${r.need}h tracked, you're at ${r.have}h.`,
               true,
             );
           return Pixl.toast(err(r.error), true);
@@ -2642,7 +2642,7 @@
         if (!list) return;
         list.innerHTML =
           events.length === 0
-            ? `<div class="faint" style="font-size:13px;padding:8px">No history yet — ship it to start the timeline.</div>`
+            ? `<div class="faint" style="font-size:13px;padding:8px">No history yet, ship it to start the timeline.</div>`
             : events.map(tlRow).join("");
       }
 
@@ -2656,7 +2656,7 @@
         if (!list) return;
         list.innerHTML =
           entries.length === 0
-            ? `<div class="faint" style="font-size:13px;text-align:center;padding:14px">No entries yet — journal as you build, reviewers read these.</div>`
+            ? `<div class="faint" style="font-size:13px;text-align:center;padding:14px">No entries yet, journal as you build, reviewers read these.</div>`
             : entries
                 .map(
                   (e) => `
@@ -2813,7 +2813,7 @@
         if (!t) return "";
         return `
       <div class="trial-brief">
-        <div class="trial-brief-h">BUILDING FOR TRIAL — ${Pixl.esc(t.name)}${t.region ? ` · ${Pixl.esc(t.region)}` : ""}</div>
+        <div class="trial-brief-h">BUILDING FOR TRIAL: ${Pixl.esc(t.name)}${t.region ? ` · ${Pixl.esc(t.region)}` : ""}</div>
         ${t.description ? `<p class="trial-brief-desc">${Pixl.esc(t.description)}</p>` : ""}
         ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b></div>` : ""}
         <div class="trial-brief-note">Build to this spec. When you ship, it's flagged for this Trial in the picker below (change it if you're building something else).</div>

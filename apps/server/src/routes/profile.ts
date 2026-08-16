@@ -18,12 +18,12 @@ const router = Router();
 // Returns a human-readable rejection reason, or null when the name is fine.
 export function nameProblem(raw: string): string | null {
   const name = raw.trim();
-  if (name.length < 2) return "That name is too short — use at least 2 characters.";
-  if (name.length > 24) return "That name is too long — keep it under 24 characters.";
+  if (name.length < 2) return "That name is too short, use at least 2 characters.";
+  if (name.length > 24) return "That name is too long, keep it under 24 characters.";
   if (!/^[\p{L}\p{N} ._'-]+$/u.test(name))
     return "Only letters, numbers, spaces and . _ ' - are allowed.";
   if (containsBlocked(name))
-    return "That name isn't okay here. Pick something friendly — this is a warning.";
+    return "That name isn't okay here. Pick something friendly: this is a warning.";
   return null;
 }
 
