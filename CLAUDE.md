@@ -13,8 +13,10 @@ Pixl is a Bun/Turborepo monorepo (`bun` workspaces: `apps/*`, `packages/*`) for 
 | `apps/landing` | Next.js 16, React 19, Tailwind 4 | Marketing site (pixl.rsvp) |
 | `apps/dashboard` | Next.js 16, React 19, Tailwind 4, shadcn/radix, Supabase | Admin/review dashboard — moderation, tickets, review queue, stats |
 | `apps/pixorpheus` | Bun, TypeScript, Slack Bolt v4, Express, Supabase | Slack bot — tickets, AI chat, moderation DMs, slash commands |
+| `apps/pixo-dm` | Node (CommonJS), Express | Standalone Railway service that relays dashboard-initiated player DMs through Slack as Pixo — plain `node index.js`, not Bun-native; don't convert it unprompted |
 | `packages/config` | JSON + plain ESM | **Single source of truth** for the program's facts — name, launch date, Hackatime cutoff, canonical URLs, economy rates. See below. |
-| `packages/*` (`types`, `ui`, `utils`) | — | Currently scaffolded but empty; intended for shared code across apps |
+| `packages/theme` | JSON + plain ESM | **Single source of truth** for the LEDGER color palette (dark/light, web + Godot). See below. |
+| `packages/docs-engine` | Bun/TypeScript | Builds `docs/*.md` into static per-page HTML + OG preview cards under `apps/game/web/docs/`. See below. |
 
 Each app has its own `package.json`/scripts and is largely independent; they share only Supabase as a common data layer (each app talks to Supabase directly rather than through a shared internal API), plus Hack Club Auth/Slack OAuth for identity.
 
@@ -30,6 +32,10 @@ bun run dev                                  # run all apps' dev servers concurr
 bun run landing                              # turbo dev --filter=@pixl/landing
 bun run dashboard                             # turbo dev --filter=@pixl/dashboard
 bun run build                                # turbo build (all apps)
+bun run config:sync                          # regenerate committed config copies (packages/config)
+bun run theme:sync                           # regenerate committed theme/palette copies (packages/theme)
+bun run docs:build                           # regenerate apps/game/web/docs/* from docs/*.md (packages/docs-engine)
+bun run previews:build                       # regenerate OG preview cards for hand-authored web-shell pages (/shop, /ideas, ...)
 
 # Per-app (cd into the app, or use --cwd)
 bun run --cwd apps/server dev                # game server, tsx watch on src/index.ts
@@ -66,6 +72,19 @@ economy rates in an app — they all live in `packages/config/pixl.json`.
 Launch-state copy (Pixo's persona/FAQ, the Slack welcome messages) switches itself
 via `hasLaunched()` — there is no string to flip on launch day.
 
+### `packages/theme` (LEDGER palette, generated design tokens)
+
+`palette.json` is the one place the LEDGER palette (dark/light) lives as data — named
+color tokens the game, the web shell, and the docs previews all read.
+
+- Nothing imports `@pixl/theme` at runtime, for the same build-isolation reason as `@pixl/config`. Run `bun run theme:sync` after editing `palette.json`; it rewrites `apps/game/theme.json` (read by `apps/game/scripts/pixl_theme.gd`) and the token lines inside `apps/game/web/pixl.css`'s `:root{}` blocks, between `/* <pixl-theme:...> */` markers — both are committed but **generated, never hand-edit them**.
+- `godot.dark` only carries the token subset Godot actually consumes; `godot.light` doesn't exist yet (no light-mode design for the game) — `PixlTheme` falls back to `godot.dark` regardless of the player's web-shell choice.
+- `packages/docs-engine/src/og.ts` reads `web.dark` directly at build time for preview cards, so it never needs its own synced copy.
+
+### `packages/docs-engine` (docs build)
+
+`bun run docs:build` turns `docs/*.md` into one static page per doc under `apps/game/web/docs/<slug>/` (own `<head>`, OG tags, preview card), wiping and regenerating that output directory each run. Source files are named `<order>-<slug>.md` (order sets nav position, slug sets the URL). `{{token}}` placeholders pull from `packages/config/pixl.json` at build time — re-run after editing `pixl.json`; unknown tokens fail the build. `docs.css`/`docs.js` alongside the output are hand-maintained, not generated.
+
 ## Architecture notes
 
 ### `apps/server` (game server)
@@ -90,6 +109,10 @@ via `hasLaunched()` — there is no string to flip on launch day.
 - `models.json` lists OpenRouter models available to the AI chat/roast/fact features.
 - See `apps/pixorpheus/README.md` for the full slash-command reference and architecture table before modifying bot behavior.
 
+### `apps/pixo-dm` (Pixo DM relay)
+- Small standalone Express service (`index.js`, CommonJS, plain `node`/`require` — not Bun-native, deliberately not ported): exposes `POST /api/external/dm`, called by `apps/dashboard` to deliver a player DM through Slack as Pixo, authenticated with `EXTERNAL_API_KEY`.
+- Runs on its own Railway deployment separate from `apps/pixorpheus`; enforces a per-user, global, and daily rate limit in-process (in-memory, so state resets on redeploy) to bound blast radius if the API key leaks.
+
 ## Bun usage
 
 Default to Bun over Node.js/npm/yarn/pnpm across this repo (this applies to `apps/server` too, even though its `package.json` scripts currently invoke `tsx`/`node`/`drizzle-kit` directly — don't rewrite those scripts unprompted, but use `bun` for anything new).
@@ -107,3 +130,31 @@ Default to Bun over Node.js/npm/yarn/pnpm across this repo (this applies to `app
 - `Bun.$\`cmd\`` instead of `execa`.
 
 For HTML-import-based frontends (not used by the Next.js apps here, but the default for any new Bun frontend): `Bun.serve()` serving an `index.html` that `<script type="module" src="./frontend.tsx">`s a React entrypoint — no Vite. See `node_modules/bun-types/docs/**.mdx` for the full Bun API reference.
+
+## Communication style: Gen Z Developer Mode
+
+You are still an elite software engineer first. This section only governs tone in chat, not code.
+
+**Personality**
+- Talk naturally and casually, like a smart Gen Z programmer. Slang (`yo`, `fr`, `ngl`, `lowkey`, `cooked`, `W`, `L`, `based`, 💀, 🙏, 🔥) is fine but never forced into every sentence — natural over cringe.
+- React honestly: bug fixed → `W`; nasty bug → `bro we were COOKED`; clever fix → `that's actually kinda fire`; bad code → say it's bad straight up, no corporate hedging.
+- Match the user's energy — if they go serious, drop the slang.
+
+**Coding behavior stays unchanged**
+- Inspect the existing codebase before assuming. Follow existing architecture/conventions. Don't rewrite working code unprompted. Verify with tests/typecheck/build before claiming something works.
+
+**Scope**
+- Casual register + emojis are for chat prose only. Code, commit messages, UI copy, and docs stay clean and emoji-free — see the no-emojis and casual-commits conventions already in play for this repo.
+
+**Final response format** (when it's a real task, not chit-chat)
+
+**What I changed**
+- short bullet
+
+**Why**
+- brief explanation
+
+**Checks**
+- tests/build/typecheck results
+
+Core rule: speak like Gen Z, think like a senior engineer. For destructive commands or risky changes, drop the goofiness and warn clearly.
