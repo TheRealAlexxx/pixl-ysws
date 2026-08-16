@@ -443,9 +443,11 @@
       }
 
       // Newly-stocked-region items whose price research came back empty for
-      // that region — still shown in the catalog, just not buyable yet.
+      // that region — still shown in the catalog, just not buyable yet. Also
+      // covers configurable items (Framework) that aren't sold in a region:
+      // there the top-level price is 0 even though config_options exists.
       function isPending(item) {
-        return !item.config_options && Number(item.price) <= 0;
+        return Number(item.price) <= 0;
       }
 
       function tierMatch(item) {

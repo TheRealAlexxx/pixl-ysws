@@ -587,6 +587,21 @@
         $("buy-btn").classList.remove("teal");
 
         if (selected.config_options) {
+          // Configurable item not sold in this region: top-level price is 0
+          // (buy_shop_item also rejects price<=0 as not_for_sale). Show the
+          // NOT AVAILABLE state instead of a buildable configurator.
+          if (Number(selected.price) <= 0) {
+            $("detail-options").innerHTML = "";
+            $("detail-limited").innerHTML = "";
+            $("detail-price").innerHTML = "NOT AVAILABLE";
+            $("detail-price").classList.add("cant");
+            $("buy-btn").textContent = "NOT AVAILABLE YET";
+            $("buy-btn").disabled = true;
+            $("afford-fill").style.width = "0%";
+            $("afford-label").textContent = "Coming soon to this region.";
+            say("NOT SOLD IN YOUR REGION… YET.", 5000);
+            return;
+          }
           configPick = {};
           renderConfigurator();
           $("note-row").hidden = false;
