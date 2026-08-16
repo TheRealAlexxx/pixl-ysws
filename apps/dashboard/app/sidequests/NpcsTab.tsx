@@ -78,13 +78,24 @@ export async function NpcsTab({ quests }: { quests: SidequestRow[] }) {
   const [npcs, bounds] = await Promise.all([listNpcs(), loadBounds()]);
 
   const trials = quests.map((q) => ({ id: q.id, name: q.name, active: q.active }));
-  const markers = npcs.map((n) => ({
-    world: n.world,
-    npc_name: n.npc_name,
-    pos_x: n.pos_x,
-    pos_y: n.pos_y,
-  }));
   const trialById = new Map(quests.map((q) => [q.id, q]));
+  // Enough per marker to answer "what does that one do?" from the map itself,
+  // without scrolling down to find its card.
+  const markers = npcs.map((n) => {
+    const t = n.sidequest_id ? trialById.get(n.sidequest_id) : null;
+    return {
+      id: n.id,
+      world: n.world,
+      npc_name: n.npc_name,
+      pos_x: n.pos_x,
+      pos_y: n.pos_y,
+      kind: kindOf(n),
+      skin: n.skin,
+      trial: t && t.active ? t.name : null,
+      dialogue: n.dialogue,
+      active: n.active,
+    };
+  });
   const worlds = Object.keys(WORLD_LABEL).filter((w) =>
     npcs.some((n) => n.world === w),
   );

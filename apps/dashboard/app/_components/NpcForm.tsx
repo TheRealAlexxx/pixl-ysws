@@ -26,6 +26,10 @@ const KINDS = [
   { id: "faq", label: "Answers FAQs", hint: "Canned question picker sourced from the docs." },
 ];
 
+const KIND_LABEL: Record<string, string> = Object.fromEntries(
+  KINDS.map((k) => [k.id, k.label.toLowerCase()]),
+);
+
 // SkinUtil's nine pre-assembled characters. A custom cv1: composite can still be
 // typed in by hand; the server validates either shape.
 const PRESET_SKINS = Array.from({ length: 9 }, (_, i) => `cvc:${i + 1}`);
@@ -60,11 +64,19 @@ interface TrialLite {
   active: boolean;
 }
 
-interface Marker {
+// The already-placed NPCs drawn as dots on the map. Carries enough to answer
+// "what does that one do?" without leaving the form you're filling in.
+export interface Marker {
+  id: number;
   world: string;
   npc_name: string;
   pos_x: number;
   pos_y: number;
+  kind: string;
+  skin: string;
+  trial: string | null;
+  dialogue: string;
+  active: boolean;
 }
 
 function Field({
@@ -109,6 +121,9 @@ export function NpcForm({
   });
   const [kind, setKind] = useState(initial?.kind ?? "dialogue");
   const [skin, setSkin] = useState(initial?.skin ?? "cvc:1");
+  // The already-placed NPC whose dot was last clicked, shown as a read-only
+  // card under the map so you can check what's already there mid-edit.
+  const [picked, setPicked] = useState<Marker | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const b = bounds[world];
@@ -183,20 +198,37 @@ export function NpcForm({
             draggable={false}
           />
           {others
-            .filter((o) => o.world === world && o.npc_name !== initial?.npc_name && b)
-            .map((o) => (
-              <span
-                key={o.npc_name}
-                title={o.npc_name}
-                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground/70 ring-1 ring-background"
-                style={{
-                  left: `${((o.pos_x - b.x) / b.w) * 100}%`,
-                  top: `${((o.pos_y - b.y) / b.h) * 100}%`,
-                  width: 8,
-                  height: 8,
-                }}
-              />
-            ))}
+            .filter((o) => o.world === world && o.id !== initial?.id && b)
+            .map((o) => {
+              const isPicked = picked?.id === o.id;
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  title={o.npc_name}
+                  aria-label={`${o.npc_name}, ${o.kind}`}
+                  onClick={(e) => {
+                    // Without this the click also lands on the map underneath
+                    // and moves the NPC being edited.
+                    e.stopPropagation();
+                    setPicked(isPicked ? null : o);
+                  }}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ring-1 ring-background transition-transform hover:scale-150 ${
+                    isPicked
+                      ? "bg-foreground ring-2 scale-150"
+                      : o.active
+                        ? "bg-muted-foreground/70"
+                        : "bg-muted-foreground/30"
+                  }`}
+                  style={{
+                    left: `${((o.pos_x - b.x) / b.w) * 100}%`,
+                    top: `${((o.pos_y - b.y) / b.h) * 100}%`,
+                    width: 10,
+                    height: 10,
+                  }}
+                />
+              );
+            })}
           {inFrame && (
             <span
               className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand ring-2 ring-background"
@@ -204,6 +236,39 @@ export function NpcForm({
             />
           )}
         </div>
+        {picked && (
+          <div className="mt-2 rounded-md border bg-muted/40 p-3 text-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <span className="font-semibold">{picked.npc_name}</span>
+                <span className="text-muted-foreground"> · {KIND_LABEL[picked.kind] ?? picked.kind}</span>
+                {!picked.active && <span className="text-muted-foreground"> · hidden</span>}
+                <div className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+                  ({Math.round(picked.pos_x)}, {Math.round(picked.pos_y)}) · {picked.skin}
+                  {picked.trial ? ` · ${picked.trial}` : ""}
+                </div>
+                {picked.dialogue && (
+                  <div className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
+                    &ldquo;{picked.dialogue}&rdquo;
+                  </div>
+                )}
+                {picked.kind === "trial" && !picked.trial && (
+                  <div className="text-xs text-destructive mt-1">
+                    Hands out a Trial but has none linked, so it just talks in game.
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPicked(null)}
+                className="text-xs text-muted-foreground hover:text-foreground shrink-0"
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-3 mt-2">
           <Label className="font-normal text-sm flex items-center gap-1.5">
             x
@@ -224,7 +289,8 @@ export function NpcForm({
             />
           </Label>
           <span className="text-xs text-muted-foreground">
-            Click the map, or type exact coordinates.
+            Click the map to place, or type exact coordinates. Click a grey dot to see
+            what that NPC does.
           </span>
         </div>
       </div>
