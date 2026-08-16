@@ -3054,7 +3054,14 @@ export async function deleteSidequest(formData: FormData): Promise<void> {
   const id = Number(formData.get("id") ?? 0);
   if (!id) return;
   const { error } = await db.from("sidequests").delete().eq("id", id);
-  if (error) console.error("deleteSidequest", error.message);
+  if (error) {
+    console.error("deleteSidequest", error.message);
+    const msg =
+      error.code === "23503"
+        ? "Can't delete , a shipped project is still linked to this sidequest."
+        : "Couldn't delete the sidequest.";
+    redirect(`/sidequests?error=${encodeURIComponent(msg)}`);
+  }
   revalidatePath("/sidequests");
 }
 
