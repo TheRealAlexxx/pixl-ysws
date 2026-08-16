@@ -54,7 +54,11 @@ func _reveal_trial_npcs() -> void:
 			if is_instance_valid(n):
 				var tn := String(n.get("trial_name"))
 				hand_authored[tn] = true
-				n.set_present(active.has(tn))
+				var is_active := active.has(tn)
+				var changed := TrialFx.has_changed(tn, "active") if is_active else false
+				n.set_present(is_active)
+				if is_active and changed:
+					n.play_teleport_fx()
 		_spawn_dynamic_trial_npcs(quests, hand_authored)
 	)
 	if req.request(url) != OK:
@@ -99,6 +103,8 @@ func _spawn_dynamic_trial_npcs(quests: Array, skip_names: Dictionary) -> void:
 		inst.position = DYNAMIC_NPC_BASE + DYNAMIC_NPC_STEP * i
 		add_child(inst)
 		_dynamic_npcs.append(inst)
+		if TrialFx.has_changed(quest_name, "active"):
+			inst.play_teleport_fx()
 		i += 1
 
 # Decide whether to run the first-run arrival flow. Signed-in players are gated
