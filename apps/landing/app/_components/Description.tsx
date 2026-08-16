@@ -63,6 +63,7 @@ function VideoCard({ s, t }: { s: any; t: any }) {
           ref={videoRef}
           src={s.video}
           preload="auto"
+          autoPlay={!comingSoon}
           muted
           loop
           playsInline
