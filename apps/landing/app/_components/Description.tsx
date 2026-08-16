@@ -7,7 +7,7 @@ import { useLocale } from "./LocaleProvider";
 const videos = [
   "https://cdn.hackclub.com/019eee3b-5ab8-7923-9c8c-3a901acadfce/step-1.mp4",
   "https://cdn.hackclub.com/019eee3b-a3fa-7c98-8c0d-76f7b0ac78e4/step-2.mp4",
-  "/step-3.mp4",
+  "/step-3.mp4#t=0.5",
   "/step-4.mp4",
   "/step-5.mp4",
 ];
