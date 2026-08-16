@@ -618,7 +618,7 @@
       // qty stepper can update it without resetting the picked option/note.
       function updatePlainPriceUI() {
         if (Number(selected.price) <= 0) {
-          $("detail-price").innerHTML = "PRICE TBD";
+          $("detail-price").innerHTML = "NOT AVAILABLE";
           $("detail-price").classList.add("cant");
           $("buy-btn").textContent = "NOT AVAILABLE YET";
           $("buy-btn").disabled = true;
