@@ -121,7 +121,7 @@ export function Hero() {
           </motion.div>
         </div>
         <motion.div
-          className="absolute bottom-5 sm:bottom-8 flex flex-col items-center gap-2 select-none pointer-events-none"
+          className="absolute bottom-2 sm:bottom-4 flex flex-col items-center gap-2 select-none pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 1.4 }}
