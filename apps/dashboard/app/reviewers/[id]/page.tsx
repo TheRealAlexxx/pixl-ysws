@@ -14,10 +14,7 @@ import {
   reviewerStatsBySlackId,
   displayNamesBySlackId,
   auditFlags,
-  listReviewPayouts,
-  payoutTotalsBySlackId,
   type ReviewerStats,
-  type PayoutTotals,
 } from "@/lib/db";
 import { removeReviewer, setSecondPass } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
@@ -109,17 +106,13 @@ export default async function ReviewerPage({
   const implied = (isSuper || secondPassSlackIds().includes(slackId)) && !blocked;
   if (!inTable && !implied) notFound();
 
-  const [stats, audits, handle, playerNames, payouts, payoutTotals] = await Promise.all([
+  const [stats, audits, handle, playerNames] = await Promise.all([
     reviewerStatsBySlackId(),
     listReviewAudits(100, slackId),
     slackHandle(slackId),
     displayNamesBySlackId([slackId]),
-    listReviewPayouts(slackId, 50),
-    payoutTotalsBySlackId(),
   ]);
   const s = stats.get(slackId) ?? EMPTY_STATS;
-  const pay: PayoutTotals =
-    payoutTotals.get(slackId) ?? { earnedPixels: 0, paid: 0, pending: 0, cut: 0 };
   const display = admin?.name || handle || playerNames.get(slackId) || slackId;
   // Mirrors isSecondPassReviewer's env fallback: with SECOND_PASS_SLACK_IDS
   // unset, super admins qualify automatically, so the toggle button below must
@@ -246,105 +239,6 @@ export default async function ReviewerPage({
           <div className="text-xs text-muted-foreground mt-1">flagged reviews</div>
         </Card>
       </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Stat
-          label="pixels earned reviewing"
-          value={`${pay.earnedPixels} ($${(pay.earnedPixels * 0.07).toFixed(2)})`}
-        />
-        <Stat label="payouts settled" value={String(pay.paid)} />
-        <Stat label="payouts pending" value={String(pay.pending)} />
-        <Card className={`p-4 gap-0 ${pay.cut > 0 ? "ring-rose-300 dark:ring-rose-500/40" : ""}`}>
-          <div
-            className={`text-xl font-semibold tabular-nums leading-tight ${
-              pay.cut > 0 ? "text-rose-600 dark:text-rose-400" : ""
-            }`}
-          >
-            {pay.cut}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">payouts cut</div>
-        </Card>
-      </div>
-
-      {payouts.length > 0 && (
-        <div>
-          <div className="text-sm font-medium text-muted-foreground mb-3">
-            Payouts{payouts.length === 50 ? " (last 50)" : ""}
-          </div>
-          <Card className="overflow-hidden py-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="p-3">Project</TableHead>
-                  <TableHead className="p-3">For</TableHead>
-                  <TableHead className="p-3">Payout</TableHead>
-                  <TableHead className="p-3">Status</TableHead>
-                  <TableHead className="p-3">When</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payouts.map((p) => {
-                  const badge = VERDICT_BADGE[p.verdict] ?? {
-                    label: p.verdict,
-                    variant: "secondary" as const,
-                  };
-                  return (
-                    <TableRow
-                      key={p.id}
-                      className={
-                        p.cut_pct > 0 && p.status === "paid"
-                          ? "bg-rose-50/60 dark:bg-rose-500/[0.06] hover:bg-rose-50 dark:hover:bg-rose-500/10 align-top"
-                          : "align-top"
-                      }
-                    >
-                      <TableCell className="p-3">
-                        <Link
-                          href={`/projects/${p.project_id}`}
-                          className="font-bold hover:text-brand"
-                        >
-                          {p.project_name}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="p-3">
-                        <Badge variant={badge.variant}>{badge.label}</Badge>
-                      </TableCell>
-                      <TableCell className="p-3 tabular-nums whitespace-nowrap">
-                        {p.status === "paid" ? (
-                          <>
-                            {p.paid_pixels}/{p.full_pixels} px
-                            {p.cut_pct > 0 && (
-                              <div
-                                className="text-[0.7rem] text-rose-600 dark:text-rose-400 mt-1 max-w-64 whitespace-normal"
-                                title={p.cut_reason}
-                              >
-                                −{p.cut_pct}% , {p.cut_reason}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          `${p.full_pixels} px`
-                        )}
-                      </TableCell>
-                      <TableCell className="p-3 whitespace-nowrap">
-                        {p.status === "pending" ? (
-                          <Badge variant="secondary">awaiting final pass</Badge>
-                        ) : p.credited ? (
-                          <Badge variant="success">paid</Badge>
-                        ) : (
-                          <Badge variant="warning">no game account</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="p-3 text-muted-foreground whitespace-nowrap">
-                        {fmtDateTime(p.settled_at ?? p.created_at)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
-      )}
 
       <div>
         <div className="text-sm font-medium text-muted-foreground mb-3">
