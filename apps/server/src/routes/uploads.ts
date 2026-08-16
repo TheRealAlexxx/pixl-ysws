@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import { verifySessionToken } from "../auth/session.js";
-import { checkImageSafe } from "../imageModeration.js";
+import { checkImageSafe, MAX_MODERATE_BYTES } from "../imageModeration.js";
 
 const router = Router();
 
@@ -11,7 +11,7 @@ const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
 // Proxy image uploads to the Hack Club CDN so the key stays server-side.
 router.post(
   "/api/uploads",
-  express.raw({ type: IMAGE_TYPES, limit: "8mb" }),
+  express.raw({ type: IMAGE_TYPES, limit: MAX_MODERATE_BYTES }),
   async (req, res) => {
     const token = typeof req.query.token === "string" ? req.query.token : "";
     const session = token ? verifySessionToken(token) : null;

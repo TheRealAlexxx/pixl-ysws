@@ -1,5 +1,7 @@
 const MODEL = "google/gemini-2.5-flash-lite";
-const MAX_MODERATE_BYTES = 5_000_000;
+// Exported so uploads.ts can cap the accepted body size at exactly this —
+// anything bigger than what we actually moderate must never be accepted at all.
+export const MAX_MODERATE_BYTES = 5_000_000;
 
 // Vision moderation for user-uploaded images (journals, chat, thumbnails).
 // Fails OPEN on missing key / network / parse errors so uploads never hard-break
