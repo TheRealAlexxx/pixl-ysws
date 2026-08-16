@@ -163,12 +163,20 @@ function levelBadge(p) {
 
 function avatarHtml(p) {
   const letter = Pixl.esc(String(p.display_name || "?").trim().charAt(0).toUpperCase() || "?");
-  let src = "";
-  if (p.id && p.card_pixelate !== false)
-    src = Pixl.apiUrl(`/api/pixify?user=${encodeURIComponent(p.id)}&size=48`);
-  else if (p.avatar_url) src = String(p.avatar_url);
+  const avatarUrl = p.avatar_url ? String(p.avatar_url) : "";
+  const pixifySrc =
+    p.id && p.card_pixelate !== false
+      ? Pixl.apiUrl(`/api/pixify?user=${encodeURIComponent(p.id)}&size=48`)
+      : "";
+  const src = pixifySrc || avatarUrl;
   if (!src) return `<div class="avatar">${letter}</div>`;
-  return `<div class="avatar"><img src="${Pixl.esc(src)}" alt="" loading="lazy" onerror="this.parentNode.textContent='${letter}'"></div>`;
+  // Pixify pulls from Slack and can 404/503 (no Slack photo, service down);
+  // fall back to the player's own uploaded pfp before giving up on a letter.
+  const fallback = pixifySrc && avatarUrl ? Pixl.esc(avatarUrl) : "";
+  const onerror = fallback
+    ? `this.onerror=function(){this.parentNode.textContent='${letter}'};this.src='${fallback}'`
+    : `this.parentNode.textContent='${letter}'`;
+  return `<div class="avatar"><img src="${Pixl.esc(src)}" alt="" loading="lazy" onerror="${onerror}"></div>`;
 }
 
 function statusChip(p) {
