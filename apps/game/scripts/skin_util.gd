@@ -4,7 +4,17 @@ const PRESET_DIR := "res://assets/cozy-towns/CozyValley_Premium_1.3/Characters/-
 const BASE_DIR := "res://assets/cozy-towns/CozyValley_Basic_1.0/Characters/"
 const PREMIUM_DIR := "res://assets/cozy-towns/CozyValley_Premium_1.3/Characters/"
 const PREMIUM_HAIR_DIR := "res://assets/cozy-towns/CozyValley_Premium_1.3/Characters/Hairstyles/"
+const NPC_DIR := "res://assets/npcs/"
 const SHEET_SIZE := Vector2i(160, 576)
+
+# Named skins reserved for NPCs, addressed as "npc:<name>" on an NPC node's
+# `skin` export. Each value is a full 160x576 CozyValley-format sheet. These are
+# deliberately NOT accepted by is_valid() and never listed in the character
+# editor, so a player can never wear one — they're NPC-only.
+const NPC_SHEETS := {
+	"pixo": NPC_DIR + "pixo_char.png",
+	"cheetah": NPC_DIR + "cheetah_char.png",
+}
 
 const PORTRAIT_REGION := Rect2(0, 32, 32, 32)
 
@@ -19,6 +29,9 @@ static func encode_outfit(body: int, hair: int, top: int, bottom: int) -> String
 
 static func is_preset(desc: String) -> bool:
 	return desc.begins_with("cvc:")
+
+static func is_npc_skin(desc: String) -> bool:
+	return desc.begins_with("npc:")
 
 static func preset_index(desc: String) -> int:
 	if is_preset(desc):
@@ -52,6 +65,11 @@ static func random_outfit() -> String:
 	)
 
 static func resolve_sheet(desc: String) -> Texture2D:
+	if is_npc_skin(desc):
+		var p: String = NPC_SHEETS.get(desc.substr(4), "")
+		if p != "" and ResourceLoader.exists(p):
+			return load(p)
+		return load(PRESET_DIR + "char1.png")
 	if is_preset(desc):
 		return load(PRESET_DIR + "char%d.png" % preset_index(desc))
 	if desc.begins_with("cv1:"):
