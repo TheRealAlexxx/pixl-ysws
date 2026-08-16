@@ -5680,7 +5680,7 @@ collision_mask = 2
 script = ExtResource("46_boat1")
 target_marker = NodePath("../PlayerSpawn")
 destination_label = "Set sail"
-destination_labels = PackedStringArray("Main Island", "Far West")
+destination_labels = PackedStringArray("Main Island", "Dustline")
 destination_markers = Array[NodePath]([NodePath("../PlayerSpawn"), NodePath("../FarwestSpawn")])
 
 [node name="@CollisionShape2D@595" type="CollisionShape2D" parent="Pixlcraft Boat Trigger" unique_id=1648701318]

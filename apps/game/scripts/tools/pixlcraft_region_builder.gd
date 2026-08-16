@@ -904,7 +904,7 @@ static func _add_pixlcraft_boat(root: Node) -> void:
 	trigger.set_script(load("res://scripts/boat_trigger.gd"))
 	trigger.set("target_marker", NodePath("../PlayerSpawn"))
 	trigger.set("destination_label", "Set sail")
-	trigger.set("destination_labels", PackedStringArray(["Main Island", "Far West"]))
+	trigger.set("destination_labels", PackedStringArray(["Main Island", "Dustline"]))
 	var stops: Array[NodePath] = [NodePath("../PlayerSpawn"), NodePath("../FarwestSpawn")]
 	trigger.set("destination_markers", stops)
 	var shape := CollisionShape2D.new()
