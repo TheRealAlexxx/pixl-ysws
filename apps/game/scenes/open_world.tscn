@@ -5707,7 +5707,7 @@ skin = "cvc:5"
 quest_trial = true
 trial_name = "Draw It Before It's Real"
 quest_offer = "I draft what doesn't exist yet — maps, tilesets, whole regions — so the Core has a plan to rebuild from. Draft one yourself: a map, a tileset, at least two NPCs with dialogue, one sidequest hook. Then code a playable demo of it. Keep the art under half your logged hours — split the time log."
-quest_done = "Good job — that draft came together exactly right."
+quest_done = "Good job, that draft came together exactly right."
 trial_reminder = "How's the draft coming? Map, tileset, two NPCs, a hook — then make it playable. Half your hours on art, tops."
 wanders = false
 
