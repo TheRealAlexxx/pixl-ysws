@@ -2687,6 +2687,7 @@ position = Vector2(260, 50)
 collision_mask = 2
 script = ExtResource("44_ci1yp")
 target = "lobbies"
+sign_name = "LOBBIES"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorTrigger4" unique_id=990011227]
 position = Vector2(2, 6)
@@ -2703,6 +2704,13 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 11
 text = "Press E to open lobbies"
+
+[node name="LobbyBoat" type="Sprite2D" parent="." unique_id=990011300]
+z_index = 6
+position = Vector2(295, 88)
+texture = ExtResource("26_g4xun")
+region_enabled = true
+region_rect = Rect2(0, 0, 48, 32)
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=332008319]
 position = Vector2(60, -81)
