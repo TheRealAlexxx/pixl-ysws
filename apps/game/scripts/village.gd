@@ -3,7 +3,6 @@ extends "res://scripts/multiplayer_world.gd"
 # New Day-0 arrival flow (cinematic → Pixo greeting → naming → experience →
 # first Trial). Launched here on first arrival; the GuideHud manual is separate.
 const ONBOARDING := preload("res://scripts/onboarding.gd")
-const NPC_SCENE := preload("res://scenes/npc.tscn")
 const DYNAMIC_NPC_BASE := Vector2(250, -60)
 const DYNAMIC_NPC_STEP := Vector2(44, 0)
 
@@ -15,6 +14,7 @@ var _save_accum: float = 0.0
 
 func _ready() -> void:
 	super._ready()
+	await spawn_world_npcs()
 	_spawn_npcs()
 	if NetworkManager.is_connected_to_server():
 		NetworkManager.npc_init.connect(_on_npc_init)

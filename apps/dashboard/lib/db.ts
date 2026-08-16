@@ -1001,6 +1001,54 @@ export async function listSidequests(): Promise<SidequestRow[]> {
   return (data ?? []) as SidequestRow[];
 }
 
+// One row per NPC in the game world, mirroring the @export set on the client's
+// scripts/npc.gd. The client spawns these at world load, so an NPC can be added
+// or moved here without shipping a new game build.
+export interface NpcRow {
+  id: number;
+  world: string;
+  pos_x: number;
+  pos_y: number;
+  npc_name: string;
+  skin: string;
+  custom_hair: string;
+  custom_sheet: string;
+  dialogue: string;
+  opens_projects: boolean;
+  opens_explore: boolean;
+  quest_project: boolean;
+  faq: boolean;
+  quest_trial: boolean;
+  trial_checkin: boolean;
+  sidequest_id: number | null;
+  quest_offer: string;
+  quest_done: string;
+  trial_reminder: string;
+  wanders: boolean;
+  speed: number;
+  wander_radius: number;
+  min_wait: number;
+  max_wait: number;
+  active: boolean;
+  sort_order: number;
+  created_by: string;
+  created_at: string;
+}
+
+export async function listNpcs(): Promise<NpcRow[]> {
+  const { data, error } = await db
+    .from("npcs")
+    .select("*")
+    .order("world", { ascending: true })
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+  if (error) {
+    console.error("listNpcs", error.message);
+    return [];
+  }
+  return (data ?? []) as NpcRow[];
+}
+
 export interface PublicStats {
   players: number;
   approvedProjects: number;

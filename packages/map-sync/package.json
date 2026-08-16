@@ -1,0 +1,9 @@
+{
+  "name": "@pixl/map-sync",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "bun run sync.ts"
+  }
+}

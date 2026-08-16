@@ -71,7 +71,6 @@
 [ext_resource type="Texture2D" uid="uid://dd80x8iikj6q3" path="res://assets/pixlcraft/props/tree_dark_oak.png" id="69_272ge"]
 [ext_resource type="Texture2D" uid="uid://cs3aqd6oyu7o0" path="res://assets/pixlcraft/props/well.png" id="70_j68px"]
 [ext_resource type="Texture2D" uid="uid://bvcwhkxhpgoyy" path="res://assets/pixlcraft/props/lily_pad.png" id="71_btyyf"]
-[ext_resource type="PackedScene" uid="uid://bnpcpixl00001" path="res://scenes/npc.tscn" id="80_npcs"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1knqj"]
 texture = ExtResource("2_02ewf")
@@ -5686,54 +5685,6 @@ destination_markers = Array[NodePath]([NodePath("../PlayerSpawn"), NodePath("../
 [node name="@CollisionShape2D@595" type="CollisionShape2D" parent="Pixlcraft Boat Trigger" unique_id=1648701318]
 position = Vector2(10, -7)
 shape = SubResource("RectangleShape2D_7uuev")
-
-[node name="Ridit" parent="." unique_id=900000001 instance=ExtResource("80_npcs")]
-position = Vector2(-804, 460)
-npc_name = "Ridit"
-dialogue = "Howdy, partner. Welcome to the Dustline."
-skin = "cvc:3"
-quest_trial = true
-trial_name = "The Wall at the Sixteen Colors"
-quest_offer = "Made it out to the frontier, huh? Good. The Dustline's held on two hundred years without the Core's help, and it'll keep holding — but the noticeboard at the Sixteen Colors fell apart, and Mabel could use a hand rebuilding it as a proper site. Posts, browse, filter by type. That's the job."
-quest_done = "Good job, partner. The frontier's proud of you."
-trial_reminder = "Still on the noticeboard? Get it posting and filterin', log your hours, ship it when it's real. I'll open the ledger."
-wanders = false
-
-[node name="Wren" parent="." unique_id=900000002 instance=ExtResource("80_npcs")]
-position = Vector2(-1078, 571)
-npc_name = "Wren"
-dialogue = "Everything starts as a drawing before the Core can make it real."
-skin = "cvc:5"
-quest_trial = true
-trial_name = "Draw It Before It's Real"
-quest_offer = "I draft what doesn't exist yet — maps, tilesets, whole regions — so the Core has a plan to rebuild from. Draft one yourself: a map, a tileset, at least two NPCs with dialogue, one sidequest hook. Then code a playable demo of it. Keep the art under half your logged hours — split the time log."
-quest_done = "Good job, that draft came together exactly right."
-trial_reminder = "How's the draft coming? Map, tileset, two NPCs, a hook — then make it playable. Half your hours on art, tops."
-wanders = false
-
-[node name="Rill" parent="." unique_id=900000003 instance=ExtResource("80_npcs")]
-position = Vector2(-1134, 703)
-npc_name = "Rill"
-dialogue = "Carry enough water out here and you start wondering how deep the well really is."
-skin = "cvc:7"
-quest_trial = true
-trial_name = "How Deep Is It"
-quest_offer = "Nobody out here knows how deep the well runs 'til it runs dry. Build me a gauge: a sensor down the shaft, a readout up top, a warning when it's getting low. Has to run on battery for weeks, survive the dust, and work with no laptop tether."
-quest_done = "Good job. The well's finally got eyes on it."
-trial_reminder = "Gauge still coming along? Sensor down the shaft, readout up top, low-level warning — and it's gotta run for weeks on its own."
-wanders = false
-
-[node name="Cass" parent="." unique_id=900000004 instance=ExtResource("80_npcs")]
-position = Vector2(-763, 684)
-npc_name = "Cass"
-dialogue = "Two hundred years and the relay's never gone quiet. I aim to keep it that way."
-skin = "cvc:8"
-quest_trial = true
-trial_name = "Two Hundred Years of Sending"
-quest_offer = "The relay's carried word across the Dustline for two centuries — no wifi, no Core, just radio. Build me a repeater: two physical devices that pass a message across on radio alone, with a screen that clicks on arrival. If you'd rather build the software side, implement the protocol plus a playable packet-crossing simulator instead."
-quest_done = "Good job. The relay's in good hands now."
-trial_reminder = "Repeater still in pieces? Two devices, radio only, a screen that clicks when the message lands."
-wanders = false
 
 [connection signal="body_entered" from="DoorTrigger" to="DoorTrigger" method="_on_body_entered"]
 [connection signal="body_exited" from="DoorTrigger" to="DoorTrigger" method="_on_body_exited"]

@@ -167,7 +167,7 @@ export function Shell({
         { href: "/events", label: "Events", icon: "events", show: nav.events },
         {
           href: "/sidequests",
-          label: "Sidequests",
+          label: "Trials & NPCs",
           icon: "sidequests",
           show: nav.sidequests,
         },

@@ -3065,6 +3065,145 @@ export async function deleteSidequest(formData: FormData): Promise<void> {
   revalidatePath("/sidequests");
 }
 
+// ── NPCs ────────────────────────────────────────────────────────────────────
+// An NPC used to be a hand-placed node in the game's village.tscn/open_world.tscn,
+// so adding one meant opening the Godot editor and shipping a build. These write
+// the `npcs` table the client reads at world load instead.
+
+const NPC_WORLDS = new Set(["village", "open_world"]);
+
+// Mirrors SkinUtil.is_valid in the game: a cvc: preset or a cv1: composite.
+// Rejecting here keeps a typo from spawning an NPC with no sprite at all.
+const SKIN_RE = /^(cvc:[1-9]|cv1:b[1-3]h(\d|1[0-8])t([1-9]|1[0-8])o([1-9]|1[0-8]))$/;
+
+// npc.gd dispatches its modes as an if/elif chain, so they're mutually exclusive
+// at runtime. The form models that as one "kind" select rather than six
+// independent checkboxes that could contradict each other.
+const NPC_KINDS = {
+  dialogue: {},
+  projects: { opens_projects: true },
+  explore: { opens_explore: true },
+  trial: { quest_trial: true },
+  project_quest: { quest_project: true },
+  faq: { faq: true },
+} as const;
+
+type NpcKind = keyof typeof NPC_KINDS;
+
+function npcFields(formData: FormData, fail: (msg: string) => never) {
+  const world = String(formData.get("world") ?? "").trim();
+  if (!NPC_WORLDS.has(world)) fail("Pick a world.");
+
+  const npcName = String(formData.get("npcName") ?? "").trim().slice(0, 40);
+  if (!npcName) fail("An NPC needs a name.");
+
+  const skin = String(formData.get("skin") ?? "").trim();
+  if (!SKIN_RE.test(skin)) fail(`"${skin}" isn't a skin the game can resolve.`);
+
+  const posX = Number(String(formData.get("posX") ?? "").trim());
+  const posY = Number(String(formData.get("posY") ?? "").trim());
+  if (!Number.isFinite(posX) || !Number.isFinite(posY))
+    fail("Pick a spot on the map.");
+
+  const kind = String(formData.get("kind") ?? "dialogue") as NpcKind;
+  if (!(kind in NPC_KINDS)) fail("Pick what this NPC does.");
+
+  const trialIdRaw = String(formData.get("sidequestId") ?? "").trim();
+  const sidequestId = trialIdRaw === "" ? null : Number(trialIdRaw);
+  if (trialIdRaw !== "" && !Number.isFinite(sidequestId)) fail("Pick a valid Trial.");
+  if (kind === "trial" && sidequestId === null)
+    fail("A Trial-giver needs a Trial to hand out.");
+
+  const checkin = formData.get("trialCheckin") === "1";
+
+  return {
+    world,
+    npc_name: npcName,
+    pos_x: posX,
+    pos_y: posY,
+    skin,
+    dialogue: String(formData.get("dialogue") ?? "").trim().slice(0, 1000),
+    opens_projects: false,
+    opens_explore: false,
+    quest_project: false,
+    faq: false,
+    quest_trial: false,
+    ...NPC_KINDS[kind],
+    // Only meaningful on a Trial-giver; a check-in copy stays hidden until its
+    // Trial is active, so setting it on any other kind hides the NPC forever.
+    trial_checkin: kind === "trial" && checkin,
+    sidequest_id: kind === "trial" ? sidequestId : null,
+    quest_offer: String(formData.get("questOffer") ?? "").trim().slice(0, 1500),
+    quest_done: String(formData.get("questDone") ?? "").trim().slice(0, 1000),
+    trial_reminder: String(formData.get("trialReminder") ?? "").trim().slice(0, 1000),
+    wanders: formData.get("wanders") === "1",
+  };
+}
+
+function npcError(error: { message: string; code?: string }): string {
+  if (error.code === "23505")
+    return "An NPC with that name already exists in that world , the game keys saved positions on the name, so they have to be unique.";
+  if (error.code === "42P01")
+    return "Couldn't save , is the npcs migration applied?";
+  return "Couldn't save the NPC.";
+}
+
+export async function addNpc(formData: FormData): Promise<void> {
+  const access = await requirePerm("sidequests");
+  const fail = (msg: string): never =>
+    redirect(`/sidequests?tab=npcs&error=${encodeURIComponent(msg)}`);
+  const fields = npcFields(formData, fail);
+  const { error } = await db
+    .from("npcs")
+    .insert({ ...fields, created_by: actorName(access) });
+  if (error) {
+    console.error("addNpc", error.message);
+    fail(npcError(error));
+  }
+  revalidatePath("/sidequests");
+  redirect("/sidequests?tab=npcs&created=npc");
+}
+
+export async function updateNpc(formData: FormData): Promise<void> {
+  await requirePerm("sidequests");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const fail = (msg: string): never =>
+    redirect(`/sidequests?tab=npcs&error=${encodeURIComponent(msg)}`);
+  const fields = npcFields(formData, fail);
+  const { error } = await db.from("npcs").update(fields).eq("id", id);
+  if (error) {
+    console.error("updateNpc", error.message);
+    fail(npcError(error));
+  }
+  revalidatePath("/sidequests");
+  redirect("/sidequests?tab=npcs&saved=npc");
+}
+
+export async function toggleNpc(formData: FormData): Promise<void> {
+  await requirePerm("sidequests");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const { error } = await db
+    .from("npcs")
+    .update({ active: formData.get("active") === "1" })
+    .eq("id", id);
+  if (error) console.error("toggleNpc", error.message);
+  revalidatePath("/sidequests");
+}
+
+export async function deleteNpc(formData: FormData): Promise<void> {
+  await requirePerm("sidequests");
+  const id = Number(formData.get("id") ?? 0);
+  if (!id) return;
+  const { error } = await db.from("npcs").delete().eq("id", id);
+  if (error) {
+    console.error("deleteNpc", error.message);
+    redirect(`/sidequests?tab=npcs&error=${encodeURIComponent("Couldn't delete the NPC.")}`);
+  }
+  revalidatePath("/sidequests");
+}
+
 export async function createEvent(formData: FormData): Promise<void> {
   const access = await requirePerm("events");
   const type = String(formData.get("type") ?? "");

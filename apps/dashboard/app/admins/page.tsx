@@ -36,7 +36,7 @@ const PERM_INFO: Record<string, { label: string; desc: string }> = {
   shop: { label: "Shop", desc: "Manage the shop catalogue and stock" },
   fulfillment: { label: "Fulfillment", desc: "Process and ship shop orders" },
   events: { label: "Events", desc: "Create and run events" },
-  sidequests: { label: "Sidequests", desc: "Manage sidequests and trials" },
+  sidequests: { label: "Trials", desc: "Manage trials and the NPCs who hand them out" },
   story: { label: "Story", desc: "Edit story nodes and chapters" },
   goals: { label: "Community goals", desc: "Set and adjust community goals" },
   referrals: { label: "Referrals", desc: "View and manage referrals" },
