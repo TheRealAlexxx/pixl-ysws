@@ -125,11 +125,6 @@
             <div class="stat-s">lifetime, never spent</div>
           </div>
           <div class="stat card panel">
-            <div class="stat-k">Your rate</div>
-            <div class="stat-v" id="s-rate">—</div>
-            <div class="stat-s" id="s-rate-s">per shipped hour</div>
-          </div>
-          <div class="stat card panel">
             <div class="stat-k">Approved hours</div>
             <div class="stat-v" id="s-hrs">—</div>
             <div class="stat-s">signed off by a reviewer</div>
@@ -269,9 +264,6 @@
 
         $("s-px").textContent = Math.round(wallet.pixels || 0).toLocaleString();
         $("s-re").textContent = Math.round(wallet.re || 0).toLocaleString();
-        $("s-rate").textContent = Math.round(wallet.pxPerHour || 0) + " px";
-        $("s-rate-s").textContent =
-          "per shipped hour · $" + Number(wallet.usdPerHour || 0).toFixed(2) + "/h";
         $("s-hrs").textContent = Math.round(wallet.approvedHours || 0).toLocaleString();
 
         const level = wallet.level || 0;
