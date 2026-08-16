@@ -141,13 +141,25 @@ Two independent paths, because Joe's webhook is fire-and-forget with no retries.
 
 ### Webhook
 
-`apps/dashboard/app/api/joe/outcome/route.ts`, a `POST` handler.
+`apps/dashboard/app/api/joe/outcome/[key]/route.ts`, a `POST` handler.
 
-Joe sends no authentication header, only `Content-Type: application/json`, so
-the shared secret rides in the query string: the registered URL is
-`https://<dashboard>/api/joe/outcome?key=<JOE_WEBHOOK_SECRET>`. A mismatched or
-missing key returns 401. An unset `JOE_WEBHOOK_SECRET` returns 500 rather than
-accepting unauthenticated writes.
+Joe has no webhook authentication feature of its own, confirmed by the Joe team:
+it sends `Content-Type: application/json` and nothing else. There is no shared
+secret to receive from them, so the secret is ours alone. We generate it, embed
+it in the URL we register, and check it on the way in.
+
+It rides as a **path segment**, so the registered URL is
+`https://dash.pixl.hackclub.com/api/joe/outcome/<JOE_WEBHOOK_SECRET>`. A path
+segment is used rather than a query string because it cannot be dropped by URL
+normalisation anywhere between Joe's config field and our handler, and we have
+no way to test Joe's handling of query parameters before going live. A
+mismatched key returns 401. An unset `JOE_WEBHOOK_SECRET` returns 500 rather
+than accepting unauthenticated writes.
+
+This is the only authentication on the endpoint, so the URL is a credential:
+anyone holding it can post outcomes. That is acceptable because an outcome
+cannot approve a project or move money, it can only advance a project from
+`fraud_review` to a human reviewer who then decides everything that matters.
 
 The handler ignores any `event` other than `outcome.set`, resolves the project by
 `joe_project_id`, and writes `joe_trust_score`, `joe_outcome`, `joe_reason`,
