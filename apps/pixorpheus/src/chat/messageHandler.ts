@@ -1,5 +1,5 @@
 import { app } from "../slack/app.js";
-import { PIXL_CHANNELS, SILENCED_CHANNELS, TRAINING_CHANNEL } from "../constants.js";
+import { SILENCED_CHANNELS, TRAINING_CHANNEL } from "../constants.js";
 import { config, hasLaunched, launchDateLabel } from "../config.generated.js";
 import { botIdentity } from "../slack/identity.js";
 import { aiPost } from "../ai/client.js";
@@ -327,13 +327,14 @@ app.message(async ({ message, client }) => {
     }
   }
 
-  // Pixie coming up counts as summoning Pixo, but only on Pixl's own turf or
-  // where it's already talking — it must never barge into someone else's
-  // channel just because pixie's name was mentioned there.
-  const isPixieMoment = mentionsPixie && (isDM || mentionsBot || inActiveThread || PIXL_CHANNELS.includes(m.channel));
+  // Pixie is Hackpad's helper bot. Its name coming up only changes HOW Pixo
+  // talks about it, never whether Pixo speaks at all , someone talking to
+  // pixie is not talking to Pixo, and answering them anyway is barging into
+  // someone else's conversation.
+  const pixieFriendlyTone = mentionsPixie && (isDM || mentionsBot);
 
   if (m.thread_ts && welcomeThreads.has(m.thread_ts) && !mentionsBot) return;
-  if (!isDM && !mentionsBot && !inActiveThread && !isPixlQuestion && !isBotStartedThread && !isPixieMoment) return;
+  if (!isDM && !mentionsBot && !inActiveThread && !isPixlQuestion && !isBotStartedThread) return;
 
   const trimmedText = text.trim().toUpperCase();
 
@@ -504,11 +505,11 @@ app.message(async ({ message, client }) => {
   pending.messages.push({ user: m.user, text, name: senderBotName });
   if (m.user) pending.userId = m.user;
   pending.lastMsgTs = m.ts;
-  if (mentionsBot || isPixlQuestion || isBotStartedThread || isPixieMoment) pending.isMention = true;
-  if (isPixieMoment) pending.pixieFriendly = true;
+  if (mentionsBot || isPixlQuestion || isBotStartedThread) pending.isMention = true;
+  if (pixieFriendlyTone) pending.pixieFriendly = true;
   clearTimeout(pending.timer);
 
-  if (!mentionsBot && !isPixieMoment && !isDM && inActiveThread) {
+  if (!mentionsBot && !isDM && inActiveThread) {
     const wordCount = text.trim().split(/\s+/).length;
     if (wordCount < 4 && !text.includes("?")) return;
   }
@@ -613,7 +614,7 @@ app.message(async ({ message, client }) => {
       }
 
       let chimeMode = false;
-      if (!entry.isMention && !entry.pixieFriendly) {
+      if (!entry.isMention) {
         const tmCurrent = threadMemory.get(threadKey);
         if (!tmCurrent?.botInvited) {
           const vibe = await shouldChimeIn(entryTexts);
