@@ -41,11 +41,12 @@ body { overflow-y: auto; }
     text-decoration: none; font-size: 15px; border-radius: 0; line-height: 1.4;
     border: var(--bw) solid transparent;
     transition: color .13s ease, background .13s ease, border-color .13s ease, transform .12s ease; }
-  /* same two states as the shell sidebar: red block on hover, ink block when current */
-  .docs-nav a.section-link:hover { color: var(--panel-deep); background: var(--accent);
+  /* same two states as the shell sidebar: ink block on hover, red block when current */
+  .docs-nav a.section-link:hover { color: var(--panel-deep); background: var(--ink);
     border-color: var(--stroke); transform: translateX(3px); }
   .docs-nav a.section-link.active { color: var(--panel-deep); font-weight: 600;
-    background: var(--ink); border-color: var(--stroke); }
+    background: var(--accent); border-color: var(--stroke); }
+  .docs-nav a.section-link.active:hover { background: var(--accent); }
 
   /* on-this-page TOC — same family/sizing bump as the left nav so both
      sidebars read as one system. */

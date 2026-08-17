@@ -170,14 +170,17 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
   transition:background .13s ease,color .13s ease;
 }
 .nav a svg{width:14px;height:14px;flex-shrink:0}
-/* landing's menu hover: the row fills with red and the type flips to cream */
-.nav a:hover{color:var(--panel-deep);background:var(--accent);border-color:var(--stroke);transform:translateX(3px)}
+/* Hover is the ink block, active is the red one. Red is the louder color, so
+   it marks where you *are* rather than where the pointer happens to be. */
+.nav a:hover{color:var(--panel-deep);background:var(--ink);border-color:var(--stroke);transform:translateX(3px)}
 .nav a:hover .ic{background:var(--panel-deep);color:var(--ink)}
-/* active is the inverse block, the same way landing marks the current locale */
 .nav a.active{
-  color:var(--panel-deep);background:var(--ink);border-color:var(--stroke);
+  color:var(--panel-deep);background:var(--accent);border-color:var(--stroke);
 }
-.nav a.active .ic{background:var(--gold);color:var(--btn-ink)}
+.nav a.active .ic{background:var(--panel-deep);color:var(--ink)}
+/* hovering the row you're already on keeps the red, so it doesn't look like
+   the selection moved */
+.nav a.active:hover{background:var(--accent)}
 .sb-foot{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .back-to-game .arrow{display:inline-block;transition:transform .15s ease}
 .back-to-game:hover .arrow{transform:translateX(-3px)}
@@ -236,7 +239,7 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
     font-family:var(--pixel);font-size:11px;letter-spacing:.5px;text-align:center;
   }
   .nav-sheet .nav-sheet-grid a svg{width:20px;height:20px}
-  .nav-sheet .nav-sheet-grid a.active{background:var(--ink);color:var(--panel-deep)}
+  .nav-sheet .nav-sheet-grid a.active{background:var(--accent);color:var(--panel-deep)}
   @keyframes pxl-sheet-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .nav a{
     flex-direction:column;gap:3px;flex:1;justify-content:center;
