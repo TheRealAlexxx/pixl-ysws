@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useLocale } from "./LocaleProvider";
 
 // The bar is fixed and has no backdrop, so section content used to slide under
 // the docs button while you read. Rather than give it a
@@ -35,6 +36,7 @@ function useHideOnScrollDown(threshold = 120) {
 
 export function Menu() {
   const hidden = useHideOnScrollDown();
+  const { dict } = useLocale();
 
   return (
     <div
@@ -54,7 +56,7 @@ export function Menu() {
           href="/docs"
           className="font-pixel text-center px-3 py-1.5 text-lg sm:text-xl lg:text-2xl bg-[#ff8c37] text-[#F5EED2] cursor-pointer border-black border-r-4 border-t-2 border-l-2 border-b-4 hover:border-b-8 hover:-translate-y-0.5 hover:-translate-x-0.5 transition-all"
         >
-          open docs
+          {dict.menu.openDocs}
         </Link>
       </div>
     </div>

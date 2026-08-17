@@ -5,7 +5,8 @@
   },
   "menu": {
     "playTheGame": "¡Juega!",
-    "language": "Idioma"
+    "language": "Idioma",
+    "openDocs": "docs"
   },
   "easterEgg": {
     "title": "PIXLIFY — conversor de texto secreto",
@@ -25,7 +26,8 @@
     "errorNoEmail": "eh, pon tu email primero 👀",
     "errorInvalidEmail": "eso no parece un email real jaja",
     "scrollHint": "sigue bajando",
-    "openDash": "Abre tu panel"
+    "enterGame": "entrar al juego",
+    "openDash": "abrir panel"
   },
   "description": {
     "title": "¿Qué es Pixl?",

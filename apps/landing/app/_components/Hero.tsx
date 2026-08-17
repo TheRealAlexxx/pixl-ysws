@@ -107,7 +107,7 @@ export function Hero() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              enter the game
+              {t.enterGame}
             </motion.a>
             <motion.a
               href={DASH_URL}
@@ -115,7 +115,7 @@ export function Hero() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              open dashboard
+              {t.openDash}
             </motion.a>
             <Crew />
           </motion.div>
