@@ -12,8 +12,9 @@ Pixels are the currency of Pixl. You earn them by shipping.
 
 - {{basePx}} for every hour of shipped work, tracked through Hackatime
 - that rate climbs to {{maxPx}} an hour as a single project builds up Restoration Energy (see [Energy and levels](/docs/energy/))
-- most trials have a prize attached, and when a trial ship is approved you pick one: the prize, or the pixels that project earned. Whichever you don't take is gone, so take the one you actually want
-- every approved trial ship also banks {{trialBonusRe}} bonus Restoration Energy, whichever side of that choice you land on
+- most trials have a prize attached. the prize covers the trial's minimum hours, so when your ship is approved you keep the prize **and** get pixels at the normal rate for every hour you put in beyond that minimum
+- prefer pixels? you can skip the prize when it's approved and take all of your hours as pixels instead (no prize). it's one or the other for that first-minimum slice, and it's final
+- every approved trial ship also banks {{trialBonusRe}} bonus Restoration Energy, whichever way you go
 
 ## Spending pixels
 

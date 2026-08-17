@@ -392,7 +392,7 @@ func _start_trial_quest() -> void:
 	var offer := quest_offer.split("\n") if quest_offer != "" else PackedStringArray([String(trial.get("description", ""))])
 	var reward := String(trial.get("reward", ""))
 	if reward != "":
-		offer.append("Reward on completion: %s." % reward)
+		offer.append("Reward on completion: %s, plus pixels for any hours beyond the minimum." % reward)
 	Dialogue.ask(npc_name, offer,
 		PackedStringArray(["Accept this Trial", "I'll build my own idea", "Not right now"]),
 		PackedStringArray(["accept", "own", "no"]))

@@ -1994,11 +1994,12 @@
         if (inReview) lockForm();
         if ($("tr-item") && $("tr-px")) {
           const prize = p.trial_prize_name || "the Trial reward";
-          const heldPx = Math.round(Number(p.trial_held_px) || 0);
+          const total = Math.round(Number(p.trial_held_px) || 0);
+          const beyond = Math.max(total - Math.round(Number(p.trial_prize_px) || 0), 0);
           $("tr-item").addEventListener("click", () =>
-            claimTrialReward(p, "item", prize, heldPx),
+            claimTrialReward(p, "item", prize, total, beyond),
           );
-          $("tr-px").addEventListener("click", () => claimTrialReward(p, "pixels", prize, heldPx));
+          $("tr-px").addEventListener("click", () => claimTrialReward(p, "pixels", prize, total, beyond));
         }
         if ($("s-ship") && !inReview)
           $("s-ship").addEventListener("click", async () => {
@@ -2924,7 +2925,7 @@
         <div class="trial-brief-h">BUILDING FOR TRIAL: ${Pixl.esc(t.name)}${t.region ? ` · ${Pixl.esc(t.region)}` : ""}</div>
         ${t.description ? `<p class="trial-brief-desc">${Pixl.esc(t.description)}</p>` : ""}
         ${t.min_hours != null ? `<div class="trial-brief-hours">Minimum <b>${Pixl.esc(String(t.min_hours))}h</b> tracked to ship for this Trial.</div>` : ""}
-        ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b>, or the pixels this project earns. Once it's approved you pick one, not both.</div>` : ""}
+        ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b>${t.min_hours ? ` (covers the first ${t.min_hours}h)` : ""}, <b>plus pixels at the normal rate for every hour beyond that</b>. Prefer pixels only? You can skip the prize once it's approved and take all your hours as pixels instead.</div>` : ""}
         <div class="trial-brief-note">Build to this spec. When you ship, it's flagged for this Trial in the picker below (change it if you're building something else).</div>
       </div>`;
       }
@@ -2940,31 +2941,32 @@
           return `<div class="trial-claim"><div class="trial-claim-taken">Trial reward claimed: <b>${Pixl.esc(prize)}</b>. Track it in <a href="/orders/">your orders</a>.</div></div>`;
         if (choice === "pixels")
           return `<div class="trial-claim"><div class="trial-claim-taken">You took the pixels for this Trial instead of the reward.</div></div>`;
-        const px = Math.round(Number(p.trial_held_px) || 0);
+        const total = Math.round(Number(p.trial_held_px) || 0);
+        const beyond = Math.max(total - Math.round(Number(p.trial_prize_px) || 0), 0);
         return `
       <div class="trial-claim">
-        <div class="trial-claim-h">PICK YOUR TRIAL REWARD</div>
+        <div class="trial-claim-h">YOUR TRIAL REWARD</div>
         <p>
-          ${Pixl.esc(p.sidequest_name || "This Trial")} is done. Take the reward, or take the pixels this
-          project earned. It's one or the other, and it's final, so pick the one you actually want.
+          ${Pixl.esc(p.sidequest_name || "This Trial")} is done! By default you keep <b>${Pixl.esc(prize)}</b>${beyond > 0 ? ` and still earn <b>${beyond} pixels</b> for the hours past the minimum` : ""}.
+          Prefer pure pixels? Skip the prize to take all <b>${total}</b> instead. It's final either way.
         </p>
         <div class="trial-claim-opts">
-          <button class="btn" id="tr-item">TAKE ${Pixl.esc(prize.toUpperCase())}</button>
-          <button class="btn dark" id="tr-px">TAKE ${px} PIXELS</button>
+          <button class="btn" id="tr-item">KEEP ${Pixl.esc(prize.toUpperCase())}${beyond > 0 ? ` + ${beyond} PX` : ""}</button>
+          <button class="btn dark" id="tr-px">SKIP PRIZE, TAKE ${total} PX</button>
         </div>
       </div>`;
       }
 
-      async function claimTrialReward(p, choice, prize, px) {
+      async function claimTrialReward(p, choice, prize, total, beyond) {
         const body =
           choice === "item"
-            ? `You'll get "${prize}" and give up the ${px} pixels this project earned. This can't be undone.`
-            : `You'll get ${px} pixels and give up "${prize}". This can't be undone.`;
+            ? `You'll get "${prize}"${beyond > 0 ? ` plus ${beyond} pixels for the hours past the minimum` : ""}, and give up taking all ${total} pixels. This can't be undone.`
+            : `You'll get all ${total} pixels and give up "${prize}". This can't be undone.`;
         if (
           !(await Pixl.confirm({
-            title: choice === "item" ? "Take the reward?" : "Take the pixels?",
+            title: choice === "item" ? "Keep the prize?" : "Skip the prize?",
             body,
-            confirmText: choice === "item" ? "Take the reward" : "Take the pixels",
+            confirmText: choice === "item" ? "Keep the prize" : "Take all pixels",
           }))
         )
           return;
@@ -2975,7 +2977,9 @@
           return Pixl.toast(err(r.error), true);
         }
         Pixl.toast(
-          choice === "item" ? `"${prize}" is on the way, check your orders.` : `+${px} pixels.`,
+          choice === "item"
+            ? `"${prize}" is on the way${beyond > 0 ? ` (+${beyond} pixels)` : ""}, check your orders.`
+            : `+${total} pixels.`,
         );
         await loadProjects();
         renderProject(p.id);

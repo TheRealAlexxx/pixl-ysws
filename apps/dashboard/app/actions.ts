@@ -8,6 +8,7 @@ import {
   pxPerHourOver,
   reForHours,
   tierKickerUsd,
+  projectPayoutPx,
 } from "./_generated/config";
 import {
   notifyShopInsert,
@@ -447,6 +448,8 @@ interface BeneficiaryPayout {
   kickerPx: number;
   /** RE this ship earned, for the "you're now level N" line. */
   projectRe: number;
+  /** Community-goal multiplier applied to the payout (1 = none). */
+  goalMult: number;
 }
 
 // Credits one beneficiary (the project owner, or an accepted collaborator)
@@ -565,7 +568,7 @@ async function creditBeneficiary(
         .is("rewarded_at", null)
         .select("id")
         .maybeSingle();
-      if (!claimed) return { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx, kickerPx, projectRe };
+      if (!claimed) return { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx, kickerPx, projectRe, goalMult };
       await db.rpc("adjust_user_pixels", {
         p_user_id: referral.referrer_id,
         p_amount: tier.px,
@@ -599,7 +602,7 @@ async function creditBeneficiary(
     }
   }
 
-  return { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx, kickerPx, projectRe };
+  return { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx, kickerPx, projectRe, goalMult };
 }
 
 // Two-pass review. A shipped project always gets a first pass from *some*
@@ -935,18 +938,30 @@ export async function reviewProject(formData: FormData): Promise<void> {
     tierUsed,
     holdForTrial,
   );
-  const { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx } = ownerPayout;
+  const { totalPx, deltaPx, pxRate, xpBefore, goalNote, referralNote, alreadyPx, goalMult } = ownerPayout;
 
   const trialPrize = linkedTrial ? await trialPrizeFor(linkedTrial) : null;
 
+  // For a Trial ship, the prize "buys" the first min_hours of the project. Keep
+  // that slice's pixel value so settlement can pay the prize AND the pixels for
+  // everything beyond the minimum (see the trial-reward route in apps/server).
+  // Clamped to the full payout so a short ship (hours <= min) yields 0 extra.
+  const trialMinHours =
+    linkedTrial && linkedTrial.min_hours != null ? Math.max(Number(linkedTrial.min_hours), 0) : 0;
+  const trialPrizePx = linkedTrial
+    ? Math.min(Math.max(Math.round(projectPayoutPx(trialMinHours, tierUsed, 0) * goalMult), 0), totalPx)
+    : 0;
+
+  const trialBeyondPx = Math.max(totalPx - trialPrizePx, 0);
   let credited: string;
   if (holdForTrial && trialChoice !== "item") {
     credited =
-      `\n\nTrial "${linkedTrial!.name}" complete. Now pick your reward on the project page: ` +
-      `"${trialPrize!.name}" shipped to you, or ${totalPx} pixels. It's one or the other, ` +
-      `whichever you don't take is gone.`;
+      `\n\nTrial "${linkedTrial!.name}" complete! You've earned "${trialPrize!.name}" for the first ` +
+      `${trialMinHours}h, plus ${trialBeyondPx} pixels for the hours beyond that. Head to the project ` +
+      `page to claim the prize (default), or skip it and take all ${totalPx} pixels instead.`;
   } else if (holdForTrial) {
-    credited = `\n\nYou took "${trialPrize!.name}" as your Trial reward on this one, so no pixels for it.`;
+    credited =
+      `\n\nYou kept "${trialPrize!.name}" as your Trial reward on this one, plus the pixels for the hours past the ${trialMinHours}h minimum.`;
   } else if (alreadyPx > 0 && deltaPx > 0) {
     credited = `\n\n+${deltaPx} pixels for what's new (${totalPx} pixels total for this project , ${creditHours}h approved).`;
   } else if (alreadyPx > 0 && deltaPx <= 0) {
@@ -1064,7 +1079,7 @@ export async function reviewProject(formData: FormData): Promise<void> {
   if (holdForTrial && trialChoice !== "item") {
     const { error: choiceError } = await db
       .from("projects")
-      .update({ trial_reward_choice: "pending", trial_held_px: totalPx })
+      .update({ trial_reward_choice: "pending", trial_held_px: totalPx, trial_prize_px: trialPrizePx })
       .eq("id", projectId);
     if (choiceError) console.error("reviewProject (trial choice)", choiceError.message);
     else
@@ -1202,7 +1217,7 @@ export async function reReviewProject(formData: FormData): Promise<void> {
   // already taken stays taken , the prize order is out the door by then.
   await db
     .from("projects")
-    .update({ trial_reward_choice: "", trial_held_px: 0 })
+    .update({ trial_reward_choice: "", trial_held_px: 0, trial_prize_px: 0 })
     .eq("id", projectId)
     .eq("trial_reward_choice", "pending");
   for (const collaboratorId of await acceptedCollaboratorUserIds(projectId)) {

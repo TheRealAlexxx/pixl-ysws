@@ -98,7 +98,7 @@ func _spawn_dynamic_trial_npcs(quests: Array, skip_names: Dictionary) -> void:
 		var reminder := "Still working on \"%s\"? %s" % [quest_name, String(q.get("description", ""))]
 		var reward := String(q.get("reward", ""))
 		if reward != "":
-			reminder += " Reward on completion: %s." % reward
+			reminder += " Reward on completion: %s, plus pixels for any hours beyond the minimum." % reward
 		inst.quest_offer = reminder
 		inst.position = DYNAMIC_NPC_BASE + DYNAMIC_NPC_STEP * i
 		add_child(inst)

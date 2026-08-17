@@ -630,7 +630,7 @@ router.post("/api/projects/:id/trial-reward", async (req, res) => {
 
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, status, approved_hours, sidequest_id, trial_reward_choice, trial_held_px")
+    .select("id, name, status, approved_hours, sidequest_id, trial_reward_choice, trial_held_px, trial_prize_px")
     .eq("id", id)
     .eq("user_id", session.userId)
     .maybeSingle();
@@ -663,6 +663,11 @@ router.post("/api/projects/:id/trial-reward", async (req, res) => {
   if (!claimed) return res.status(409).json({ ok: false, error: "already_claimed" });
 
   const heldPx = Math.max(Number(project.trial_held_px) || 0, 0);
+  // The prize covers the Trial's minimum hours; those pixels (trial_prize_px)
+  // are what you forfeit by keeping the prize. Everything beyond the minimum is
+  // paid in pixels either way.
+  const prizePx = Math.max(Number(project.trial_prize_px) || 0, 0);
+  const beyondPx = Math.max(heldPx - prizePx, 0);
 
   if (choice === "pixels") {
     const { error } = await supabase.rpc("credit_project_pixels", {
@@ -719,12 +724,25 @@ router.post("/api/projects/:id/trial-reward", async (req, res) => {
     return res.status(500).json({ ok: false });
   }
   await supabase.from("projects").update({ trial_prize_order_id: order.id }).eq("id", id);
+  // Keeping the prize still pays out the pixels for hours past the minimum.
+  if (beyondPx > 0) {
+    const { error: pxError } = await supabase.rpc("credit_project_pixels", {
+      p_user_id: session.userId,
+      p_project_id: id,
+      p_amount: beyondPx,
+      p_hours: Number(project.approved_hours) || 0,
+      p_created_by: "trial_reward",
+    });
+    if (pxError) console.error("[projects] trial beyond-min pixels payout failed", pxError);
+  }
   void addNotification(
     session.userId,
     "Trial reward claimed",
-    `"${itemName}" is on its way for finishing "${trial.name}". Track it in your orders.`,
+    beyondPx > 0
+      ? `"${itemName}" is on its way for finishing "${trial.name}", plus ${beyondPx} pixels for the hours past the minimum. Track the prize in your orders.`
+      : `"${itemName}" is on its way for finishing "${trial.name}". Track it in your orders.`,
   );
-  res.json({ ok: true, choice, item: itemName });
+  res.json({ ok: true, choice, item: itemName, pixels: beyondPx });
 });
 
 // True for the project's owner, or an accepted collaborator (view/log-hours
