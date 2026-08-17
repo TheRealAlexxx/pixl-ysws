@@ -2,22 +2,30 @@
 /* ─────────────────────────────────────────────────────────────────────────
    PIXL — shared web-shell design system.
 
-   The look: a restored fragment of Pixl. A HUD/menu screen that could plausibly
-   ship *inside* the game — a pixel-art outpost UI floating over the Void, not a
-   dark SaaS panel. Chunky Pixelify Sans display type for labels/headings
-   (never for paragraphs), a clean Poppins for body copy, pixel-notch corners on
-   the hero HUD panels.
+   The look: the landing site (apps/landing), continued. Someone who clicks
+   "enter the game" off pixl.hackclub.com should not feel like they crossed
+   into a different product, so the shell and the docs now run landing's own
+   neo-brutalism rather than a theme of their own:
 
-   Palette: LEDGER, dark and light, practical and warm rather than
-   game-neon — see packages/theme/README.md for the full reasoning. Two
-   currencies, two accents, kept deliberately distinct:
-     • --gold  = amber, tuned to the actual currency icon's hue — the PIXELS
-       you personally earn + spend (money)
-     • --teal  = a muted sage, the RESTORATION ENERGY the community pours
-       into the Core (energy)
+     • cream paper (--panel-deep), near-black rules (--stroke), square corners
+     • borders thin on top/left and heavy on right/bottom (--bw/--bw-heavy),
+       so every box reads as a block lit from the top left
+     • hard offset shadows, solid ink, never blurred (--drop/--drop-lg)
+     • press-in-toward-the-light hover: shift up and left, grow the bottom edge
+     • Pixelify Sans for display type (labels, nav, buttons, headings, never
+       paragraphs), Poppins for body copy. Both already matched landing.
+
+   Two currencies keep their distinct accents:
+     • --gold = landing's orange, the PIXELS you earn and spend (money)
+     • --teal = the RESTORATION ENERGY poured into the Core (energy)
+   plus --accent, landing's red, for pure attention (active nav, menu hover).
 
    Token NAMES are frozen — every page (and the JS-injected tour/dialog) reads
    --gold/--teal/--panel/--pixel/etc. directly, so only their values change here.
+   Values live in packages/theme/palette.json (`bun run theme:sync`).
+
+   The Godot game is deliberately NOT part of this port yet and still runs the
+   older LEDGER gold-on-charcoal out of palette.json's separate godot.* set.
    ───────────────────────────────────────────────────────────────────────── */
 
 /* ── reset ── */
@@ -25,22 +33,25 @@
 html{font-size:15px;-webkit-text-size-adjust:100%}
 
 :root{
-  /* LEDGER DARK — neutral charcoal surfaces (deliberately not wood-brown)
-     so the gold accent pops as contrast instead of blending into the panel.
+  /* PIXL PAPER — the landing site's palette, verbatim: cream paper, near-black
+     rules, Hack Club red and orange. This is the base theme (not the dark one)
+     so a page painted before pixl.js runs already looks right instead of
+     flashing dark.
 
-     Token groups, darkest/deepest first: --ink/--dim/--faint/--muted are
-     text on graphite. --panel/--panel-2/--panel-deep are the charcoal
-     surfaces. --gold/--gold-soft are PIXELS, "coins you spend" — the same
-     value as Ledger Light, so it's one gold identity across both themes and
-     across the game. --teal/--teal-hover are RESTORATION ENERGY, a muted
-     sage. --good/--bad/--stroke are state colors. --btn-ink is the ink used
-     on top of a lit gold button.
+     Token groups: --ink/--dim/--faint/--muted are text on paper.
+     --panel/--panel-2/--panel-deep are the surfaces, --panel-deep being the
+     page's cream backdrop. --gold/--gold-soft are PIXELS, "coins you spend",
+     now landing's orange. --accent is landing's red, the one attention color
+     (active nav, dropdown hover). --teal/--teal-hover are RESTORATION ENERGY.
+     --good/--bad are state colors. --stroke is the black rule every border
+     draws in, which is what makes the neo-brutalist look hold together.
+     --btn-ink is the cream ink sitting on a filled button.
 
      Values come from packages/theme/palette.json (`bun run theme:sync`) —
      the marked block below is generated, do not hand-edit it. */
-  /* <pixl-theme:dark> */
-  --ink:#ece8e2;--dim:#a49e93;--faint:#77726a;--muted:#4f4b45;--panel:#211f1e;--panel-2:#2b2927;--panel-deep:#171615;--gold:#d99a1f;--gold-soft:#e8ac35;--teal:#4f8f7a;--teal-hover:#62a68d;--good:#4f9f62;--bad:#d1584f;--stroke:#38352f;--btn-ink:#241204;
-  /* <pixl-theme:dark:end> */
+  /* <pixl-theme:light> */
+  --ink:#16161e;--dim:#4a4a52;--faint:#6f6f78;--muted:#9a9aa2;--panel:#fffaf7;--panel-2:#f0e6cc;--panel-deep:#f5eed2;--gold:#ff8c37;--gold-soft:#ffa45c;--accent:#ec3750;--teal:#52aeb9;--teal-hover:#6bc3cd;--good:#3faa5f;--bad:#ec3750;--stroke:#16161e;--btn-ink:#f5eed2;
+  /* <pixl-theme:light:end> */
   /* Fixed (never redefined per-theme) light backing for product images/icons —
      a lot of shop art is a dark/black silhouette on a transparent PNG, which
      disappears against --panel-deep in dark mode. Product photos read the
@@ -51,14 +62,19 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
      --pixel stays the var name for the display face (used everywhere). */
   --sans:'Poppins',system-ui,-apple-system,sans-serif;
   --pixel:'Pixelify Sans',ui-monospace,system-ui,sans-serif;
-  /* neo-brutalist hard offset shadows (no blur, the block "pop") plus the
-     dithered-scanline texture layered onto panels. Generated from
-     palette.json's per-theme "effects" — hand-tuned rgba values, not a
-     formula off --ink, see packages/theme/README.md for why. */
-  /* <pixl-theme:dark:effects> */
-  --drop:2px 2px 0 rgba(0,0,0,.4);--drop-lg:4px 4px 0 rgba(0,0,0,.45);--dither:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);
-  /* <pixl-theme:dark:effects:end> */
-  --radius:4px;--radius-sm:3px;
+  /* Hard offset shadows, no blur and no alpha: the block just sits on the page
+     with a solid slab of ink behind it, exactly like landing's
+     shadow-[4px_4px_0px_#000]. --dither is "none" here, the paper look has no
+     scanline texture, but the token stays so panels can keep referencing it. */
+  /* <pixl-theme:light:effects> */
+  --drop:4px 4px 0 #16161e;--drop-lg:8px 8px 0 #16161e;--dither:none;
+  /* <pixl-theme:light:effects:end> */
+  /* Square. Landing never rounds a corner, and the whole look leans on that. */
+  --radius:0px;--radius-sm:0px;
+  /* Landing's border recipe: thin on the top/left, heavy on the right/bottom,
+     so every box reads as a solid block lit from the top left. --bw-lift is
+     what the bottom edge grows to on hover. */
+  --bw:2px;--bw-heavy:4px;--bw-lift:8px;
   /* the pixel-stepped corner (8-bit notch). --notch is tuned per component. */
   --notch:7px;
   --np:polygon(
@@ -69,15 +85,17 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
   --sidebar:260px;--toprail:54px;
 }
 
-/* LEDGER LIGHT — warm paper surfaces, practical and readable. Same gold and
-   teal as the dark variant, one identity across both themes. */
-:root[data-theme="light"]{
-  /* <pixl-theme:light> */
-  --ink:#2b2116;--dim:#6b5c46;--faint:#93826a;--muted:#b7aa8f;--panel:#fbf5e8;--panel-2:#f0e6cc;--panel-deep:#f6efdd;--gold:#d99a1f;--gold-soft:#e8ac35;--teal:#3f7a68;--teal-hover:#4f8f7a;--good:#3f8f52;--bad:#c1483f;--stroke:#e6d9b8;--btn-ink:#2b1a06;
-  /* <pixl-theme:light:end> */
-  /* <pixl-theme:light:effects> */
-  --drop:2px 2px 0 rgba(43,33,22,.15);--drop-lg:4px 4px 0 rgba(43,33,22,.19);--dither:repeating-linear-gradient(0deg,rgba(43,33,22,.02) 0 1px,transparent 1px 3px);
-  /* <pixl-theme:light:effects:end> */
+/* PIXL PAPER DARK — the same language inverted: ink surfaces, cream rules.
+   Landing itself has no dark mode, so this is the one place the port has to
+   invent rather than copy. The structure (square, chunky rules, hard shadow)
+   is identical, only the paper and the rule swap ends. */
+:root[data-theme="dark"]{
+  /* <pixl-theme:dark> */
+  --ink:#f5eed2;--dim:#c3bda8;--faint:#928d7e;--muted:#6b675d;--panel:#22222c;--panel-2:#2e2e3a;--panel-deep:#16161e;--gold:#ff8c37;--gold-soft:#ffa45c;--accent:#ec3750;--teal:#52aeb9;--teal-hover:#6bc3cd;--good:#4ade80;--bad:#ec3750;--stroke:#f5eed2;--btn-ink:#16161e;
+  /* <pixl-theme:dark:end> */
+  /* <pixl-theme:dark:effects> */
+  --drop:4px 4px 0 #000000;--drop-lg:8px 8px 0 #000000;--dither:none;
+  /* <pixl-theme:dark:effects:end> */
 }
 
 /* Kenney pixel cursor pack (CC0) — the arrow replaces the OS pointer everywhere
@@ -116,8 +134,7 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
   position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);z-index:40;
   display:flex;flex-direction:column;gap:4px;
   padding:16px 12px;
-  background:var(--panel);border-right:1px solid var(--stroke);
-  background-image:var(--dither);
+  background:var(--panel);border-right:var(--bw-heavy) solid var(--stroke);
 }
 .sb-logo{
   position:relative;
@@ -127,18 +144,11 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 }
 .sb-logo span span{color:var(--gold)}
 .sb-logo img{width:26px;height:26px;image-rendering:pixelated;position:relative}
-/* a lantern flicker behind the mark — the one bit of "alive" glow allowed
-   against the flat neo-brutalist palette, kept to --gold so it stays on-brand */
-.sb-logo-glow{
-  position:absolute;left:5px;top:5px;width:30px;height:30px;pointer-events:none;
-  background:radial-gradient(circle,color-mix(in srgb,var(--gold) 65%,transparent) 0%,transparent 70%);
-  filter:blur(7px);
-  animation:lantern-flicker 3.4s ease-in-out infinite;
-}
-@keyframes lantern-flicker{
-  0%,100%{opacity:.45;transform:scale(1)}
-  50%{opacity:.85;transform:scale(1.18)}
-}
+/* The lantern glow behind the mark is gone. It was a blurred radial halo, the
+   one soft edge in the old theme, and nothing on landing is soft. The element
+   is still emitted by pixl.js, so it's hidden here rather than chased through
+   the JS. */
+.sb-logo-glow{display:none}
 
 .nav{display:flex;flex-direction:column;gap:16px;flex:1;overflow-y:auto}
 .nav-group{display:flex;flex-direction:column;gap:2px}
@@ -148,44 +158,38 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 }
 .nav a{
   display:flex;align-items:center;gap:10px;
-  padding:6px 10px;border-radius:var(--radius-sm);
+  padding:6px 10px;border-radius:0;
   font-family:var(--pixel);font-size:14.5px;letter-spacing:.8px;font-weight:500;
-  color:var(--faint);border:1px solid transparent;
+  color:var(--ink);border:var(--bw) solid transparent;
   transition:color .13s ease,background .13s ease,border-color .13s ease,transform .12s ease;
 }
 .nav a .ic{
   width:26px;height:26px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  background:var(--panel-deep);border:1px solid var(--stroke);border-radius:2px;
-  transition:background .13s ease,border-color .13s ease,color .13s ease;
+  background:var(--panel-deep);border:var(--bw) solid var(--stroke);border-radius:0;
+  transition:background .13s ease,color .13s ease;
 }
 .nav a svg{width:14px;height:14px;flex-shrink:0}
-.nav a:hover{color:var(--ink);background:var(--panel-2);transform:translateX(3px)}
-.nav a:hover .ic{border-color:var(--gold)}
+/* landing's menu hover: the row fills with red and the type flips to cream */
+.nav a:hover{color:var(--panel-deep);background:var(--accent);border-color:var(--stroke);transform:translateX(3px)}
+.nav a:hover .ic{background:var(--panel-deep);color:var(--ink)}
+/* active is the inverse block, the same way landing marks the current locale */
 .nav a.active{
-  color:var(--gold);background:color-mix(in srgb,var(--gold) 13%,transparent);
-  border-color:color-mix(in srgb,var(--gold) 42%,transparent);
-  box-shadow:inset 3px 0 0 var(--gold);
+  color:var(--panel-deep);background:var(--ink);border-color:var(--stroke);
 }
-.nav a.active .ic{
-  background:var(--gold);border-color:var(--gold);color:var(--btn-ink);
-  animation:ic-pulse 2.6s ease-in-out infinite;
-}
-@keyframes ic-pulse{
-  0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 40%,transparent)}
-  50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 0%,transparent)}
-}
+.nav a.active .ic{background:var(--gold);color:var(--btn-ink)}
 .sb-foot{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .back-to-game .arrow{display:inline-block;transition:transform .15s ease}
 .back-to-game:hover .arrow{transform:translateX(-3px)}
 
+/* Opaque, not translucent-blurred: a frosted bar is a soft-UI idea and it
+   muddies the hard rule underneath it. */
 .toprail{
   position:fixed;top:0;left:var(--sidebar);right:0;height:var(--toprail);z-index:39;
   display:flex;align-items:center;justify-content:flex-end;gap:10px;
   padding:0 20px;
-  background:color-mix(in srgb,var(--panel-deep) 82%,transparent);
-  border-bottom:1px solid var(--stroke);
-  backdrop-filter:blur(6px);
+  background:var(--panel-deep);
+  border-bottom:var(--bw-heavy) solid var(--stroke);
 }
 
 /* The MORE button and its sheet are mobile-only: the desktop rail has room for
@@ -198,7 +202,7 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
   .sidebar{
     top:auto;left:0;right:0;bottom:0;width:auto;height:60px;
     flex-direction:row;gap:2px;padding:0 6px;
-    border-right:0;border-top:1px solid var(--stroke);
+    border-right:0;border-top:var(--bw-heavy) solid var(--stroke);
   }
   .sb-logo,.sb-foot{display:none}
   .nav{flex-direction:row;gap:2px;justify-content:space-around;overflow:visible}
@@ -215,25 +219,24 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
     color:var(--faint);transition:color .13s ease;
   }
   .nav-more svg{width:20px;height:20px}
-  .nav-more.open{color:var(--gold);box-shadow:inset 0 2px 0 var(--gold)}
+  .nav-more.open{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
   .nav-sheet{
     display:block;position:fixed;left:0;right:0;bottom:60px;z-index:41;
-    background:var(--panel);background-image:var(--dither);
-    border-top:1px solid var(--stroke);
-    box-shadow:0 -18px 40px rgba(0,0,0,.45);
+    background:var(--panel);
+    border-top:var(--bw-heavy) solid var(--stroke);
     padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));
     animation:pxl-sheet-up .16s ease;
   }
   .nav-sheet[hidden]{display:none}
-  .nav-sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+  .nav-sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .nav-sheet .nav-sheet-grid a{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-    padding:12px 4px;border-radius:var(--radius-sm);border:1px solid var(--stroke);
-    background:var(--panel-2);color:var(--dim);text-decoration:none;
+    padding:12px 4px;border-radius:0;border:var(--bw) solid var(--stroke);
+    background:var(--panel-deep);color:var(--ink);text-decoration:none;
     font-family:var(--pixel);font-size:11px;letter-spacing:.5px;text-align:center;
   }
   .nav-sheet .nav-sheet-grid a svg{width:20px;height:20px}
-  .nav-sheet .nav-sheet-grid a.active{color:var(--gold);border-color:var(--gold);box-shadow:none}
+  .nav-sheet .nav-sheet-grid a.active{background:var(--ink);color:var(--panel-deep)}
   @keyframes pxl-sheet-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .nav a{
     flex-direction:column;gap:3px;flex:1;justify-content:center;
@@ -242,31 +245,37 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
   }
   .nav a .ic{width:auto;height:auto;background:transparent;border:0}
   .nav a svg{width:20px;height:20px}
-  .nav a.active{background:transparent;color:var(--gold);box-shadow:inset 0 2px 0 var(--gold)}
-  .nav a.active .ic{background:transparent;color:var(--gold);animation:none}
+  /* In the 60px dock a filled block would swallow the whole cell, so the
+     current tab is marked with a thick rule along the top edge instead. */
+  .nav a.active{background:transparent;color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+  .nav a.active .ic{background:transparent;color:var(--accent)}
+  .nav a:hover{background:transparent;color:var(--accent);transform:none}
+  .nav a:hover .ic{background:transparent;color:var(--accent)}
   .toprail{left:0}
 }
 
 /* ── currency rail (top-right): two chips, deliberately distinct ── */
 .wallet-chip,.rest-chip{
   display:flex;align-items:center;gap:8px;
-  padding:5px 11px 5px 6px;border-radius:var(--radius-sm);
-  border:1px solid var(--stroke);background:var(--panel);
+  padding:5px 11px 5px 6px;border-radius:0;
+  border:var(--bw) solid var(--stroke);background:var(--panel);
   font-size:13px;cursor:default;font-variant-numeric:tabular-nums;
 }
+/* The currency's color lives in the icon slot and the number, not in a tinted
+   border: every rule on the page is the same black, that's the whole point. */
 .wallet-chip .slot,.rest-chip .slot{
   width:24px;height:24px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  background:var(--panel-deep);border:1px solid var(--stroke);border-radius:2px;
+  border:var(--bw) solid var(--stroke);border-radius:0;
 }
+.wallet-chip .slot{background:var(--gold)}
 .wallet-chip .slot img{width:16px;height:16px}
-.wallet-chip{border-color:color-mix(in srgb,var(--gold) 40%,var(--stroke))}
-.wallet-chip .px{color:var(--gold);font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:.2px;font-variant-numeric:tabular-nums}
-.wallet-chip .lv{color:var(--faint);font-size:11px;letter-spacing:.5px}
-.rest-chip{border-color:color-mix(in srgb,var(--teal) 40%,var(--stroke))}
+.wallet-chip .px{color:var(--ink);font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:.2px;font-variant-numeric:tabular-nums}
+.wallet-chip .lv{color:var(--dim);font-size:11px;letter-spacing:.5px}
+.rest-chip .slot{background:var(--teal)}
 .rest-chip .slot svg{width:15px;height:15px}
-.rest-chip .re{color:var(--teal);font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:.2px;font-variant-numeric:tabular-nums}
-.rest-chip .rl{color:var(--faint);font-size:11px;letter-spacing:.5px}
+.rest-chip .re{color:var(--ink);font-family:var(--sans);font-weight:700;font-size:16px;letter-spacing:.2px;font-variant-numeric:tabular-nums}
+.rest-chip .rl{color:var(--dim);font-size:11px;letter-spacing:.5px}
 @media (max-width:560px){
   .wallet-chip .lv,.rest-chip .rl{display:none}
   .rest-chip{display:none}
@@ -275,54 +284,72 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 /* ── theme toggle + help ── */
 .theme-toggle,.rail-btn{
   display:inline-flex;align-items:center;justify-content:center;
-  width:32px;height:32px;border-radius:var(--radius-sm);flex-shrink:0;
-  border:1px solid var(--stroke);background:var(--panel);color:var(--dim);
+  width:32px;height:32px;border-radius:0;flex-shrink:0;
+  border:var(--bw) solid var(--stroke);
+  border-right-width:var(--bw-heavy);border-bottom-width:var(--bw-heavy);
+  background:var(--panel);color:var(--ink);
   font-size:15px;cursor:pointer;line-height:1;font-family:var(--pixel);font-weight:700;
-  transition:color .13s ease,border-color .13s ease,background .13s ease;
+  transition:color .13s ease,background .13s ease,border-bottom-width .13s ease,transform .13s ease;
 }
-.theme-toggle:hover,.rail-btn:hover{color:var(--gold);border-color:var(--gold)}
+.theme-toggle:hover,.rail-btn:hover{
+  background:var(--accent);color:var(--panel-deep);
+  border-bottom-width:var(--bw-lift);transform:translate(-2px,-2px);
+}
 .theme-toggle svg,.rail-btn svg{width:16px;height:16px;image-rendering:pixelated}
 
-/* ── theme picker menu ── */
+/* ── theme picker menu ──
+   Structurally identical to landing's LanguageSwitcher dropdown: 2px black
+   rule, hard 4px offset shadow, current option is a solid black block with
+   cream type, everything else flips to red on hover. */
 .theme-picker{position:relative}
 .theme-menu{
-  position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:150px;
-  display:flex;flex-direction:column;gap:2px;padding:6px;
-  background:var(--panel);border:1px solid var(--stroke);border-radius:var(--radius-sm);
-  box-shadow:var(--drop-lg);
+  position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:170px;
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--panel);border:var(--bw) solid var(--stroke);border-radius:0;
+  box-shadow:var(--drop);
 }
 .theme-menu[hidden]{display:none}
 .theme-opt{
-  display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;
-  border:none;border-radius:var(--radius-sm);background:transparent;color:var(--dim);
-  font-family:var(--pixel);font-size:12px;letter-spacing:.3px;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:9px;width:100%;padding:8px 11px;
+  border:none;border-radius:0;background:transparent;color:var(--ink);
+  font-family:var(--pixel);font-size:12.5px;letter-spacing:.3px;text-align:left;cursor:pointer;
+  transition:background .12s ease,color .12s ease;
 }
-.theme-opt:hover{background:var(--panel-2);color:var(--ink)}
-.theme-opt.active{background:var(--panel-2);color:var(--ink)}
-.theme-opt .swatch{width:14px;height:14px;border-radius:2px;flex-shrink:0}
+.theme-opt:hover{background:var(--accent);color:var(--panel-deep)}
+.theme-opt.active{background:var(--ink);color:var(--panel-deep)}
+.theme-opt .swatch{width:14px;height:14px;border:1px solid var(--stroke);border-radius:0;flex-shrink:0}
 
 /* ══════════════════════════ components ══════════════════════════ */
+/* Landing's button, verbatim: filled face, black rule that's heavy on the
+   right/bottom, and a hover that lifts the block up-left while the bottom edge
+   grows. No box-shadow here on purpose, the thick border IS the shadow. */
 .btn{
   display:inline-flex;align-items:center;gap:7px;
-  cursor:pointer;border:1px solid transparent;border-radius:var(--radius-sm);
+  cursor:pointer;border-radius:0;
+  border:var(--bw) solid var(--stroke);
+  border-right-width:var(--bw-heavy);border-bottom-width:var(--bw-heavy);
   background:var(--gold);color:var(--btn-ink);
   font-family:var(--pixel);font-size:15px;letter-spacing:.5px;font-weight:600;
-  padding:9px 17px;box-shadow:0 3px 0 color-mix(in srgb,var(--gold) 55%,#000);
-  transition:background .12s ease,box-shadow .12s ease,transform .12s ease,color .12s ease,border-color .12s ease;
+  padding:9px 17px;
+  transition:background .13s ease,color .13s ease,border-color .13s ease,
+             border-bottom-width .13s ease,transform .13s ease;
   text-decoration:none;white-space:nowrap;
 }
-.btn:hover{background:var(--gold-soft);color:var(--btn-ink);transform:translateY(-2px);box-shadow:0 5px 0 color-mix(in srgb,var(--gold) 55%,#000)}
-.btn:active{transform:translateY(1px);box-shadow:0 1px 0 color-mix(in srgb,var(--gold) 55%,#000)}
-.btn.dark{background:var(--panel-2);color:var(--dim);border-color:var(--stroke);box-shadow:0 3px 0 var(--panel-deep)}
-.btn.dark:hover{background:var(--panel);color:var(--gold);border-color:var(--gold)}
-.btn.ghost{background:transparent;color:var(--faint);box-shadow:none;border-color:var(--stroke)}
-.btn.ghost:hover{color:var(--gold);border-color:var(--gold);background:var(--panel-2);transform:translateY(-2px)}
-.btn.teal{background:var(--teal);color:var(--btn-ink);box-shadow:0 3px 0 color-mix(in srgb,var(--teal) 55%,#000)}
-.btn.teal:hover{background:var(--teal-hover);box-shadow:0 5px 0 color-mix(in srgb,var(--teal) 55%,#000)}
-.btn.red{background:var(--bad);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--bad) 55%,#000)}
+.btn:hover{
+  background:var(--gold-soft);color:var(--btn-ink);
+  border-bottom-width:var(--bw-lift);transform:translate(-2px,-2px);
+}
+.btn:active{border-bottom-width:var(--bw);transform:translate(0,2px)}
+.btn.dark{background:var(--ink);color:var(--panel-deep)}
+.btn.dark:hover{background:var(--ink);color:var(--gold)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--panel-2);color:var(--ink)}
+.btn.teal{background:var(--teal);color:var(--btn-ink)}
+.btn.teal:hover{background:var(--teal-hover)}
+.btn.red{background:var(--bad);color:var(--panel-deep)}
 .btn.red:hover{background:color-mix(in srgb,var(--bad) 85%,#fff)}
-.btn:disabled{opacity:.5;cursor:default;transform:none;box-shadow:0 3px 0 color-mix(in srgb,var(--gold) 55%,#000)}
-.btn:disabled:hover{background:var(--gold);transform:none}
+.btn:disabled{opacity:.45;cursor:default;transform:none;border-bottom-width:var(--bw-heavy)}
+.btn:disabled:hover{background:var(--gold);transform:none;border-bottom-width:var(--bw-heavy)}
 
 /* Chips carry a lot of numbers (hours, levels, px earned) — normal type
    reads faster here than the pixel display face, which blurs digits together
@@ -331,83 +358,84 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
   display:inline-flex;align-items:center;gap:5px;
   font-family:var(--sans);font-size:12.5px;letter-spacing:.2px;font-weight:700;
   font-variant-numeric:tabular-nums;
-  padding:4px 9px;border:1px solid var(--stroke);border-radius:var(--radius-sm);
-  background:var(--panel-deep);color:var(--dim);
+  padding:4px 9px;border:var(--bw) solid var(--stroke);border-radius:0;
+  background:var(--panel);color:var(--ink);
 }
-.chip.gold{background:var(--gold);color:var(--btn-ink);border-color:transparent}
-.chip.green{background:var(--good);color:#fff;border-color:transparent}
-.chip.teal{background:var(--teal);color:var(--btn-ink);border-color:transparent}
-.chip.red{background:var(--bad);color:#fff;border-color:transparent}
+/* Filled chips keep the black rule rather than dropping it: landing's step
+   badge is a filled block with a border, and losing it makes them read as
+   soft pills against the paper. */
+.chip.gold{background:var(--gold);color:var(--btn-ink)}
+.chip.green{background:var(--good);color:var(--ink)}
+.chip.teal{background:var(--teal);color:var(--btn-ink)}
+.chip.red{background:var(--bad);color:var(--panel-deep)}
 
 .card{
-  cursor:pointer;border:2px solid var(--stroke);border-radius:var(--radius);
-  background:var(--panel);background-image:var(--dither);box-shadow:var(--drop);
-  transition:border-color .13s ease,background-color .13s ease,box-shadow .12s ease,transform .12s ease;
+  cursor:pointer;border:var(--bw) solid var(--stroke);border-radius:0;
+  background:var(--panel);box-shadow:var(--drop);
+  transition:box-shadow .13s ease,transform .13s ease,background-color .13s ease;
 }
-/* brutalist pop: lift toward the light + grow the hard shadow, snap down on press */
-.card:hover{border-color:var(--gold);box-shadow:var(--drop-lg);transform:translate(-2px,-2px)}
+/* landing's card move: lift toward the light, shadow doubles, snap back on press */
+.card:hover{box-shadow:var(--drop-lg);transform:translate(-2px,-2px)}
 .card:active{transform:translate(0,0);box-shadow:var(--drop)}
 
-.panel{border:2px solid var(--stroke);border-radius:var(--radius);background:var(--panel);background-image:var(--dither);box-shadow:var(--drop)}
-.panel-deep{border:2px solid var(--stroke);border-radius:var(--radius);background:var(--panel-deep);box-shadow:var(--drop)}
+.panel{border:var(--bw) solid var(--stroke);border-radius:0;background:var(--panel);box-shadow:var(--drop)}
+.panel-deep{border:var(--bw) solid var(--stroke);border-radius:0;background:var(--panel-deep);box-shadow:var(--drop)}
 
-/* HUD panel — the "Game Boy menu window" hero surface with true pixel-stepped
-   corners. Double-layer so the notch keeps a crisp border. Direct children ride
-   above the fill via z-index. Use for hero/feature blocks, not every card. */
+/* HUD panel — the hero surface. Landing has no pixel-notch corner anywhere, so
+   the notch is gone and this is now simply the heaviest block on the page: a
+   full-weight rule on every edge plus the big shadow. The class and its
+   .deep/.gold/.teal variants stay so no page markup has to change. */
 .hud{
-  position:relative;isolation:isolate;--notch:8px;
-  background:var(--stroke);clip-path:var(--np);padding:2px;
+  position:relative;
+  border:var(--bw-heavy) solid var(--stroke);border-radius:0;
+  background:var(--panel);box-shadow:var(--drop-lg);
 }
-.hud::before{
-  content:"";position:absolute;inset:2px;z-index:0;clip-path:var(--np);
-  background:var(--panel);background-image:var(--dither);
-}
-.hud.deep::before{background:var(--panel-deep);background-image:var(--dither)}
-.hud>*{position:relative;z-index:1}
-/* notched accent frame variants */
-.hud.gold{background:color-mix(in srgb,var(--gold) 60%,var(--stroke))}
-.hud.teal{background:color-mix(in srgb,var(--teal) 55%,var(--stroke))}
+.hud.deep{background:var(--panel-deep)}
+.hud.gold{background:var(--gold);color:var(--btn-ink)}
+.hud.teal{background:var(--teal);color:var(--btn-ink)}
 
-/* ── page headers (were undefined — now the blocky HUD title style) ── */
+/* ── page headers ── */
 .page-title{
   font-family:var(--pixel);font-weight:700;font-size:34px;line-height:1.05;
   letter-spacing:1px;color:var(--ink);
-  text-shadow:0 2px 0 rgba(0,0,0,.35);
 }
 .page-sub{
   font-family:var(--pixel);font-weight:500;font-size:13px;letter-spacing:2px;
-  color:var(--faint);margin-top:8px;text-transform:uppercase;
+  color:var(--dim);margin-top:8px;text-transform:uppercase;
 }
 
-/* ── restoration / progress bar (pixelated fill, energy glow) ── */
-.rbar{position:relative;height:16px;background:var(--panel-deep);border:1px solid var(--stroke);border-radius:2px;overflow:hidden}
+/* ── restoration / progress bar ── */
+.rbar{position:relative;height:16px;background:var(--panel);border:var(--bw) solid var(--stroke);border-radius:0;overflow:hidden}
+/* The glow is gone: a blurred halo is the one thing this look never does. The
+   two-tone stripe stays, it's what makes the fill read as pixels. */
 .rbar>i{
   display:block;height:100%;
   background:repeating-linear-gradient(90deg,var(--teal) 0 7px,var(--teal-hover) 7px 14px);
-  box-shadow:0 0 10px color-mix(in srgb,var(--teal) 70%,transparent);
   transition:width .5s ease;
 }
-.rbar.gold>i{background:repeating-linear-gradient(90deg,var(--gold) 0 7px,var(--gold-soft) 7px 14px);box-shadow:0 0 10px color-mix(in srgb,var(--gold) 70%,transparent)}
+.rbar.gold>i{background:repeating-linear-gradient(90deg,var(--gold) 0 7px,var(--gold-soft) 7px 14px)}
 
 /* ── status dots ── */
-.dot{width:9px;height:9px;border:1px solid var(--stroke);border-radius:1px;display:inline-block;flex-shrink:0}
+.dot{width:9px;height:9px;border:1px solid var(--stroke);border-radius:0;display:inline-block;flex-shrink:0}
 .dot.on{background:var(--good)}
 .dot.off{background:var(--bad)}
 .dot.gold{background:var(--gold)}
 .dot.teal{background:var(--teal)}
 
 .field{
-  font-family:var(--sans);background:var(--panel-deep);color:var(--ink);
-  border:2px solid var(--stroke);border-radius:var(--radius-sm);padding:10px 14px;font-size:15px;
-  outline:none;transition:border-color .13s ease,box-shadow .12s ease;
+  font-family:var(--sans);background:var(--panel);color:var(--ink);
+  border:var(--bw) solid var(--stroke);border-radius:0;padding:10px 14px;font-size:15px;
+  outline:none;transition:box-shadow .13s ease,transform .13s ease;
 }
-.field:focus{border-color:var(--gold);box-shadow:var(--drop)}
+/* Focus pops the block forward instead of recoloring the rule: the rule is
+   already black, so tinting it would read as weaker, not stronger. */
+.field:focus{box-shadow:var(--drop);transform:translate(-1px,-1px)}
 .field::placeholder{color:var(--muted)}
 select.field{cursor:pointer}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.empty-note{text-align:center;padding:40px 20px;color:var(--faint);font-size:16px;line-height:1.8;font-family:var(--pixel);letter-spacing:1px}
-.divider{height:1px;background:var(--stroke);margin:30px 0}
+.empty-note{text-align:center;padding:40px 20px;color:var(--dim);font-size:16px;line-height:1.8;font-family:var(--pixel);letter-spacing:1px}
+.divider{height:var(--bw);background:var(--stroke);margin:30px 0}
 .faint{color:var(--faint)}
 .muted{color:var(--muted)}
 .gold{color:var(--gold)}
@@ -418,27 +446,27 @@ select.field{cursor:pointer}
 .overlay{
   position:fixed;inset:0;z-index:100;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(4,4,10,.74);
+  background:color-mix(in srgb,#16161e 74%,transparent);
   opacity:0;pointer-events:none;transition:opacity .2s;
 }
 .overlay.show{opacity:1;pointer-events:all}
 .modal{width:90%;max-width:720px;max-height:90vh;overflow-y:auto;position:relative;padding:32px 30px 24px}
-.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--faint);font-size:22px;cursor:pointer;line-height:1;font-family:var(--pixel)}
-.modal-close:hover{color:var(--gold)}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--ink);font-size:22px;cursor:pointer;line-height:1;font-family:var(--pixel)}
+.modal-close:hover{color:var(--accent)}
 
 /* ── spinner (stepped, pixel-ish) ── */
-.spin{width:30px;height:30px;margin:40px auto;border:4px solid var(--panel-2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s steps(8) infinite}
+.spin{width:30px;height:30px;margin:40px auto;border:4px solid var(--panel-2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s steps(8) infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── toast ── */
 .toast-slot{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{
-  background:var(--panel-2);color:var(--ink);
-  border:1px solid var(--stroke);border-radius:var(--radius-sm);padding:12px 20px;
-  font-size:15px;box-shadow:0 4px 16px rgba(0,0,0,.4);
+  background:var(--panel);color:var(--ink);
+  border:var(--bw) solid var(--stroke);border-radius:0;padding:12px 20px;
+  font-size:15px;box-shadow:var(--drop);
   animation:toast-in .2s ease both;
 }
-.toast.bad{background:var(--bad);color:#fff;border-color:transparent}
+.toast.bad{background:var(--bad);color:var(--panel-deep)}
 @keyframes toast-in{from{opacity:0;transform:translateY(10px)}}
 
 /* ── gate (no token) ──

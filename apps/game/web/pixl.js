@@ -79,9 +79,9 @@ const Pixl = (() => {
   // the default theme before this loads. Shares the "pixl_theme" key with the
   // docs app's own inline head script so the choice is consistent across both.
   try {
-    document.documentElement.dataset.theme = localStorage.getItem("pixl_theme") || "dark";
+    document.documentElement.dataset.theme = localStorage.getItem("pixl_theme") || "light";
   } catch {
-    document.documentElement.dataset.theme = "dark";
+    document.documentElement.dataset.theme = "light";
   }
 
   // Swatch preview colors for the picker menu — CSS custom properties only
@@ -89,12 +89,12 @@ const Pixl = (() => {
   // their own small copy here just to draw the dots. Keep in sync with
   // packages/theme/palette.json by eye; there's no runtime data feeding this.
   const THEMES = [
-    { id: "dark", label: "Ledger Dark", panel: "#211f1e", gold: "#d99a1f" },
-    { id: "light", label: "Ledger", panel: "#fbf5e8", gold: "#d99a1f" },
+    { id: "light", label: "Pixl Paper", panel: "#f5eed2", gold: "#ec3750" },
+    { id: "dark", label: "Pixl Ink", panel: "#16161e", gold: "#ff8c37" },
   ];
 
   function currentTheme() {
-    return document.documentElement.dataset.theme || "dark";
+    return document.documentElement.dataset.theme || "light";
   }
 
   function setTheme(id) {

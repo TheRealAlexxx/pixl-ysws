@@ -1,6 +1,8 @@
-// 1200x630 Open Graph card, drawn in the shell's LEDGER palette. Colors come
-// from packages/theme/palette.json's web.dark tokens - the card renders the
-// same LEDGER DARK a visitor sees on the page, not a third hand-copied palette.
+// 1200x630 Open Graph card, drawn in the shell's palette. Colors come from
+// packages/theme/palette.json's web.light tokens - light is the default theme,
+// so the card renders the same cream paper a visitor lands on rather than a
+// third hand-copied palette. The heavy stroke and the accent bar carry the same
+// neo-brutalist look the page does.
 //
 // Reads the palette with node:fs rather than Bun.file: this module also runs
 // inside Vercel's Node.js serverless function runtime (the shop item preview
@@ -15,12 +17,13 @@ const H = 630;
 const paletteJson = JSON.parse(
   readFileSync(new URL("../../theme/palette.json", import.meta.url), "utf8"),
 );
-const LEDGER = paletteJson.web.dark;
+const LEDGER = paletteJson.web.light;
 
 export const BG = hex(LEDGER["panel-deep"]);
 export const PANEL = hex(LEDGER.panel);
 export const STROKE = hex(LEDGER.stroke);
-export const GOLD = hex(LEDGER.gold);
+// The card's spot color is the red, matching the eyebrow badge on the page.
+export const GOLD = hex(LEDGER.accent);
 export const INK = hex(LEDGER.ink);
 export const DIM = hex(LEDGER.dim);
 
@@ -69,8 +72,13 @@ export function renderCard({ title, eyebrow, url }: CardInput): Uint8Array {
   lines.forEach((line, i) => drawText(canvas, line, left, top + i * lineHeight, scale, INK));
 
   canvas.fill(left, footY, maxWidth, 2, STROKE);
-  drawText(canvas, url.toUpperCase(), left, footY + 26, 3, DIM, 2);
-  canvas.fill(right - textWidth(url.toUpperCase(), 3, 2) - 24, footY + 26, 14, GLYPH_H * 3, GOLD);
+  // The accent tick sits just past the end of the URL. It used to be placed at
+  // `right - textWidth - 24`, which only lands correctly if the URL is drawn
+  // right-aligned - it isn't, it starts at `left`, so the tick was painting
+  // over the middle of the text.
+  const urlText = url.toUpperCase();
+  drawText(canvas, urlText, left, footY + 26, 3, DIM, 2);
+  canvas.fill(left + textWidth(urlText, 3, 2) + 24, footY + 26, 14, GLYPH_H * 3, GOLD);
 
   return canvas.encode();
 }
