@@ -1,30 +1,17 @@
-// YSWS Project Submission Guidelines that every reviewer must read once before
-// they get into the review queue (see requireGuidelinesAck in guard.ts).
+// Metadata for the first-time reviewer guidelines gate (see requireGuidelinesAck
+// in guard.ts). Kept JSX-free so server code (guard.ts, actions.ts) can import
+// it cheaply. The actual page content lives in guidelinesContent.tsx (rendered
+// inline in the dashboard) and the last page is a recap of the rules that
+// matter most for reviewing.
 //
-// We link out to the LIVE GitBook pages rather than snapshotting them, so the
-// text is always Hack Club's current version. The only thing maintained here is
-// the ordered list of pages — when Hack Club adds/removes a page, update this
-// list. Bumping GUIDELINES_VERSION forces every reviewer to re-read.
+// The content is a SNAPSHOT of Hack Club's live guidelines. When Hack Club
+// updates them, refresh guidelinesContent.tsx and bump GUIDELINES_VERSION so
+// every reviewer is forced to read the changes again.
 //
-// Source: https://hackclub.gitbook.io/ysws-project-submission-guidelines
-//
-// TODO(list): fill in EVERY page from the GitBook left sidebar, in order. The
-// nav is rendered client-side so it can't be scraped automatically — copy each
-// page's title + URL from the sidebar. The two below are the ones confirmed so
-// far; add the rest.
+// Source (latest, live): https://hackclub.gitbook.io/ysws-project-submission-guidelines
 export const GUIDELINES_VERSION = 1;
 
 export const MIN_SECONDS_PER_PAGE = 30;
 
-export interface GuidelinePage {
-  title: string;
-  url: string;
-}
-
-export const GUIDELINE_PAGES: GuidelinePage[] = [
-  {
-    title: "YSWS Project Submission Guidelines",
-    url: "https://hackclub.gitbook.io/ysws-project-submission-guidelines/BLBRN8LIfoCZhFV6oMNR",
-  },
-  // TODO: add every remaining sidebar page here, e.g. "Project Exceptions", etc.
-];
+export const GUIDELINES_LIVE_URL =
+  "https://hackclub.gitbook.io/ysws-project-submission-guidelines";
