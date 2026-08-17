@@ -477,6 +477,7 @@ export default async function ReviewDetail({
                 : null
             }
             hackatime={hackatimeReport}
+            repoUrl={p.repo_url ?? null}
           />
         </div>
 

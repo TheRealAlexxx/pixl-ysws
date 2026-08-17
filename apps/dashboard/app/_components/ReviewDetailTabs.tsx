@@ -28,6 +28,27 @@ export interface YswsImport {
   approvedAt: string | null;
 }
 
+// HURT reads ?repo= on load and pulls the repo apart in-page, so the reviewer
+// never has to leave the dashboard to run a fraud check.
+const HURT_URL = "https://hurt-xi.vercel.app";
+
+function hurtSrc(repoUrl: string): string {
+  return `${HURT_URL}/?repo=${encodeURIComponent(repoUrl)}`;
+}
+
+// HURT only accepts github.com URLs , anything else (GitLab, a zip, a bare
+// domain) makes it ignore the param and sit on its own empty input, so the tab
+// is hidden rather than shown broken.
+function isGithubUrl(url: string | null): url is string {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname;
+    return host === "github.com" || host === "www.github.com";
+  } catch {
+    return false;
+  }
+}
+
 export function ReviewDetailTabs({
   commits,
   journals,
@@ -35,6 +56,7 @@ export function ReviewDetailTabs({
   yswsShips,
   yswsImport,
   hackatime,
+  repoUrl,
 }: {
   commits: CommitResult;
   journals: JournalRow[];
@@ -42,10 +64,19 @@ export function ReviewDetailTabs({
   yswsShips: YswsShip[];
   yswsImport: YswsImport | null;
   hackatime: HackatimeReport | null;
+  repoUrl: string | null;
 }) {
   const [tab, setTab] = useState<
-    "commits" | "journals" | "reviews" | "ysws" | "hackatime"
+    "commits" | "journals" | "reviews" | "ysws" | "hackatime" | "fraud"
   >("commits");
+  // Don't make every review page load a third-party app , mount the frame the
+  // first time a reviewer actually opens the tab, then keep it mounted.
+  const [fraudOpened, setFraudOpened] = useState(false);
+  const fraudRepo = isGithubUrl(repoUrl) ? repoUrl : null;
+
+  useEffect(() => {
+    if (tab === "fraud") setFraudOpened(true);
+  }, [tab]);
 
   useEffect(() => {
     const open = () => {
@@ -56,7 +87,7 @@ export function ReviewDetailTabs({
     return () => window.removeEventListener("hashchange", open);
   }, [hackatime]);
 
-  const tabs = [
+  const tabs: { key: typeof tab; label: string; count?: number }[] = [
     { key: "commits" as const, label: "Commits", count: commits.commits.length },
     { key: "journals" as const, label: "Journals", count: journals.length },
     ...(hackatime?.ok
@@ -68,6 +99,7 @@ export function ReviewDetailTabs({
       label: "Other YSWS",
       count: yswsShips.filter((s) => s.urlMatch).length + (yswsImport ? 1 : 0),
     },
+    ...(fraudRepo ? [{ key: "fraud" as const, label: "Fraud check" }] : []),
   ];
 
   return (
@@ -84,12 +116,14 @@ export function ReviewDetailTabs({
           {tabs.map((t) => (
             <TabsTrigger key={t.key} value={t.key} className="py-3">
               {t.label}
-              <Badge
-                variant={tab === t.key ? "default" : "secondary"}
-                className="ml-1"
-              >
-                {t.count}
-              </Badge>
+              {t.count !== undefined && (
+                <Badge
+                  variant={tab === t.key ? "default" : "secondary"}
+                  className="ml-1"
+                >
+                  {t.count}
+                </Badge>
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -207,6 +241,36 @@ export function ReviewDetailTabs({
             );
           })()}
         </TabsContent>
+
+        {fraudRepo && (
+          <TabsContent value="fraud">
+            <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-xs text-muted-foreground">
+              <span>
+                HURT, loaded with{" "}
+                <span className="font-mono break-all text-foreground/80">{fraudRepo}</span>
+              </span>
+              <a
+                href={hurtSrc(fraudRepo)}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-auto shrink-0 text-primary hover:underline"
+              >
+                open full screen ↗
+              </a>
+            </div>
+            {fraudOpened ? (
+              <iframe
+                key={fraudRepo}
+                src={hurtSrc(fraudRepo)}
+                title="Fraud check"
+                className="block h-[80vh] w-full border-0 bg-white"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="p-5 text-sm text-muted-foreground">Loading…</div>
+            )}
+          </TabsContent>
+        )}
 
         <TabsContent value="reviews">
           <div className="divide-y divide-border">
