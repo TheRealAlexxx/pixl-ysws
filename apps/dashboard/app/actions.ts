@@ -3133,9 +3133,13 @@ export async function deleteSidequest(formData: FormData): Promise<void> {
 
 const NPC_WORLDS = new Set(["village", "open_world"]);
 
-// Mirrors SkinUtil.is_valid in the game: a cvc: preset or a cv1: composite.
+// Mirrors what the game can resolve for an NPC: a cvc: preset, a cv1: composite,
+// or an npc:<name> NPC-only sheet (SkinUtil.NPC_SHEETS — pixo, cheetah). The
+// npc: skins are intentionally NPC-only: SkinUtil.is_valid() still rejects them
+// so a player can never wear one, but NPCs placed from here may. Keep the npc:
+// list in sync with SkinUtil.NPC_SHEETS in apps/game/scripts/skin_util.gd.
 // Rejecting here keeps a typo from spawning an NPC with no sprite at all.
-const SKIN_RE = /^(cvc:[1-9]|cv1:b[1-3]h(\d|1[0-8])t([1-9]|1[0-8])o([1-9]|1[0-8]))$/;
+const SKIN_RE = /^(cvc:[1-9]|cv1:b[1-3]h(\d|1[0-8])t([1-9]|1[0-8])o([1-9]|1[0-8])|npc:(pixo|cheetah))$/;
 
 // npc.gd dispatches its modes as an if/elif chain, so they're mutually exclusive
 // at runtime. The form models that as one "kind" select rather than six

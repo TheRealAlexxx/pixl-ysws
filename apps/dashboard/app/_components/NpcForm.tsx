@@ -34,6 +34,13 @@ const KIND_LABEL: Record<string, string> = Object.fromEntries(
 // typed in by hand; the server validates either shape.
 const PRESET_SKINS = Array.from({ length: 9 }, (_, i) => `cvc:${i + 1}`);
 
+// NPC-only sheets (SkinUtil.NPC_SHEETS): players can't wear these, NPCs can.
+// Keep in sync with apps/game/scripts/skin_util.gd and the SKIN_RE in actions.ts.
+const NPC_SKINS = ["npc:pixo", "npc:cheetah"];
+
+// Every skin the dropdown offers directly (anything else falls back to "custom…").
+const SELECTABLE_SKINS = [...PRESET_SKINS, ...NPC_SKINS];
+
 interface Bounds {
   x: number;
   y: number;
@@ -300,7 +307,7 @@ export function NpcForm({
           <div className="flex items-center gap-2">
             <select
               className={selectCls}
-              value={PRESET_SKINS.includes(skin) ? skin : "custom"}
+              value={SELECTABLE_SKINS.includes(skin) ? skin : "custom"}
               onChange={(e) => setSkin(e.target.value === "custom" ? "cv1:b1h1t1o1" : e.target.value)}
             >
               {PRESET_SKINS.map((s) => (
@@ -308,9 +315,14 @@ export function NpcForm({
                   {s}
                 </option>
               ))}
+              {NPC_SKINS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
               <option value="custom">custom…</option>
             </select>
-            {!PRESET_SKINS.includes(skin) && (
+            {!SELECTABLE_SKINS.includes(skin) && (
               <Input
                 value={skin}
                 onChange={(e) => setSkin(e.target.value)}
