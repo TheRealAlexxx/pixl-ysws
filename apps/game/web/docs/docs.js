@@ -30,9 +30,11 @@
   // independent copies (docs pages don't load pixl.js), kept in sync by eye
   // with packages/theme/palette.json.
   const PALETTE_ICON = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="2" width="8" height="2"/><rect x="2" y="4" width="2" height="7"/><rect x="12" y="4" width="2" height="6"/><rect x="4" y="11" width="7" height="2"/><rect x="10" y="10" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="8" width="2" height="2"/></svg>';
+  // Only one theme right now, so page.ts emits no picker markup and the block
+  // below no-ops. Re-add a second entry here (and the markup in page.ts) to
+  // bring the picker back.
   const THEMES = [
     { id: "light", label: "Pixl Paper", panel: "#f5eed2", gold: "#ec3750" },
-    { id: "dark", label: "Pixl Ink", panel: "#16161e", gold: "#ff8c37" },
   ];
   const themeBtn = document.getElementById("docs-theme-btn");
   const themeMenu = document.getElementById("docs-theme-menu");

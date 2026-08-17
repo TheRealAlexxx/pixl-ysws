@@ -1,13 +1,13 @@
 {
-  "_note": "web.* feeds apps/game/web/pixl.css. godot.* feeds apps/game/theme.json. The web set is PIXL PAPER: the landing site's neo-brutalist look (cream paper, black rules, hard offset shadows, Hack Club red and orange) ported onto the shell and docs so the marketing page and the signed-in product read as one brand. godot.* is deliberately NOT part of that port yet, the game still runs the older LEDGER gold on charcoal, so the two objects no longer share values. godot.light does not exist: the game has no light-mode design, so PixlTheme falls back to godot.dark whenever a synced 'light' choice reaches the game.",
+  "_note": "web.* feeds apps/game/web/pixl.css. godot.* feeds apps/game/theme.json. The web set is PIXL PAPER: the landing site's neo-brutalist look (cream paper, black rules, hard offset shadows, Hack Club red and orange) ported onto the shell and docs so the marketing page and the signed-in product read as one brand. Every surface is a warm cream, deliberately: the first cut used a near-white panel and the pages read as white slabs with the cream only showing through the gaps, which is exactly what landing does not look like. Separation comes from the black rules and the hard shadows, never from lightening a surface toward white. Only a light set exists right now, dark was pulled on 2026-08-17 pending a proper design. godot.* is NOT part of this port, the game still runs the older LEDGER gold on charcoal, so the two objects no longer share values.",
   "web": {
     "light": {
       "ink": "#16161e",
       "dim": "#4a4a52",
       "faint": "#6f6f78",
       "muted": "#9a9aa2",
-      "panel": "#fffaf7",
-      "panel-2": "#f0e6cc",
+      "panel": "#faf4de",
+      "panel-2": "#ece0bd",
       "panel-deep": "#f5eed2",
       "gold": "#ff8c37",
       "gold-soft": "#ffa45c",
@@ -21,29 +21,6 @@
       "effects": {
         "drop": "4px 4px 0 #16161e",
         "dropLg": "8px 8px 0 #16161e",
-        "dither": "none"
-      }
-    },
-    "dark": {
-      "ink": "#f5eed2",
-      "dim": "#c3bda8",
-      "faint": "#928d7e",
-      "muted": "#6b675d",
-      "panel": "#22222c",
-      "panel-2": "#2e2e3a",
-      "panel-deep": "#16161e",
-      "gold": "#ff8c37",
-      "gold-soft": "#ffa45c",
-      "accent": "#ec3750",
-      "teal": "#52aeb9",
-      "teal-hover": "#6bc3cd",
-      "good": "#4ade80",
-      "bad": "#ec3750",
-      "stroke": "#f5eed2",
-      "btn-ink": "#16161e",
-      "effects": {
-        "drop": "4px 4px 0 #000000",
-        "dropLg": "8px 8px 0 #000000",
         "dither": "none"
       }
     }

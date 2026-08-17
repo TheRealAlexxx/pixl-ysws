@@ -34,9 +34,13 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
 
 :root{
   /* PIXL PAPER — the landing site's palette, verbatim: cream paper, near-black
-     rules, Hack Club red and orange. This is the base theme (not the dark one)
-     so a page painted before pixl.js runs already looks right instead of
-     flashing dark.
+     rules, Hack Club red and orange. The only theme, and it lives on :root so
+     a page painted before pixl.js runs already looks right.
+
+     Every surface is a warm cream on purpose. --panel started out near-white
+     and the result read as white slabs floating on cream, which is the one
+     thing landing never looks like. Depth here comes from the black rule and
+     the hard shadow, never from lightening a surface toward white.
 
      Token groups: --ink/--dim/--faint/--muted are text on paper.
      --panel/--panel-2/--panel-deep are the surfaces, --panel-deep being the
@@ -50,13 +54,13 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
      Values come from packages/theme/palette.json (`bun run theme:sync`) —
      the marked block below is generated, do not hand-edit it. */
   /* <pixl-theme:light> */
-  --ink:#16161e;--dim:#4a4a52;--faint:#6f6f78;--muted:#9a9aa2;--panel:#fffaf7;--panel-2:#f0e6cc;--panel-deep:#f5eed2;--gold:#ff8c37;--gold-soft:#ffa45c;--accent:#ec3750;--teal:#52aeb9;--teal-hover:#6bc3cd;--good:#3faa5f;--bad:#ec3750;--stroke:#16161e;--btn-ink:#f5eed2;
+  --ink:#16161e;--dim:#4a4a52;--faint:#6f6f78;--muted:#9a9aa2;--panel:#faf4de;--panel-2:#ece0bd;--panel-deep:#f5eed2;--gold:#ff8c37;--gold-soft:#ffa45c;--accent:#ec3750;--teal:#52aeb9;--teal-hover:#6bc3cd;--good:#3faa5f;--bad:#ec3750;--stroke:#16161e;--btn-ink:#f5eed2;
   /* <pixl-theme:light:end> */
-  /* Fixed (never redefined per-theme) light backing for product images/icons —
-     a lot of shop art is a dark/black silhouette on a transparent PNG, which
-     disappears against --panel-deep in dark mode. Product photos read the
-     same in both themes, like a real e-commerce thumbnail always does. */
-  --img-slot:#fdf6ee;
+  /* Backing for product images/icons. A lot of shop art is a dark silhouette
+     on a transparent PNG, so this stays the lightest surface on the page, but
+     it's still a cream rather than the old near-white: a white tile in a grid
+     of cream cards is exactly the "white slab" problem again, just smaller. */
+  --img-slot:#fdf8e6;
   /* Pixelify Sans is the blocky pixel/retro display face — labels, nav,
      buttons, headings. Poppins carries all body copy + data-dense areas.
      --pixel stays the var name for the display face (used everywhere). */
@@ -85,18 +89,14 @@ html{font-size:15px;-webkit-text-size-adjust:100%}
   --sidebar:260px;--toprail:54px;
 }
 
-/* PIXL PAPER DARK — the same language inverted: ink surfaces, cream rules.
-   Landing itself has no dark mode, so this is the one place the port has to
-   invent rather than copy. The structure (square, chunky rules, hard shadow)
-   is identical, only the paper and the rule swap ends. */
-:root[data-theme="dark"]{
-  /* <pixl-theme:dark> */
-  --ink:#f5eed2;--dim:#c3bda8;--faint:#928d7e;--muted:#6b675d;--panel:#22222c;--panel-2:#2e2e3a;--panel-deep:#16161e;--gold:#ff8c37;--gold-soft:#ffa45c;--accent:#ec3750;--teal:#52aeb9;--teal-hover:#6bc3cd;--good:#4ade80;--bad:#ec3750;--stroke:#f5eed2;--btn-ink:#16161e;
-  /* <pixl-theme:dark:end> */
-  /* <pixl-theme:dark:effects> */
-  --drop:4px 4px 0 #000000;--drop-lg:8px 8px 0 #000000;--dither:none;
-  /* <pixl-theme:dark:effects:end> */
-}
+/* There is deliberately no dark theme right now. The inverted cut (ink paper,
+   cream rules) was pulled on 2026-08-17 because it read as an e-ink display
+   rather than as Pixl, and landing has no dark mode to port from in the first
+   place. A stale data-theme="dark" left in someone's storage simply falls
+   through to the tokens above, so nothing breaks. To bring one back: add a
+   "dark" set to palette.json, restore a :root[data-theme="dark"] block with
+   the matching <pixl-theme:dark> markers, and re-add it to the THEMES array
+   in pixl.js and docs.js, which is what makes the picker reappear. */
 
 /* Kenney pixel cursor pack (CC0) — the arrow replaces the OS pointer everywhere
    in the web shell + docs, the pointing hand shows on anything clickable. */

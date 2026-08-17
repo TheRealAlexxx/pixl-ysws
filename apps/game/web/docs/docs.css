@@ -126,12 +126,6 @@ body { overflow-y: auto; }
     --copy-btn-fg: #f5eed2; --copy-btn-bg: rgba(255,255,255,.06); --copy-btn-border: rgba(255,255,255,.2);
     --copy-btn-bg-hover: rgba(255,255,255,.14); --copy-btn-border-hover: rgba(255,255,255,.34);
   }
-  /* On the ink page the block would vanish into the background, so it lifts a
-     shade to stay legible as its own surface. */
-  :root[data-theme="dark"] {
-    --code-bg: #0e0e14;
-  }
-
   pre { position: relative; background: var(--code-bg); border: var(--bw) solid var(--stroke); border-radius: 0;
     box-shadow: var(--drop); overflow: hidden; margin: 18px 0; }
   pre code { display: block; background: none; border: none; padding: 16px 44px 16px 18px;
@@ -144,8 +138,9 @@ body { overflow-y: auto; }
     transition: opacity .15s ease, background .15s ease, border-color .15s ease; }
   pre:hover .copy-btn, .copy-btn:focus-visible { opacity: 1; }
   .copy-btn:hover { background: var(--copy-btn-bg-hover); border-color: var(--copy-btn-border-hover); }
-  .copy-btn.copied { color: #1a7f37; border-color: rgba(26,127,55,.4); opacity: 1; }
-  :root[data-theme="dark"] .copy-btn.copied { color: #7ee787; border-color: rgba(126,231,135,.4); }
+  /* the block behind it is dark in every theme, so the confirm state is the
+     light green, not the dark-on-white one */
+  .copy-btn.copied { color: #7ee787; border-color: rgba(126,231,135,.4); opacity: 1; }
 
   /* highlight.js tokens */
   .hljs-doctag, .hljs-keyword, .hljs-meta .hljs-keyword, .hljs-template-tag,
