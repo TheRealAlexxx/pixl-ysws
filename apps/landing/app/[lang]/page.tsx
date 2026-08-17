@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { hasLocale } from "./dictionaries";
 import { Menu } from "../_components/Menu";
+import { LanguageSwitcher } from "../_components/LanguageSwitcher";
 import { Hero } from "../_components/Hero";
 import { WTFISTHIS } from "../_components/Description";
 import { Story } from "../_components/Story";
@@ -22,6 +23,9 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
     // mobile" rather than as one bad cell
     <div className="bg-[#F5EED2] min-h-screen text-black font-pixel overflow-x-clip">
       <Menu />
+      {/* fixed bottom-left, outside Menu so the bar's hide transform doesn't
+          contain it */}
+      <LanguageSwitcher />
       <Hero />
       <WTFISTHIS />
       <Story />

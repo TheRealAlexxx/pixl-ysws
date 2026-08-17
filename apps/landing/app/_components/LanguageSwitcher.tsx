@@ -45,19 +45,22 @@ export function LanguageSwitcher() {
   const current = LANGS.find(([value]) => value === lang)?.[1] ?? lang;
 
   return (
-    <div ref={rootRef} className="relative">
+    <div
+      ref={rootRef}
+      className="fixed bottom-3 left-3 z-1000 sm:bottom-5 sm:left-5"
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={dict.menu.language}
-        className="flex cursor-pointer items-center gap-1.5 border-black border-b-4 border-l-2 border-r-4 border-t-2 bg-[#F5EED2] px-2.5 py-1 font-pixel text-xs text-black transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-b-6 sm:gap-2 sm:px-3 sm:py-1.5 sm:text-sm lg:text-base"
+        className="flex cursor-pointer items-center gap-2 border-black border-b-4 border-l-2 border-r-4 border-t-2 bg-[#F5EED2] px-3 py-1.5 font-pixel text-base text-black transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-b-6 sm:gap-2.5 sm:px-4 sm:py-2 sm:text-lg lg:text-xl"
       >
         {current}
         <svg
-          width="10"
-          height="10"
+          width="14"
+          height="14"
           viewBox="0 0 24 24"
           fill="none"
           stroke="black"
@@ -73,7 +76,7 @@ export function LanguageSwitcher() {
         <ul
           role="listbox"
           aria-label={dict.menu.language}
-          className="absolute right-0 top-full z-10 mt-2 min-w-full overflow-hidden border-2 border-black bg-[#F5EED2]"
+          className="absolute bottom-full left-0 z-10 mb-2 min-w-full overflow-hidden border-2 border-black bg-[#F5EED2]"
           style={{ boxShadow: "4px 4px 0 #000" }}
         >
           {LANGS.map(([value, label]) => (
@@ -81,7 +84,7 @@ export function LanguageSwitcher() {
               <button
                 type="button"
                 onClick={() => switchTo(value)}
-                className={`block w-full whitespace-nowrap px-3 py-1.5 text-left font-pixel text-xs transition-colors sm:text-sm ${
+                className={`block w-full whitespace-nowrap px-4 py-2 text-left font-pixel text-sm transition-colors sm:text-base lg:text-lg ${
                   value === lang
                     ? "bg-black text-[#F5EED2]"
                     : "text-black hover:bg-[#ec3750] hover:text-[#F5EED2]"
