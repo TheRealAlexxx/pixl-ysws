@@ -3,8 +3,6 @@ extends "res://scripts/multiplayer_world.gd"
 # New Day-0 arrival flow (cinematic → Pixo greeting → naming → experience →
 # first Trial). Launched here on first arrival; the GuideHud manual is separate.
 const ONBOARDING := preload("res://scripts/onboarding.gd")
-const DYNAMIC_NPC_BASE := Vector2(250, -60)
-const DYNAMIC_NPC_STEP := Vector2(44, 0)
 
 var can_transition: bool = false
 var _npcs: Array = []
@@ -71,41 +69,16 @@ func _reveal_trial_npcs() -> void:
 # lobby's shared NPC position sync never see it. That's deliberate: a village
 # is a shared lobby, so two players in it can have different accepted Trials
 # at once, and each should only see their own Trial-givers show up.
-func _spawn_dynamic_trial_npcs(quests: Array, skip_names: Dictionary) -> void:
+func _spawn_dynamic_trial_npcs(_quests: Array, _skip_names: Dictionary) -> void:
+	# Disabled: every NPC (including Trial check-in copies) is now authored in
+	# the dashboard's npcs table, so we no longer auto-spawn a generic giver for
+	# each accepted Trial. Just clear any leftover dynamic NPCs and spawn none.
+	# To bring an in-village reminder back for a Trial, add a dashboard NPC with
+	# "check-in copy" on and its Trial linked.
 	for n in _dynamic_npcs:
 		if is_instance_valid(n):
 			n.queue_free()
 	_dynamic_npcs.clear()
-	var i := 0
-	for q in quests:
-		if typeof(q) != TYPE_DICTIONARY:
-			continue
-		if not bool(q.get("unlocked", false)) or bool(q.get("completed", false)):
-			continue
-		var quest_name := String(q.get("name", ""))
-		if quest_name == "" or skip_names.has(quest_name):
-			continue
-		var npc_display := String(q.get("npc", "")).strip_edges()
-		if npc_display == "":
-			continue
-		var inst = NPC_SCENE.instantiate()
-		inst.npc_name = npc_display
-		inst.dialogue = "Come find me if you need a hand with \"%s\"." % quest_name
-		inst.quest_trial = true
-		inst.trial_checkin = true
-		inst.trial_name = quest_name
-		inst.wanders = false
-		var reminder := "Still working on \"%s\"? %s" % [quest_name, String(q.get("description", ""))]
-		var reward := String(q.get("reward", ""))
-		if reward != "":
-			reminder += " Reward on completion: %s, plus pixels for any hours beyond the minimum." % reward
-		inst.quest_offer = reminder
-		inst.position = DYNAMIC_NPC_BASE + DYNAMIC_NPC_STEP * i
-		add_child(inst)
-		_dynamic_npcs.append(inst)
-		if TrialFx.has_changed(quest_name, "active"):
-			inst.play_teleport_fx()
-		i += 1
 
 # Decide whether to run the first-run arrival flow. Signed-in players are gated
 # on the server's shared onboarding counter (step 0 = never onboarded), so a
