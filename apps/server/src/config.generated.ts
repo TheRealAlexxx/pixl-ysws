@@ -3,7 +3,7 @@
 export const config = {
   "name": "Pixl",
   "tagline": "A retro 2D world where you level up by building real things",
-  "launchDate": "2026-08-18T00:00:00Z",
+  "launchDate": "2026-08-18T11:00:00Z",
   "hackatimeCutoff": "2026-08-18T00:00:00Z",
   "urls": {
     "site": "https://pixl.hackclub.com",
