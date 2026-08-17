@@ -17,7 +17,7 @@ router.get("/api/sidequests", async (req, res) => {
         .from("sidequests")
         // min_hours rides along so the projects page can show progress toward
         // the same gate the ship route enforces.
-        .select("id, name, region, npc, description, reward, starter, min_hours")
+        .select("id, name, region, npc, description, brief, reward, starter, min_hours")
         .eq("active", true)
         .order("position", { ascending: true })
         .order("id", { ascending: true }),

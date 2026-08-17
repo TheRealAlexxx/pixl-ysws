@@ -625,6 +625,24 @@
         color: var(--dim);
         margin-bottom: 8px;
       }
+      .trial-brief-spec {
+        font-family: var(--sans);
+        font-size: 13.5px;
+        line-height: 1.6;
+        border-left: 3px solid var(--gold, #e9b949);
+        padding-left: 10px;
+        margin: 0 0 10px;
+      }
+      .trial-brief-spec-h {
+        font-family: var(--pixel, var(--sans));
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--gold, #e9b949);
+        margin-bottom: 4px;
+      }
+      .trial-brief-spec p {
+        margin: 0;
+      }
       .trial-brief-reward {
         font-family: var(--sans);
         font-size: 13.5px;
@@ -2924,6 +2942,7 @@
       <div class="trial-brief">
         <div class="trial-brief-h">BUILDING FOR TRIAL: ${Pixl.esc(t.name)}${t.region ? ` · ${Pixl.esc(t.region)}` : ""}</div>
         ${t.description ? `<p class="trial-brief-desc">${Pixl.esc(t.description)}</p>` : ""}
+        ${t.brief ? `<div class="trial-brief-spec"><div class="trial-brief-spec-h">THE FULL BRIEF</div><p>${Pixl.esc(t.brief).replace(/\n/g, "<br>")}</p></div>` : ""}
         ${t.min_hours != null ? `<div class="trial-brief-hours">Minimum <b>${Pixl.esc(String(t.min_hours))}h</b> tracked to ship for this Trial.</div>` : ""}
         ${t.reward ? `<div class="trial-brief-reward">Reward on completion: <b>${Pixl.esc(t.reward)}</b>${t.min_hours ? ` (covers the first ${t.min_hours}h)` : ""}, <b>plus pixels at the normal rate for every hour beyond that</b>. Prefer pixels only? You can skip the prize once it's approved and take all your hours as pixels instead.</div>` : ""}
         <div class="trial-brief-note">Build to this spec. When you ship, it's flagged for this Trial in the picker below (change it if you're building something else).</div>

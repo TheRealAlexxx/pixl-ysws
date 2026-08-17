@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 export const dynamic = "force-dynamic";
@@ -124,11 +125,23 @@ export default async function SidequestsPage({
             </Label>
           </div>
           <Label className="block font-normal">
-            <span className="block text-sm font-medium mb-1.5">Description (what to build)</span>
+            <span className="block text-sm font-medium mb-1.5">Description (short, shown by the NPC up front)</span>
             <Input
               name="description"
               maxLength={500}
               placeholder="Build a security tool or CTF-style challenge…"
+              className="w-full text-sm"
+            />
+          </Label>
+          <Label className="block font-normal">
+            <span className="block text-sm font-medium mb-1.5">
+              Full brief (detailed spec, shown in the Builder Terminal after the player accepts)
+            </span>
+            <Textarea
+              name="brief"
+              maxLength={3000}
+              rows={5}
+              placeholder="Precise deliverables & acceptance criteria: (1) …, (2) …, repo must include …"
               className="w-full text-sm"
             />
           </Label>
@@ -228,8 +241,20 @@ export default async function SidequestsPage({
                   </Label>
                 </div>
                 <Label className="block font-normal">
-                  <span className="block text-sm font-medium mb-1.5">Description (what to build)</span>
+                  <span className="block text-sm font-medium mb-1.5">Description (short, shown by the NPC up front)</span>
                   <Input name="description" maxLength={500} defaultValue={q.description ?? ""} className="w-full text-sm" />
+                </Label>
+                <Label className="block font-normal">
+                  <span className="block text-sm font-medium mb-1.5">
+                    Full brief (detailed spec, shown after the player accepts)
+                  </span>
+                  <Textarea
+                    name="brief"
+                    maxLength={3000}
+                    rows={5}
+                    defaultValue={q.brief ?? ""}
+                    className="w-full text-sm"
+                  />
                 </Label>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <Label className="block font-normal sm:col-span-2">

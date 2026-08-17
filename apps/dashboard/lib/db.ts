@@ -1003,6 +1003,7 @@ export interface SidequestRow {
   region: string;
   npc: string;
   description: string;
+  brief: string;
   reward: string;
   active: boolean;
   position: number;

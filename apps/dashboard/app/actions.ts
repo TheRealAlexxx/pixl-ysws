@@ -3064,6 +3064,7 @@ export async function addSidequest(formData: FormData): Promise<void> {
   const region = String(formData.get("region") ?? "").trim().slice(0, 40);
   const npc = String(formData.get("npc") ?? "").trim().slice(0, 40);
   const description = String(formData.get("description") ?? "").trim().slice(0, 500);
+  const brief = String(formData.get("brief") ?? "").trim().slice(0, 3000);
   const reward = String(formData.get("reward") ?? "").trim().slice(0, 120);
   const minHoursRaw = String(formData.get("minHours") ?? "").trim();
   const minHours = minHoursRaw === "" ? null : Math.max(0, Number(minHoursRaw));
@@ -3076,6 +3077,7 @@ export async function addSidequest(formData: FormData): Promise<void> {
     region,
     npc,
     description,
+    brief,
     reward,
     min_hours: minHours,
     created_by: actorName(access),
@@ -3108,6 +3110,7 @@ export async function updateSidequest(formData: FormData): Promise<void> {
   const region = String(formData.get("region") ?? "").trim().slice(0, 40);
   const npc = String(formData.get("npc") ?? "").trim().slice(0, 40);
   const description = String(formData.get("description") ?? "").trim().slice(0, 500);
+  const brief = String(formData.get("brief") ?? "").trim().slice(0, 3000);
   const reward = String(formData.get("reward") ?? "").trim().slice(0, 120);
   const minHoursRaw = String(formData.get("minHours") ?? "").trim();
   const minHours = minHoursRaw === "" ? null : Math.max(0, Number(minHoursRaw));
@@ -3117,7 +3120,7 @@ export async function updateSidequest(formData: FormData): Promise<void> {
     redirect(`/sidequests?error=${encodeURIComponent("Minimum hours must be a number.")}`);
   const { error } = await db
     .from("sidequests")
-    .update({ name, region, npc, description, reward, min_hours: minHours })
+    .update({ name, region, npc, description, brief, reward, min_hours: minHours })
     .eq("id", id);
   if (error) {
     console.error("updateSidequest", error.message);
