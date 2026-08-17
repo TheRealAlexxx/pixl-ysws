@@ -217,6 +217,30 @@ export async function getAdmin(slackId: string): Promise<AdminRow | null> {
   return (data as AdminRow) ?? null;
 }
 
+// Which guidelines version this reviewer has acknowledged (null = never).
+export async function getGuidelinesAck(slackId: string): Promise<number | null> {
+  const { data, error } = await db
+    .from("reviewer_guidelines_ack")
+    .select("version")
+    .eq("slack_id", slackId)
+    .maybeSingle();
+  if (error) {
+    console.error("getGuidelinesAck", error.message);
+    return null;
+  }
+  return data ? Number((data as { version: number }).version) : null;
+}
+
+export async function ackGuidelines(slackId: string, version: number): Promise<void> {
+  const { error } = await db
+    .from("reviewer_guidelines_ack")
+    .upsert(
+      { slack_id: slackId, version, acked_at: new Date().toISOString() },
+      { onConflict: "slack_id" },
+    );
+  if (error) console.error("ackGuidelines", error.message);
+}
+
 export async function listAdmins(): Promise<AdminRow[]> {
   const { data, error } = await db
     .from("admins")

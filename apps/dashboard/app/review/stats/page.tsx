@@ -1,4 +1,4 @@
-import { requirePagePerm } from "@/lib/guard";
+import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
 import { db, type ReviewAuditRow } from "@/lib/db";
 import { ReviewTabs } from "@/app/_components/ReviewTabs";
 import { Card } from "@/components/ui/card";
@@ -36,6 +36,7 @@ function fmtDur(secs: number): string {
 
 export default async function ReviewStatsPage() {
   const access = await requirePagePerm(["review"]);
+  await requireGuidelinesAck(access);
   const { data, error } = await db
     .from("review_audits")
     .select("*")

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requirePagePerm } from "@/lib/guard";
+import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
 import { listReviewAudits, countPendingReviews } from "@/lib/db";
 import { ReviewTabs } from "@/app/_components/ReviewTabs";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ const VERDICT_VARIANT: Record<
 
 export default async function AuditNotesPage() {
   const access = await requirePagePerm(["review"]);
+  await requireGuidelinesAck(access);
   if (!access.isSuper) redirect("/review");
   const [audits, pending] = await Promise.all([listReviewAudits(200), countPendingReviews()]);
   const withNotes = audits.filter((a) => a.audit_note && a.audit_note.trim() !== "");

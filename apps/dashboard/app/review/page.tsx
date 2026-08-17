@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requirePagePerm } from "@/lib/guard";
+import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
 import { listShippedProjects, listSecondReviewProjects, listReviewAudits } from "@/lib/db";
 import { slackHandles } from "@/lib/slack";
 import { ReviewTabs } from "@/app/_components/ReviewTabs";
@@ -30,6 +30,7 @@ export default async function ReviewListPage({
   searchParams: Promise<{ page?: string; sort?: string }>;
 }) {
   const access = await requirePagePerm(["review"]);
+  await requireGuidelinesAck(access);
   const viewer = access.session.slackId;
   const { page, sort } = await searchParams;
 

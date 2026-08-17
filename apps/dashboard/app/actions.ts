@@ -19,6 +19,7 @@ import {
   db,
   getAdmin,
   listAdmins,
+  ackGuidelines,
   playerLabel,
   logModAction,
   creditProjectPixels,
@@ -76,6 +77,7 @@ import {
   type AdminAccess,
   type Permission,
 } from "@/lib/guard";
+import { GUIDELINES_VERSION } from "@/lib/guidelines";
 
 const DEFAULT_WARNING =
   "Please keep chat messages and display names appropriate. Continued violations may result in a ban from Pixl.";
@@ -3643,4 +3645,13 @@ export async function deleteStoryNode(formData: FormData): Promise<void> {
   const { error } = await db.from("story_nodes").delete().eq("id", id);
   if (error) console.error("deleteStoryNode", error.message);
   revalidatePath("/story");
+}
+
+// A first-time reviewer confirms they read the YSWS guidelines. Requires the
+// review permission (so only actual reviewers can ack), records the current
+// version against their Slack id, then drops them into the review queue.
+export async function acknowledgeGuidelines() {
+  const access = await requirePerm("review");
+  await ackGuidelines(access.session.slackId, GUIDELINES_VERSION);
+  redirect("/review");
 }

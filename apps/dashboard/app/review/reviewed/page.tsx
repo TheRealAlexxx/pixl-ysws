@@ -1,4 +1,4 @@
-import { requirePagePerm } from "@/lib/guard";
+import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
 import { listReviewedProjects, countPendingReviews } from "@/lib/db";
 import { slackHandles } from "@/lib/slack";
 import { ReviewTabs } from "@/app/_components/ReviewTabs";
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ReviewedPage() {
   const access = await requirePagePerm(["review"]);
+  await requireGuidelinesAck(access);
   const [rows, pending] = await Promise.all([listReviewedProjects(), countPendingReviews()]);
   const handles = await slackHandles(rows.map((p) => p.users?.slack_id));
 

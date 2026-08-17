@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requirePagePerm } from "@/lib/guard";
+import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
 import { listReviewAudits } from "@/lib/db";
 import { ReviewTabs } from "@/app/_components/ReviewTabs";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ function fmtSeconds(s: number): string {
 
 export default async function ReviewLogPage() {
   const access = await requirePagePerm(["review"]);
+  await requireGuidelinesAck(access);
   if (!access.isSuper) redirect("/review");
   const log = await listReviewAudits();
 

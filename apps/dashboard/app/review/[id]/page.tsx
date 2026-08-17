@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requirePagePerm } from "@/lib/guard";
+import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
 import { decryptPII } from "@/lib/crypto";
 import {
   getProject,
@@ -82,6 +82,7 @@ export default async function ReviewDetail({
   searchParams: Promise<{ error?: string }>;
 }) {
   const access = await requirePagePerm(["review"]);
+  await requireGuidelinesAck(access);
   const viewer = access.session.slackId;
   const canSecondPass = access.canSecondPass;
   // Only admins (ban perm) may permanently ban a project from the review page.
