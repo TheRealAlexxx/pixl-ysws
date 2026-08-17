@@ -1,16 +1,13 @@
 {
   "_generated": "GENERATED from packages/theme/palette.json by `bun run theme:sync` - do not edit",
-  "paper": {
-    "gold": "#ff8c37",
-    "gold-soft": "#ffa45c",
-    "accent": "#ec3750",
-    "ink": "#16161e",
-    "dim": "#4a4a52",
-    "panel": "#faf4de",
-    "panel-2": "#ece0bd",
-    "panel-deep": "#f5eed2",
-    "btn-ink": "#f5eed2",
-    "good": "#3faa5f",
-    "bad": "#ec3750"
+  "dark": {
+    "gold": "#d99a1f",
+    "gold-soft": "#e8ac35",
+    "ink": "#ece8e2",
+    "panel": "#211f1e",
+    "panel-deep": "#171615",
+    "btn-ink": "#241204",
+    "good": "#4f9f62",
+    "bad": "#d1584f"
   }
 }

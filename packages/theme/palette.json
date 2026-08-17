@@ -1,5 +1,5 @@
 {
-  "_note": "web.* feeds apps/game/web/pixl.css. godot.* feeds apps/game/theme.json. The web set is PIXL PAPER: the landing site's neo-brutalist look (cream paper, black rules, hard offset shadows, Hack Club red and orange) ported onto the shell and docs so the marketing page and the signed-in product read as one brand. Every surface is a warm cream, deliberately: the first cut used a near-white panel and the pages read as white slabs with the cream only showing through the gaps, which is exactly what landing does not look like. Separation comes from the black rules and the hard shadows, never from lightening a surface toward white. Only a light set exists right now, dark was pulled on 2026-08-17 pending a proper design. godot.* is the same look carried into the game and keeps its own object because Godot consumes only the token subset listed there, not the full web set. The two are kept in step by hand: change a shared color here and change it in both places.",
+  "_note": "web.* feeds apps/game/web/pixl.css. godot.* feeds apps/game/theme.json. The web set is PIXL PAPER: the landing site's neo-brutalist look (cream paper, black rules, hard offset shadows, Hack Club red and orange) ported onto the shell and docs so the marketing page and the signed-in product read as one brand. Every surface is a warm cream, deliberately: the first cut used a near-white panel and the pages read as white slabs with the cream only showing through the gaps, which is exactly what landing does not look like. Separation comes from the black rules and the hard shadows, never from lightening a surface toward white. Only a light set exists right now, dark was pulled on 2026-08-17 pending a proper design. godot.* is NOT part of this port, the game still runs the older LEDGER gold on charcoal, so the two objects no longer share values.",
   "web": {
     "light": {
       "ink": "#16161e",
@@ -26,18 +26,15 @@
     }
   },
   "godot": {
-    "paper": {
-      "gold": "#ff8c37",
-      "gold-soft": "#ffa45c",
-      "accent": "#ec3750",
-      "ink": "#16161e",
-      "dim": "#4a4a52",
-      "panel": "#faf4de",
-      "panel-2": "#ece0bd",
-      "panel-deep": "#f5eed2",
-      "btn-ink": "#f5eed2",
-      "good": "#3faa5f",
-      "bad": "#ec3750"
+    "dark": {
+      "gold": "#d99a1f",
+      "gold-soft": "#e8ac35",
+      "ink": "#ece8e2",
+      "panel": "#211f1e",
+      "panel-deep": "#171615",
+      "btn-ink": "#241204",
+      "good": "#4f9f62",
+      "bad": "#d1584f"
     }
   }
 }
