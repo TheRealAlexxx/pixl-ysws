@@ -24,20 +24,20 @@
 <link rel="stylesheet" href="/pixl.css?v=2">
 <style>
   .wrap { max-width: 720px; }
-  .hero { padding: 24px 26px; margin-top: 8px; border: 1px solid var(--stroke); border-radius: var(--radius);
+  .hero { padding: 24px 26px; margin-top: 8px; border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel); box-shadow: var(--drop); }
-  .card { border: 1px solid var(--stroke); border-radius: var(--radius); background: var(--panel); padding: 20px; margin-top: 22px; }
+  .card { border: var(--bw) solid var(--stroke); border-radius: 0; background: var(--panel); padding: 20px; margin-top: 22px; }
   .card-h { font-size: 16px; color: var(--gold); letter-spacing: 1px; margin-bottom: 6px; }
   .card-sub { font-size: 13px; color: var(--faint); margin-bottom: 16px; line-height: 1.5; }
   .lbl { font-size: 13px; color: var(--faint); margin-bottom: 6px; }
-  .readout { padding: 10px 12px; border: 1px solid var(--stroke); border-radius: var(--radius-sm); background: var(--panel-deep); color: var(--ink); margin-top: 6px; }
+  .readout { padding: 10px 12px; border: var(--bw) solid var(--stroke); border-radius: 0; background: var(--panel-deep); color: var(--ink); margin-top: 6px; }
   .readout.empty { color: var(--faint); font-style: italic; }
   .field-row { margin-top: 14px; }
   .note { font-size: 12px; color: var(--faint); margin-top: 10px; line-height: 1.5; }
   .not-eligible {
     border: 1px solid color-mix(in srgb, var(--bad) 55%, var(--stroke));
     background: color-mix(in srgb, var(--bad) 12%, var(--panel));
-    border-radius: var(--radius); padding: 16px 18px; margin-top: 22px;
+    border-radius: 0; padding: 16px 18px; margin-top: 22px;
   }
   .not-eligible .card-h { color: var(--bad); }
 </style>

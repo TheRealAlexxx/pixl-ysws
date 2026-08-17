@@ -34,7 +34,7 @@
   .compose-foot .count { font-size: 12.5px; color: var(--faint); }
   .tabs { display: flex; gap: 6px; margin: 0 0 18px; flex-wrap: wrap; }
   .tab {
-    border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel);
     color: var(--dim);
     font-size: 15px;
@@ -54,14 +54,14 @@
   .idea-body { font-size: 15px; color: var(--dim); word-break: break-word; }
   .idea-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
   .upvote-btn { display: inline-flex; align-items: center; gap: 5px; font-family: var(--pixel, inherit); font-size: 13px; font-weight: 600;
-    color: var(--dim); background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 999px; padding: 4px 11px; cursor: pointer;
+    color: var(--dim); background: var(--panel-2); border: var(--bw) solid var(--stroke); border-radius: 0; padding: 4px 11px; cursor: pointer;
     transition: color .12s ease, border-color .12s ease, background .12s ease, transform .08s ease; }
   .upvote-btn:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); transform: translateY(-1px); }
   .upvote-btn.on { color: var(--btn-ink); background: var(--gold); border-color: var(--gold); cursor: default; }
   .upvote-btn:disabled { cursor: default; }
   .vote-group { display: inline-flex; align-items: center; gap: 6px; }
   .downvote-btn { display: inline-flex; align-items: center; gap: 5px; font-family: var(--pixel, inherit); font-size: 13px; font-weight: 600;
-    color: var(--dim); background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 999px; padding: 4px 11px; cursor: pointer;
+    color: var(--dim); background: var(--panel-2); border: var(--bw) solid var(--stroke); border-radius: 0; padding: 4px 11px; cursor: pointer;
     transition: color .12s ease, border-color .12s ease, background .12s ease, transform .08s ease; }
   .downvote-btn:hover:not(:disabled) { color: var(--bad); border-color: var(--bad); transform: translateY(-1px); }
   .downvote-btn.on { color: var(--btn-ink); background: var(--bad); border-color: var(--bad); cursor: default; }

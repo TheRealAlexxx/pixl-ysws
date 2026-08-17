@@ -31,7 +31,7 @@
   .lb-subtabs { margin: 0 0 18px; }
   .lb-subtabs .tab { font-size: 13px; padding: 8px 14px 6px; }
   .tab {
-    border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel);
     color: var(--dim);
     font-size: 15px;
@@ -50,7 +50,7 @@
   .pcard { display: flex; flex-direction: column; align-items: center; gap: 9px; text-align: center; padding: 20px 14px 16px; }
   .avatar {
     width: 96px; height: 96px;
-    border: 1px solid var(--stroke); border-radius: var(--radius);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel-deep);
     display: flex; align-items: center; justify-content: center;
     font-size: 40px; color: var(--gold);
@@ -62,7 +62,7 @@
   .proj-card { display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 16px; }
   .proj-thumb {
     height: 140px;
-    border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel-deep);
     display: flex; align-items: center; justify-content: center;
     font-size: 40px;
@@ -73,14 +73,14 @@
   .proj-meta { font-size: 13.5px; color: var(--faint); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .proj-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
   .upvote-btn { display: inline-flex; align-items: center; gap: 5px; font-family: var(--pixel, inherit); font-size: 13px; font-weight: 600;
-    color: var(--dim); background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 999px; padding: 4px 11px; cursor: pointer;
+    color: var(--dim); background: var(--panel-2); border: var(--bw) solid var(--stroke); border-radius: 0; padding: 4px 11px; cursor: pointer;
     transition: color .12s ease, border-color .12s ease, background .12s ease, transform .08s ease; }
   .upvote-btn:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); transform: translateY(-1px); }
   .upvote-btn.on { color: var(--btn-ink); background: var(--gold); border-color: var(--gold); cursor: default; }
   .upvote-btn:disabled { cursor: default; }
   .vote-group { display: inline-flex; align-items: center; gap: 6px; }
   .downvote-btn { display: inline-flex; align-items: center; gap: 5px; font-family: var(--pixel, inherit); font-size: 13px; font-weight: 600;
-    color: var(--dim); background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 999px; padding: 4px 11px; cursor: pointer;
+    color: var(--dim); background: var(--panel-2); border: var(--bw) solid var(--stroke); border-radius: 0; padding: 4px 11px; cursor: pointer;
     transition: color .12s ease, border-color .12s ease, background .12s ease, transform .08s ease; }
   .downvote-btn:hover:not(:disabled) { color: var(--bad); border-color: var(--bad); transform: translateY(-1px); }
   .downvote-btn.on { color: var(--btn-ink); background: var(--bad); border-color: var(--bad); cursor: default; }
@@ -91,7 +91,7 @@
     display: flex; align-items: center; gap: 16px;
     padding: 12px 18px 10px;
     background: var(--panel);
-    border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     font-size: 16px;
   }
   .board-row .rank { width: 52px; color: var(--faint); font-size: 18px; }
@@ -114,7 +114,7 @@
   .stat-row { display: flex; gap: 10px; flex-wrap: wrap; }
   .stat {
     background: var(--panel-deep);
-    border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     padding: 10px 16px 8px;
     text-align: center;
   }
@@ -123,7 +123,7 @@
   .section-h { font-size: 20px; color: var(--gold); margin: 28px 0 14px; letter-spacing: 1px; }
   .col-row { display: flex; flex-wrap: wrap; gap: 12px; }
   .coll { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
-  .coll-thumb { width: 34px; height: 34px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--stroke);
+  .coll-thumb { width: 34px; height: 34px; border-radius: 0; background: var(--panel-2); border: var(--bw) solid var(--stroke);
     display: grid; place-items: center; color: var(--gold); overflow: hidden; flex-shrink: 0; }
   .coll-thumb img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
   .coll-name { font-family: var(--pixel); font-size: 13px; color: var(--ink); }

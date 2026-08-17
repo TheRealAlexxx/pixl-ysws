@@ -25,11 +25,17 @@
 <style>
   .vwrap { max-width: 960px; margin: 0 auto; }
 
+  /* The vault's own accent. It was referenced as var(--violet) in seven places
+     but never actually defined anywhere, so every one of those colors silently
+     fell back to inherited text. Defined here with the value the seal/segment
+     fills were already hardcoding. */
+  :root { --violet: #7048e8; }
+
   /* ---- energy gauge ---- */
   .gauge {
     margin-top: 14px; padding: 24px 26px;
     background: var(--panel);
-    border: 1px solid var(--stroke); border-radius: var(--radius);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     box-shadow: var(--drop);
     position: relative; overflow: hidden;
   }
@@ -40,8 +46,8 @@
   .gauge-next b { color: var(--gold-soft); }
 
   .segbar { display: flex; gap: 3px; margin-top: 18px; height: 24px; }
-  .seg { flex: 1; border: 1px solid var(--stroke); border-radius: 3px; background: var(--panel-deep); }
-  .seg.on { background: linear-gradient(#9775fa, #7048e8); }
+  .seg { flex: 1; border: var(--bw) solid var(--stroke); border-radius: 0; background: var(--panel-deep); }
+  .seg.on { background: var(--violet); }
 
   /* ---- vault chambers ---- */
   .chambers { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; }
@@ -54,12 +60,12 @@
 
   .ch-seal {
     width: 108px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 4px; border-right: 1px solid var(--stroke); position: relative;
+    gap: 4px; border-right: var(--bw) solid var(--stroke); position: relative;
     font-family: var(--pixel);
   }
   .ch-seal .lv-word { font-size: 10px; letter-spacing: 3px; }
   .ch-seal .lv-num { font-size: 40px; line-height: 1; }
-  .chamber.on .ch-seal { background: linear-gradient(160deg, #7048e8, #5a35c0); color: #fff; }
+  .chamber.on .ch-seal { background: var(--violet); color: var(--panel-deep); }
   .chamber.on .ch-seal .lv-word { color: #e5dbff; }
   .chamber.off .ch-seal { background: var(--panel-deep); color: var(--faint); }
   .chamber.on .ch-seal::after { content: "UNLOCKED"; font-family: var(--sans); font-size: 15px; }
@@ -70,20 +76,20 @@
   .ch-title { font-family: var(--pixel); font-size: 21px; letter-spacing: 1px; }
   .chamber.on .ch-title { color: var(--gold); }
   .chamber.off .ch-title { color: var(--dim); }
-  .stamp { margin-left: auto; font-family: var(--pixel); font-size: 11px; letter-spacing: 2px; border: 2px solid; border-radius: 6px; padding: 4px 9px 3px; }
+  .stamp { margin-left: auto; font-family: var(--pixel); font-size: 11px; letter-spacing: 2px; border: 2px solid; border-radius: 0; padding: 4px 9px 3px; }
   .stamp.on { color: var(--violet); border-color: var(--violet); background: rgba(112,72,232,.10); }
   .stamp.off { color: var(--faint); border-color: var(--faint); }
   .ch-blurb { font-size: 14.5px; color: var(--dim); line-height: 1.6; margin-bottom: 12px; }
   .chamber.off .ch-blurb { color: var(--faint); }
   .rewards { display: flex; gap: 8px; flex-wrap: wrap; }
-  .rw { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 5px 10px 4px; border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+  .rw { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 5px 10px 4px; border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel-deep); color: var(--ink); }
   .rw.energy { color: var(--gold); border-color: rgba(236,72,153,.4); }
   .chamber.off .rw { color: var(--faint); }
   .ch-need { margin-top: 10px; font-size: 12.5px; color: var(--violet); letter-spacing: .5px; }
 
   .chamber.off { filter: saturate(.7) brightness(.97); opacity: .78; }
-  .chamber.on:hover { border-color: var(--violet); box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+  .chamber.on:hover { border-color: var(--violet); box-shadow: var(--drop); transform: translate(-2px,-2px); }
 
   .lore { margin: 34px 0 10px; padding: 16px 20px; font-size: 14px; color: var(--dim); line-height: 1.75; }
   .lore b { color: var(--violet); }

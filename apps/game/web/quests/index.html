@@ -27,15 +27,17 @@
     padding: 26px 28px;
     margin-top: 8px;
     display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap;
-    background:
-      repeating-linear-gradient(rgba(0,0,0,.10) 0 3px, transparent 3px 34px),
-      linear-gradient(#d59a53, #c07f38);
-    border: 1px solid var(--stroke); border-radius: var(--radius);
-    box-shadow: inset 0 3px 0 rgba(255,246,224,.35), var(--drop);
+    /* flat filled block, no wood gradient and no inset bevel: the only depth
+       cue in this look is the hard offset shadow */
+    background: var(--gold);
+    color: var(--ink);
+    border: var(--bw-heavy) solid var(--stroke); border-radius: 0;
+    box-shadow: var(--drop-lg);
   }
+  .hero .page-title, .hero .page-sub { color: var(--ink); }
   .progress-box { margin-left: auto; text-align: right; }
-  .progress-label { font-size: 13px; color: #3a2410; margin-bottom: 7px; letter-spacing: 1px; }
-  .progress-bar { width: 240px; max-width: 60vw; height: 18px; border: 1px solid var(--stroke); border-radius: 999px; background: var(--panel-deep); overflow: hidden; }
+  .progress-label { font-size: 13px; color: var(--ink); margin-bottom: 7px; letter-spacing: 1px; }
+  .progress-bar { width: 240px; max-width: 60vw; height: 18px; border: var(--bw) solid var(--stroke); border-radius: 0; background: var(--panel-deep); overflow: hidden; }
   .progress-bar > div { height: 100%; background: var(--gold); transition: width .5s ease; }
   .quest-list { display: flex; flex-direction: column; gap: 16px; max-width: 860px; margin-top: 26px; }
   .quest {
@@ -43,31 +45,37 @@
     padding: 18px 20px;
     position: relative;
   }
-  .quest.locked { filter: saturate(.6) brightness(.98); opacity: .72; }
-  .quest.unlocked { box-shadow: inset 0 0 0 2px var(--gold), var(--drop); }
+  .quest.locked { opacity: .55; }
+  /* Unlocked reads as the heavier block (full-weight rule + big shadow) rather
+     than a colored inset ring, which is how landing separates states. */
+  .quest.unlocked { border-width: var(--bw-heavy); box-shadow: var(--drop-lg); }
   .quest-icon {
     width: 58px; height: 58px; flex-shrink: 0;
-    border: 1px solid var(--stroke); border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--stroke); border-radius: 0;
     background: var(--panel-deep);
     display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
+    /* These "icons" are short words (MAP, SWORD, CRYSTAL), not glyphs. At 26px
+       the longer ones ran straight out of the 58px box, so they're sized to
+       fit and clipped as a backstop. */
+    font-family: var(--pixel); font-size: 11px; letter-spacing: .5px;
+    text-align: center; overflow: hidden; padding: 2px;
   }
-  .quest.unlocked .quest-icon { background: #ffe9b0; }
+  .quest.unlocked .quest-icon { background: var(--gold); color: var(--btn-ink); }
   .quest-main { flex: 1; min-width: 0; }
   .quest-name { font-size: 19px; color: var(--ink); margin-bottom: 5px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .quest.unlocked .quest-name { color: var(--gold); }
   .quest-desc { font-size: 15px; color: var(--dim); line-height: 1.6; margin-bottom: 9px; white-space: pre-wrap; }
   .quest-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-  .reward-tag { color: var(--good); }
+  /* filled, not tinted text: the reward is the thing worth spotting on this page */
+  .reward-tag { background: var(--good); color: var(--ink); }
   .stamp {
     position: absolute; top: 14px; right: 16px;
     font-size: 12px; letter-spacing: 2px;
-    border: 2px solid; border-radius: 6px;
+    border: 2px solid; border-radius: 0;
     padding: 4px 9px 3px;
     transform: rotate(4deg);
   }
-  .stamp.on { color: var(--good); border-color: var(--good); }
-  .stamp.off { color: var(--faint); border-color: var(--faint); transform: rotate(-3deg); }
+  .stamp.on { color: var(--panel-deep); background: var(--good); border-color: var(--stroke); }
+  .stamp.off { color: var(--dim); border-color: var(--stroke); transform: rotate(-3deg); }
   .hint-box { margin-top: 30px; padding: 16px 20px; font-size: 14px; color: var(--dim); line-height: 1.7; max-width: 860px; }
 </style>
 </head>
@@ -76,7 +84,7 @@
   <section class="hero">
     <div>
       <h1 class="page-title">QUEST LOG</h1>
-      <div class="page-sub" style="color:#f0dcb4">TRIALS FROM THE VILLAGERS, SPECIAL REWARDS ON TOP.</div>
+      <div class="page-sub">TRIALS FROM THE VILLAGERS, SPECIAL REWARDS ON TOP.</div>
     </div>
     <div class="progress-box">
       <div class="progress-label" id="progress-label">— / — UNLOCKED</div>

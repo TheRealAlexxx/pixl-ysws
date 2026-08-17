@@ -75,8 +75,8 @@
         padding: 6px 12px;
         color: var(--faint);
         background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: var(--radius-sm);
+        border: var(--bw) solid var(--stroke);
+        border-radius: 0;
         transition: color 0.13s ease, border-color 0.13s ease, background 0.13s ease;
       }
       .tier:hover { color: var(--ink); border-color: var(--faint); }
@@ -127,8 +127,8 @@
         align-items: center;
         justify-content: center;
         background: var(--img-slot);
-        border: 1px solid var(--stroke);
-        border-radius: 3px;
+        border: var(--bw) solid var(--stroke);
+        border-radius: 0;
         overflow: hidden;
         image-rendering: pixelated;
       }
@@ -193,7 +193,7 @@
         right: 9px;
         background: var(--gold);
         color: var(--btn-ink);
-        border-radius: 3px;
+        border-radius: 0;
         font-family: var(--pixel);
         font-size: 10px;
         letter-spacing: 1px;
@@ -207,7 +207,7 @@
         left: 9px;
         background: var(--teal);
         color: var(--btn-ink);
-        border-radius: 3px;
+        border-radius: 0;
         font-family: var(--pixel);
         font-size: 10px;
         letter-spacing: 1px;
@@ -245,9 +245,9 @@
         font-size: 10px;
         letter-spacing: 1px;
         padding: 3px 7px;
-        border-radius: 3px;
+        border-radius: 0;
         background: var(--panel-deep);
-        border: 1px solid var(--stroke);
+        border: var(--bw) solid var(--stroke);
         color: var(--dim);
       }
       .trophy-tag.ready {
@@ -264,8 +264,8 @@
       .trophy-foot { margin-top: auto; }
       .trophy-progress {
         height: 12px;
-        border: 1px solid var(--stroke);
-        border-radius: 2px;
+        border: var(--bw) solid var(--stroke);
+        border-radius: 0;
         background: var(--panel-deep);
         overflow: hidden;
       }
@@ -286,8 +286,8 @@
       .marquee {
         overflow: hidden;
         white-space: nowrap;
-        border-top: 1px solid var(--stroke);
-        border-bottom: 1px solid var(--stroke);
+        border-top: var(--bw) solid var(--stroke);
+        border-bottom: var(--bw) solid var(--stroke);
         background: var(--panel-deep);
         color: var(--faint);
         font-family: var(--pixel);

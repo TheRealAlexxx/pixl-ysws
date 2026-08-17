@@ -106,7 +106,7 @@
 
   .rail { position: relative; margin: 24px 0 70px; padding-left: 96px; }
   .rail::before {
-    content: ""; position: absolute; left: 41px; top: 12px; bottom: 12px; width: 8px; border-radius: 2px;
+    content: ""; position: absolute; left: 41px; top: 12px; bottom: 12px; width: 8px; border-radius: 0;
     background: linear-gradient(var(--gold-soft), var(--gold) 50%, var(--copper-deep));
     box-shadow: 0 0 14px rgba(255,196,80,.45), inset 2px 0 0 rgba(255,255,255,.3), inset -2px 0 0 rgba(0,0,0,.35);
   }
@@ -125,7 +125,7 @@
   .node.chapter .seal { background: radial-gradient(circle at 34% 30%, #ffe9b6, #ffce5e 55%, #d99a2e); }
   .node.op .seal { background: linear-gradient(#e6a15a, #c1701f); transform: rotate(45deg); color: #2b1d12; }
   .node.op .seal span { transform: rotate(-45deg); }
-  .node.prologue .seal { background: radial-gradient(circle at 34% 30%, #f7ecd6, #e4d3b0 60%, #c3ac82); border-radius: 7px; color: #4a3a26; }
+  .node.prologue .seal { background: radial-gradient(circle at 34% 30%, #f7ecd6, #e4d3b0 60%, #c3ac82); border-radius: 0; color: #4a3a26; }
   .node.locked .seal { background: linear-gradient(#5a5148, #39332b); color: #d8cdbb; font-size: 22px; box-shadow: 0 4px 0 var(--stroke), inset 2px 2px 0 rgba(255,255,255,.15), inset -3px -3px 0 rgba(0,0,0,.3); }
 
   .node::after {
