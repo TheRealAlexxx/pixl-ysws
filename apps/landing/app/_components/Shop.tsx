@@ -11,7 +11,6 @@ const ITEM_IMAGES = [
   "/shop/hc-stickers.webp",
   "/shop/api.webp",
   "/shop/music-grant.webp",
-  "/shop/soldering-grant.webp",
   "/shop/hardware-grant.webp",
   "/shop/domain-grant.webp",
   "/shop/hosting-grant.webp",

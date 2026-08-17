@@ -20,7 +20,6 @@ The "ID" column is a mnemonic label for humans only — `Shop.tsx` items are pla
 | `hc-stickers` | Hack Club Sticker Pack | 3 h | 150 | Cheap if HQ stock; new custom stickers = big order (up to $500). Envelope ~$3 worldwide, ~$10 per pack total. Description now notes it's a collab between several artists | `/shop/hc-stickers.png` |
 | `api-credits` | AI Credits | 3 h | 150 | **$10** HCB grant, no shipping. Fraudable like every grant | `/shop/api.png` |
 | `music-grant` | Music Grant | 3 h | 150 | **$10** stackable grant, instruments/plugins/samples/any music gear. Fraudable like every grant | `/shop/music-grant.png` (generated pixel-art icon: boombox) |
-| `soldering-grant` | Soldering Tools Grant | 3 h | 150 | **$10** stackable grant, soldering tools and supplies only | `/shop/soldering-grant.png` |
 | `hardware-grant` | Hardware Grant | 3 h | 150 | **$10** stackable grant, any hardware for your projects | `/shop/hardware-grant.png` (real "$10 Hardware Grant Card" graphic w/ JLCPCB, Raspberry Pi, Micro Center, AliExpress, Creality, Bambu Lab, Adafruit) |
 | `domain-grant` | Domain Grant | 3.5 h | 175 | **$12** stackable grant, registering a domain. Already exists as a Sidequest too | `/shop/domain-grant.png` (generated pixel-art icon: globe) |
 | `hosting-grant` | Hosting Grant | 3 h | 150 | **$10** stackable grant, hosting (Railway, any cloud platform) | `/shop/hosting-grant.png` (generated pixel-art icon: cloud + server) |
