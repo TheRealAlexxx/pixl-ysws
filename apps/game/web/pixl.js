@@ -76,10 +76,15 @@ const Pixl = (() => {
   } catch {}
 
   // Applied as early as possible (top of the IIFE) to minimize the flash of
-  // the default theme before this loads. Shares the "pixl_theme" key with the
-  // docs app's own inline head script so the choice is consistent across both.
+  // the default theme before this loads. Shares the storage key with the docs
+  // app's own inline head script so the choice is consistent across both.
+  //
+  // The key is versioned, and bumping it is how a theme change is forced on
+  // people who already picked one: the old value is simply never read again,
+  // so everyone lands on the current default once and their next pick is
+  // stored fresh. Bumped to v2 on 2026-08-17 for the landing-look port.
   try {
-    document.documentElement.dataset.theme = localStorage.getItem("pixl_theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("pixl_theme_v2") || "light";
   } catch {
     document.documentElement.dataset.theme = "light";
   }
@@ -99,7 +104,7 @@ const Pixl = (() => {
 
   function setTheme(id) {
     document.documentElement.dataset.theme = id;
-    try { localStorage.setItem("pixl_theme", id); } catch {}
+    try { localStorage.setItem("pixl_theme_v2", id); } catch {}
     syncThemeToggles();
   }
 

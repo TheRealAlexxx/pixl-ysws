@@ -39,7 +39,7 @@
   function setTheme(id) {
     document.documentElement.dataset.theme = id;
     try {
-      localStorage.setItem("pixl_theme", id);
+      localStorage.setItem("pixl_theme_v2", id);
     } catch (e) {}
     syncTheme();
   }

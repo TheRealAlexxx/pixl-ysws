@@ -57,7 +57,7 @@ export function renderPage({ doc, nav, siteUrl, prev, next }: PageInput): string
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
   try {
-    document.documentElement.dataset.theme = localStorage.getItem("pixl_theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("pixl_theme_v2") || "light";
   } catch (e) {
     document.documentElement.dataset.theme = "light";
   }
