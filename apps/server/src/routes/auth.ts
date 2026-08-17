@@ -117,13 +117,16 @@ setInterval(() => {
 // unrestricted value is an account takeover: a link with someone else's host
 // logs the attacker into the victim's account. Only origins we serve the game
 // from are allowed.
+//
+// Keep this list to hosts that are live RIGHT NOW. A retired domain left in
+// here is a standing liability: if it ever lapses and someone else registers
+// it, this hands them real session tokens. The old pixl.rsvp trio was dropped
+// on 2026-08-17 for exactly that reason, the game moved to *.hackclub.com and
+// all three had gone 404.
 const ALLOWED_REDIRECT_HOSTS = new Set(
   [
     new URL(config.urls.site).hostname,
     new URL(config.urls.play).hostname,
-    "pixl.rsvp",
-    "www.pixl.rsvp",
-    "play.pixl.rsvp",
     ...(process.env.WEB_REDIRECT_HOSTS ?? "")
       .split(",")
       .map((h) => h.trim())
