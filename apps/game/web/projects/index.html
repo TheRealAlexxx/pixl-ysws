@@ -1245,6 +1245,18 @@
           .reduce((s, h) => s + h.seconds, 0);
       }
 
+      // Hours already put into projects that have actually shipped (submitted or
+      // further), summed from live Hackatime data the same way linkedSeconds()
+      // does for one project. Used instead of stats.totalSeconds when a Trial has
+      // no project linked yet - the raw Hackatime total covers the player's whole
+      // account, including hours from before Pixl or on unrelated projects, so it
+      // reads as a huge, meaningless number next to a 4h goal.
+      function shippedSeconds() {
+        return projects
+          .filter((p) => p.status && p.status !== "draft")
+          .reduce((s, p) => s + linkedSeconds(p), 0);
+      }
+
       // Seconds from the Hackatime boxes currently ticked in the editor (which
       // may not be saved yet), so ship-readiness reflects what the player sees.
       // Uses secondsSinceCutoff when the server has computed it so this matches
@@ -1464,11 +1476,7 @@
         // No Trial in flight, so there's no gate to draw. Fall back to the raw
         // tracked total rather than inventing a threshold.
         const need = t && t.min_hours != null ? Number(t.min_hours) : 0;
-        const secs = linked
-          ? linkedSeconds(linked)
-          : stats && stats.connected
-            ? stats.totalSeconds
-            : 0;
+        const secs = linked ? linkedSeconds(linked) : shippedSeconds();
         const hours = secs / 3600;
         if (!need) {
           slot.innerHTML = `
@@ -1476,7 +1484,7 @@
         <div class="hours-top">
           <div>
             <div class="hours-big">${Pixl.hours(secs)}</div>
-            <div class="hours-sub">tracked so far${t ? ` · ${Pixl.esc(t.name)} has no minimum` : ""}</div>
+            <div class="hours-sub">shipped so far${t ? ` · ${Pixl.esc(t.name)} has no minimum` : ""}</div>
           </div>
         </div>
       </div>`;
