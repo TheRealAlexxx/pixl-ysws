@@ -296,12 +296,13 @@ const LB_TABS = [
   { key: "upvotes", label: "UPVOTES" },
 ];
 
-function boardRow(p, unit) {
+function boardRow(p, unit, sub) {
+  const suffix = sub === "referrals" ? `<span class="faint" style="font-size:11px;margin-left:6px">${p.pixels.toLocaleString()} PX earned</span>` : "";
   return `
     <div class="board-row ${p.rank <= 3 ? "top" + p.rank : ""} ${p.you ? "you" : ""}">
       <span class="rank">${p.rank <= 3 ? ["#1", "#2", "#3"][p.rank - 1] : "#" + p.rank}</span>
       <span class="bname">${Pixl.esc(p.display_name)}${p.you ? ' <span class="gold">← YOU</span>' : ""}</span>
-      <span class="bpx${unit === "PX" ? " px" : ""}">${unit === "PX" ? `<img src="/img/pixel.png" alt="">` : ""}${p.value.toLocaleString()} ${unit}</span>
+      <span class="bpx${unit === "PX" ? " px" : ""}">${unit === "PX" ? `<img src="/img/pixel.png" alt="">` : ""}${p.value.toLocaleString()} ${unit}${suffix}</span>
     </div>`;
 }
 
@@ -343,11 +344,11 @@ async function showLeaderboard(sub) {
   }
 
   const endpoint = sub === "referrals" ? "/api/explore/leaderboard/referrals" : "/api/explore/leaderboard/upvotes";
-  const unit = sub === "referrals" ? "PX" : "▲";
-  const emptyMsg = sub === "referrals" ? "NO REFERRAL REWARDS PAID OUT YET." : "NO UPVOTES ANYWHERE YET.";
+  const unit = sub === "referrals" ? "REFERRED" : "▲";
+  const emptyMsg = sub === "referrals" ? "NOBODY'S REFERRED ANYONE YET." : "NO UPVOTES ANYWHERE YET.";
   const climbMsg = sub === "referrals" ? "refer friends to climb" : "ship great work to climb";
   const data = await Pixl.api(endpoint);
-  const rows = (data.players || []).map((p) => boardRow(p, unit)).join("");
+  const rows = (data.players || []).map((p) => boardRow(p, unit, sub)).join("");
   body.innerHTML = `
     <div class="board">${rows || `<div class="empty-note">${emptyMsg}</div>`}</div>
     <div class="you-card panel">

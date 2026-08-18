@@ -150,10 +150,13 @@ router.get("/api/explore/leaderboard", async (req, res) => {
   res.json({ ok: true, players, yourRank, yourPixels, sprint });
 });
 
-// Top referrers by pixels earned from referrals (see [[referral-system]] in
-// project memory). Mirrors apps/dashboard/lib/db.ts's referrerLeaderboard
-// metric — duplicated here rather than imported since that's a "use server"
-// module the game server can't pull in.
+// Top referrers by how many people they've referred (see [[referral-system]]
+// in project memory) — every row in `referrals` counts here, rewarded or
+// still pending, since "who referred the most" is a headcount, not a payout.
+// Pixels earned (the rewarded-only metric) rides along as secondary context.
+// Mirrors apps/dashboard/lib/db.ts's referrerLeaderboard pixel metric —
+// duplicated here rather than imported since that's a "use server" module
+// the game server can't pull in.
 const REFERRAL_MILESTONE_EVERY = 10;
 const REFERRAL_MILESTONE_PX = 119;
 router.get("/api/explore/leaderboard/referrals", async (req, res) => {
@@ -163,23 +166,25 @@ router.get("/api/explore/leaderboard/referrals", async (req, res) => {
 
   const { data, error } = await supabase
     .from("referrals")
-    .select("referrer_id, rewarded_at, reward_pixels")
-    .not("rewarded_at", "is", null);
+    .select("referrer_id, rewarded_at, reward_pixels");
   if (error) {
     console.error("[explore] referral leaderboard failed", error);
     return res.status(500).json({ ok: false });
   }
-  const byReferrer = new Map<string, { rewarded: number; pixels: number }>();
+  const byReferrer = new Map<string, { total: number; rewarded: number; pixels: number }>();
   for (const r of data ?? []) {
-    const row = byReferrer.get(r.referrer_id as string) ?? { rewarded: 0, pixels: 0 };
-    row.rewarded++;
-    row.pixels += Number(r.reward_pixels) || 0;
+    const row = byReferrer.get(r.referrer_id as string) ?? { total: 0, rewarded: 0, pixels: 0 };
+    row.total++;
+    if (r.rewarded_at) {
+      row.rewarded++;
+      row.pixels += Number(r.reward_pixels) || 0;
+    }
     byReferrer.set(r.referrer_id as string, row);
   }
   for (const row of byReferrer.values())
     row.pixels += Math.floor(row.rewarded / REFERRAL_MILESTONE_EVERY) * REFERRAL_MILESTONE_PX;
 
-  const ranked = [...byReferrer.entries()].sort((a, b) => b[1].pixels - a[1].pixels).slice(0, 25);
+  const ranked = [...byReferrer.entries()].sort((a, b) => b[1].total - a[1].total).slice(0, 25);
   const ids = ranked.map(([id]) => id);
   const names = new Map<string, string>();
   if (ids.length > 0) {
@@ -189,12 +194,13 @@ router.get("/api/explore/leaderboard/referrals", async (req, res) => {
   const players = ranked.map(([id, row], i) => ({
     rank: i + 1,
     display_name: names.get(id) ?? "?",
-    value: row.pixels,
-    referred: row.rewarded,
+    value: row.total,
+    rewarded: row.rewarded,
+    pixels: row.pixels,
     you: id === session.userId,
   }));
   const yourRank = players.find((p) => p.you)?.rank ?? 0;
-  res.json({ ok: true, players, yourRank, yourValue: byReferrer.get(session.userId)?.pixels ?? 0 });
+  res.json({ ok: true, players, yourRank, yourValue: byReferrer.get(session.userId)?.total ?? 0 });
 });
 
 // Top creators by total upvotes received across all their projects (see
