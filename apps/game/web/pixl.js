@@ -945,7 +945,10 @@ const Pixl = (() => {
       const back = card.querySelector(".pt-back");
       if (back) back.onclick = () => advance(i - 1);
       const skip = card.querySelector(".pt-skip");
-      if (skip) skip.onclick = close;
+      // Not `= close` directly: onclick invokes it with the MouseEvent as the
+      // first arg, and any object is truthy, so `completed` would read true
+      // and skip would incorrectly redirect back to the game like a real Done.
+      if (skip) skip.onclick = () => close(false);
       const extra = card.querySelector(".pt-extra");
       if (extra) extra.onclick = () => {
         // Detour (usually into the docs). Persist the *next* step so we resume
