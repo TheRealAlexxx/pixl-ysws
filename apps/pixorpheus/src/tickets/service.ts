@@ -386,7 +386,7 @@ export async function handleNewQuestion(event: PendingTicketEvent, client: WebCl
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `${ans.answer}\n\n_straight from the <${DOCS_LINKS.docs}|docs> — if that doesn't cover it, a helper will still follow up :hii:_`,
+              text: `${ans.answer}\n\n_straight from the <${DOCS_LINKS.docs}|docs> - if that doesn't cover it, a helper will still follow up :hii:_`,
             },
           },
         ],
