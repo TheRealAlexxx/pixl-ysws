@@ -2049,6 +2049,7 @@
           view.innerHTML = `<div class="empty-note">PROJECT NOT FOUND.</div>`;
           return;
         }
+        await loadTrials();
         $("new-btn").style.display = "none";
         // Collaborators are view/log-hours only — they get a trimmed read-only
         // page instead of the owner's full editor.
