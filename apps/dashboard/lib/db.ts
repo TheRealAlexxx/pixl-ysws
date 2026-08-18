@@ -485,14 +485,19 @@ function ownedByViewer(p: ShippedProject, viewer?: string): boolean {
 
 // Review queue: shipped projects oldest-first, hiding anything another reviewer
 // is currently reviewing.
-export async function listShippedProjects(viewer?: string): Promise<ShippedProject[]> {
-  const { data, error } = await db
+export async function listShippedProjects(
+  viewer?: string,
+  kind?: "software" | "hardware",
+): Promise<ShippedProject[]> {
+  let q = db
     .from("projects")
     .select("*, users(id, display_name, real_name, slack_id)")
     .eq("status", "shipped")
     .is("archived_at", null)
     .is("rejected_at", null)
-    .is("banned_at", null)
+    .is("banned_at", null);
+  if (kind) q = q.eq("kind", kind);
+  const { data, error } = await q
     .order("shipped_at", { ascending: true })
     .limit(500);
   if (error) {
@@ -560,14 +565,19 @@ async function notifyReviewStarted(projectId: number): Promise<void> {
 
 // Second-pass queue: projects that passed a first review and await a final
 // reviewer's sign-off, oldest-first, hiding anything another reviewer holds.
-export async function listSecondReviewProjects(viewer?: string): Promise<ShippedProject[]> {
-  const { data, error } = await db
+export async function listSecondReviewProjects(
+  viewer?: string,
+  kind?: "software" | "hardware",
+): Promise<ShippedProject[]> {
+  let q = db
     .from("projects")
     .select("*, users(id, display_name, real_name, slack_id)")
     .eq("status", "second_review")
     .is("archived_at", null)
     .is("rejected_at", null)
-    .is("banned_at", null)
+    .is("banned_at", null);
+  if (kind) q = q.eq("kind", kind);
+  const { data, error } = await q
     .order("first_pass_at", { ascending: true })
     .limit(500);
   if (error) {

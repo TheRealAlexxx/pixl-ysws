@@ -27,20 +27,23 @@ const SORTS = [
 export default async function ReviewListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string; kind?: string }>;
 }) {
   const access = await requirePagePerm(["review"]);
   await requireGuidelinesAck(access);
   const viewer = access.session.slackId;
-  const { page, sort } = await searchParams;
+  const { page, sort, kind: rawKind } = await searchParams;
+  // Hardware and software have separate review queues.
+  const kind: "software" | "hardware" = rawKind === "hardware" ? "hardware" : "software";
+  const kindQ = kind === "hardware" ? "&kind=hardware" : "";
 
-  const finalRows = access.canSecondPass ? await listSecondReviewProjects(viewer) : [];
+  const finalRows = access.canSecondPass ? await listSecondReviewProjects(viewer, kind) : [];
   const finalHandles = finalRows.length
     ? await slackHandles(finalRows.map((p) => p.users?.slack_id))
     : new Map<string, string>();
 
   const myRecent = await listReviewAudits(5, viewer);
-  let rows = await listShippedProjects(viewer);
+  let rows = await listShippedProjects(viewer, kind);
   if (sort === "hours") rows = [...rows].sort((a, b) => b.hours - a.hours);
   else if (sort === "status") rows = [...rows].sort((a, b) => a.status.localeCompare(b.status));
 
@@ -51,11 +54,31 @@ export default async function ReviewListPage({
   const slice = rows.slice(start, start + PER);
   const handles = await slackHandles(slice.map((p) => p.users?.slack_id));
   const sortKey = SORTS.some((s) => s.key === sort) ? sort : "oldest";
-  const qp = (p: number) => `/review?page=${p}${sortKey !== "oldest" ? `&sort=${sortKey}` : ""}`;
+  const qp = (p: number) =>
+    `/review?page=${p}${sortKey !== "oldest" ? `&sort=${sortKey}` : ""}${kindQ}`;
 
   return (
     <div>
       <ReviewTabs isSuper={access.isSuper} pending={total} />
+
+      <div className="inline-flex items-center rounded-lg border border-border p-0.5 bg-card mb-4">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className={kind === "software" ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : ""}
+        >
+          <Link href="/review">Software queue</Link>
+        </Button>
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className={kind === "hardware" ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : ""}
+        >
+          <Link href="/review?kind=hardware">Hardware queue</Link>
+        </Button>
+      </div>
 
       {finalRows.length > 0 && (
         <div className="mb-8">
@@ -89,7 +112,7 @@ export default async function ReviewListPage({
               size="sm"
               className={sortKey === s.key ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : ""}
             >
-              <Link href={`/review${s.key !== "oldest" ? `?sort=${s.key}` : ""}`}>
+              <Link href={`/review?sort=${s.key}${kindQ}`}>
                 {s.label}
               </Link>
             </Button>

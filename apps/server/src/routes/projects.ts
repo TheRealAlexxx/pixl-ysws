@@ -264,6 +264,7 @@ interface ProjectFields {
   ai_notes: string;
   hackatime_projects: string[];
   level: number;
+  kind: string;
 }
 
 // Shared field parsing/validation for create + update. Returns an error code
@@ -303,8 +304,33 @@ export function parseProjectBody(
         ? body.hackatimeProjects.map((p: unknown) => String(p)).slice(0, 50)
         : [],
       level: Math.min(4, Math.max(1, Math.round(Number(body?.level)) || 1)),
+      // Software vs hardware track, chosen at creation. Hardware ships don't
+      // require Hackatime and go to their own review queue.
+      kind: body?.kind === "hardware" ? "hardware" : "software",
     },
   };
+}
+
+// The Trial a project is being built for is chosen at CREATION now (not at
+// ship). A player can only link a Trial they've actually accepted in-game
+// (there's a sidequest_unlocks row); picking one they haven't accepted returns
+// "trial_not_accepted" so the client can tell them to go accept it first. 0 /
+// missing = building their own idea.
+async function resolveTrialLink(
+  userId: string,
+  wantSidequest: unknown,
+): Promise<{ error: string } | { id: number | null }> {
+  const want = Number(wantSidequest);
+  if (!Number.isFinite(want) || want <= 0) return { id: null };
+  const { data: unlock } = await supabase
+    .from("sidequest_unlocks")
+    .select("sidequest_id, sidequests!inner(active)")
+    .eq("user_id", userId)
+    .eq("sidequest_id", want)
+    .eq("sidequests.active", true)
+    .maybeSingle();
+  if (!unlock) return { error: "trial_not_accepted" };
+  return { id: want };
 }
 
 // Create a project, optionally linked to HackTime project names.
@@ -317,9 +343,12 @@ router.post("/api/projects", async (req, res) => {
   if (parsed.error !== undefined)
     return res.status(400).json({ ok: false, error: parsed.error });
 
+  const trial = await resolveTrialLink(session.userId, req.body?.sidequestId);
+  if ("error" in trial) return res.status(400).json({ ok: false, error: trial.error });
+
   const { data, error } = await supabase
     .from("projects")
-    .insert({ user_id: session.userId, ...parsed.fields })
+    .insert({ user_id: session.userId, ...parsed.fields, sidequest_id: trial.id })
     .select()
     .single();
   if (error) {
@@ -349,13 +378,24 @@ router.put("/api/projects/:id", async (req, res) => {
   // their RE). Keep the existing level on approved projects; the reviewer owns it.
   const { data: cur } = await supabase
     .from("projects")
-    .select("status, level")
+    .select("status, level, sidequest_id")
     .eq("id", id)
     .eq("user_id", session.userId)
     .maybeSingle();
   const fields: Record<string, unknown> = { ...parsed.fields };
-  if ((cur as { status?: string } | null)?.status === "approved")
+
+  // Trial link is picked at creation and editable while the project is a draft.
+  // Same acceptance rule as create: only a Trial the player has accepted links.
+  const trial = await resolveTrialLink(session.userId, req.body?.sidequestId);
+  if ("error" in trial) return res.status(400).json({ ok: false, error: trial.error });
+  fields.sidequest_id = trial.id;
+
+  // On an approved project, neither the tier nor the Trial link may change (both
+  // feed payout/RE that already settled) — keep whatever the reviewer approved.
+  if ((cur as { status?: string } | null)?.status === "approved") {
     fields.level = (cur as { level?: number }).level ?? 1;
+    fields.sidequest_id = (cur as { sidequest_id?: number | null }).sidequest_id ?? null;
+  }
 
   const { data, error } = await supabase
     .from("projects")
@@ -424,6 +464,8 @@ router.post("/api/projects/:id/ship", async (req, res) => {
   if (!demoAlive)
     return res.status(400).json({ ok: false, error: "demo_unreachable" });
 
+  const isHardware = project.kind === "hardware";
+
   const { data: userRow } = await supabase
     .from("users")
     .select("hackatime_token, slack_id")
@@ -431,17 +473,40 @@ router.post("/api/projects/:id/ship", async (req, res) => {
     .single();
   const htToken = (userRow as { hackatime_token?: string } | null)?.hackatime_token ?? null;
   const stats = await fetchHackatimeStats(htToken);
-  if (!stats.connected && stats.error)
+  // Software must have a working Hackatime connection; hardware treats Hackatime
+  // as optional (journal hours can stand in), so a hardware ship never fails on
+  // Hackatime being unavailable.
+  if (!isHardware && !stats.connected && stats.error)
     return res.status(502).json({ ok: false, error: "hackatime_unavailable" });
   const linked = (project.hackatime_projects as string[]) ?? [];
   // Only hours logged from the cutoff onward count — see HACKATIME_CUTOFF.
-  const trackedSeconds = await fetchTrackedSecondsSince(
+  const htSeconds = await fetchTrackedSecondsSince(
     (userRow as { slack_id?: string } | null)?.slack_id ?? null,
     htToken,
     linked,
   );
+  // Hardware also counts journalled hours toward the tracked total, so journals
+  // alone can carry a hardware ship; the total is journal + Hackatime. Software
+  // stays Hackatime-only for its floor.
+  let journalSeconds = 0;
+  if (isHardware) {
+    const { data: jrows } = await supabase
+      .from("project_journals")
+      .select("hours")
+      .eq("project_id", id)
+      .eq("user_id", session.userId);
+    const jhours = ((jrows ?? []) as { hours: number | null }[]).reduce(
+      (s, j) => s + (Number(j.hours) || 0),
+      0,
+    );
+    journalSeconds = jhours * 3600;
+  }
+  const trackedSeconds = htSeconds + journalSeconds;
   if (trackedSeconds < 3600)
-    return res.status(400).json({ ok: false, error: "hackatime_hours_required" });
+    return res.status(400).json({
+      ok: false,
+      error: isHardware ? "project_hours_required" : "hackatime_hours_required",
+    });
 
   // Refresh each accepted collaborator's own tracked hours (their own
   // Hackatime account, filtered by the projects *they* linked) so review-time
@@ -488,10 +553,11 @@ router.post("/api/projects/:id/ship", async (req, res) => {
     return res.status(400).json({ ok: false, error: "update_notes_too_short" });
   const otherYsws = req.body?.otherYsws === true || !!project.imported_ysws_entry_id;
 
-  // Optional: the player flags this ship as a submission for a Trial. Only an
-  // active Trial they've actually accepted (unlocked) can be linked; anything
-  // else clears the link (they're shipping their own idea).
-  const wantSidequest = Number(req.body?.sidequestId);
+  // The Trial link was chosen at creation (project.sidequest_id). Re-validate it
+  // here and enforce the Trial's minimum hours against the tracked total above
+  // (journal + Hackatime for hardware). If the Trial was since deleted/deactivated
+  // or the minimum isn't met, the ship still goes through as the player's own idea.
+  const wantSidequest = Number(project.sidequest_id);
   let sidequestId: number | null = null;
   if (Number.isFinite(wantSidequest) && wantSidequest > 0) {
     const { data: unlock } = await supabase

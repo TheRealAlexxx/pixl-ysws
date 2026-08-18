@@ -1233,12 +1233,15 @@
         not_in_review: "This project isn't in review.",
         trial_hours_below_minimum: "This Trial needs more tracked hours before you can ship it.",
         eligibility_attestation_required: "Confirm this isn't a school assignment or paid Hack Club work before shipping.",
+        trial_not_accepted: "Accept that Trial in the game first (talk to its NPC), then you can pick it.",
+        project_hours_required: "Log at least an hour — journal your work (Hackatime optional for hardware).",
       };
       const err = (e) => ERRORS[e] || "Something went wrong, try again.";
 
       let stats = null;
       let projects = [];
       let trials = []; // Trials the player has accepted and not yet finished
+      let allTrials = []; // every active Trial (accepted or not), for the picker
       let activity = []; // synthesized action log, newest first
       let news = []; // program news, newest first
       let activeTrial = null; // the Trial the player arrived to build for, if any
@@ -1732,6 +1735,36 @@
         </div>
       </div>
       <div class="form-row">
+        <label>KIND</label>
+        <select class="field" id="f-kind">
+          <option value="software" ${(p.kind || "software") === "software" ? "selected" : ""}>Software</option>
+          <option value="hardware" ${p.kind === "hardware" ? "selected" : ""}>Hardware</option>
+        </select>
+        <span class="faint" id="f-kind-note" style="font-size:11px;line-height:1.5;margin-top:4px"></span>
+      </div>
+      <div class="form-row">
+        <label>TRIAL (build for a Trial, or your own idea)</label>
+        <select class="field" id="f-trial">
+          <option value="">None — my own idea</option>
+          ${(() => {
+            const linkedId = p.sidequest_id != null ? Number(p.sidequest_id) : null;
+            const accepted = allTrials.filter((t) => t.unlocked && !t.completed);
+            const locked = allTrials.filter((t) => !t.unlocked);
+            let html = "";
+            if (accepted.length)
+              html += `<optgroup label="Accepted — ready to build">${accepted
+                .map((t) => `<option value="${t.id}" ${linkedId === Number(t.id) ? "selected" : ""}>${Pixl.esc(t.name)}</option>`)
+                .join("")}</optgroup>`;
+            if (locked.length)
+              html += `<optgroup label="Not accepted — accept in-game first">${locked
+                .map((t) => `<option value="${t.id}" data-locked="1">🔒 ${Pixl.esc(t.name)}</option>`)
+                .join("")}</optgroup>`;
+            return html;
+          })()}
+        </select>
+        <span class="faint" id="f-trial-note" style="font-size:11px;line-height:1.5;margin-top:4px"></span>
+      </div>
+      <div class="form-row">
         <label>TYPE (helps reviewers know how to run it)</label>
         <select class="field" id="f-type">
           ${[
@@ -1832,6 +1865,30 @@
           $("f-level").addEventListener("change", showBlurb);
           showBlurb();
         }
+        if ($("f-kind")) {
+          const kindNote = () => {
+            $("f-kind-note").textContent =
+              $("f-kind").value === "hardware"
+                ? "Hardware: Hackatime is optional — journal your hours and they count too. Goes to the hardware review queue."
+                : "Software: needs Hackatime hours to ship.";
+          };
+          $("f-kind").addEventListener("change", kindNote);
+          kindNote();
+        }
+        if ($("f-trial")) {
+          const trialNote = () => {
+            const opt = $("f-trial").selectedOptions[0];
+            if (opt && opt.dataset.locked) {
+              $("f-trial-note").textContent = `You haven't accepted “${opt.textContent.replace(/^🔒\s*/, "")}” yet — go talk to its NPC in the game to accept it, then pick it here.`;
+              $("f-trial-note").style.color = "var(--bad)";
+            } else {
+              $("f-trial-note").textContent = "";
+              $("f-trial-note").style.color = "";
+            }
+          };
+          $("f-trial").addEventListener("change", trialNote);
+          trialNote();
+        }
         $("f-thumb-btn").addEventListener("click", () =>
           $("f-thumb-file").click(),
         );
@@ -1867,6 +1924,20 @@
       }
 
       async function saveProject(p) {
+        // Trial chosen at creation — a locked (not-accepted) pick can't be saved.
+        let sidequestId = null;
+        const trialSel = $("f-trial");
+        if (trialSel) {
+          const opt = trialSel.selectedOptions[0];
+          if (opt && opt.dataset.locked) {
+            Pixl.toast(
+              "Go accept that Trial in the game first (talk to its NPC), then you can pick it.",
+              true,
+            );
+            return false;
+          }
+          sidequestId = trialSel.value ? Number(trialSel.value) : null;
+        }
         const body = {
           name: $("f-name").value.trim(),
           description: $("f-desc").value.trim(),
@@ -1877,6 +1948,8 @@
           aiNotes: $("f-ai-notes").value.trim(),
           projectType: $("f-type") ? $("f-type").value : "other",
           level: $("f-level") ? Number($("f-level").value) : undefined,
+          kind: $("f-kind") ? $("f-kind").value : "software",
+          sidequestId,
           hackatimeProjects: [
             ...document.querySelectorAll('input[name="ht"]:checked'),
           ].map((c) => c.value),
@@ -2578,7 +2651,10 @@
         if (!p.repo_url) b.push("add a GitHub repo");
         if (!p.demo_url) b.push("add a demo / playable link");
         if (!p.image_url) b.push("upload a thumbnail");
-        if (checkedHtSeconds() < 3600) b.push(htBlockerText());
+        // Hardware doesn't require Hackatime — journal hours count on the server,
+        // so don't gate it on the Hackatime picker here.
+        const isHw = ($("f-kind") ? $("f-kind").value : p.kind) === "hardware";
+        if (!isHw && checkedHtSeconds() < 3600) b.push(htBlockerText());
         if (!$("s-eligible") || !$("s-eligible").checked)
           b.push("confirm this isn't a school assignment or paid Hack Club work");
         if (isUpdate) {
@@ -2939,11 +3015,13 @@
       async function loadTrials() {
         try {
           const d = await Pixl.api("/api/sidequests");
+          allTrials = d.quests || [];
           // Only Trials the player has taken on and not yet finished can be a
           // ship target.
-          trials = (d.quests || []).filter((q) => q.unlocked && !q.completed);
+          trials = allTrials.filter((q) => q.unlocked && !q.completed);
         } catch (e) {
           trials = [];
+          allTrials = [];
         }
         // The Trial the player arrived to build for: ?trial=<id> from the NPC, or
         // the single accepted Trial if there's exactly one. Drives the brief panel.
