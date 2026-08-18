@@ -1984,6 +1984,12 @@
       }
 
       async function saveProject(p) {
+        // Guards every early-return validation path below, not just the
+        // network call — without this, mashing the save button while a
+        // validation error is showing stacked a fresh toast per click.
+        if ($("f-save") && $("f-save").disabled) return false;
+        if ($("f-save")) $("f-save").disabled = true;
+        const reenable = () => { if ($("f-save")) $("f-save").disabled = false; };
         // Trial chosen at creation — a locked (not-accepted) pick can't be saved.
         let sidequestId = null;
         const trialSel = $("f-trial");
@@ -1994,6 +2000,7 @@
               "Go accept that Trial in the game first (talk to its NPC), then you can pick it.",
               true,
             );
+            reenable();
             return false;
           }
           sidequestId = trialSel.value ? Number(trialSel.value) : null;
@@ -2016,9 +2023,9 @@
         };
         if (!body.name) {
           Pixl.toast(err("name_required"), true);
+          reenable();
           return false;
         }
-        $("f-save").disabled = true;
         const r = p.id
           ? await Pixl.send("PUT", `/api/projects/${p.id}`, body)
           : await Pixl.send("POST", "/api/projects", body);
@@ -3043,7 +3050,7 @@
 
       /* ---------- router ---------- */
 
-      function route() {
+      async function route() {
         if (!Pixl.hasToken) return;
         const h = location.hash.replace(/^#/, "");
         $("new-btn").style.display = "";
@@ -3057,6 +3064,13 @@
           renderHours();
         }
         if (h === "new") {
+          // allTrials/trials were loaded once at page boot and never since —
+          // a Trial accepted in-game after that (very likely, since this page
+          // is opened as a reused popup window rather than freshly navigated
+          // each time) would still show here as locked, wrongly blocking
+          // project creation with a stale "accept it first" error. Refetch on
+          // every visit to the new-project form so the lock state is current.
+          await loadTrials();
           $("new-btn").style.display = "none";
           $("view").innerHTML =
             `<a class="btn dark back-btn" href="#">← ALL PROJECTS</a><div class="editor">${trialBriefHtml(activeTrial)}${formHtml({})}</div>`;

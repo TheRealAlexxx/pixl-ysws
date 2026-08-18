@@ -165,7 +165,12 @@ func _direct_to_frontier() -> void:
 	var choice := String(picked[1]) if picked.size() > 1 else "later"
 	await _say(["Oh, one more thing — that opening you just watched was drawn by noct. Genuinely great artist, go hire them if you ever need art done."])
 	await _say(["I'll pin a checklist to your screen so you never lose the thread — first stop, find Ridit."])
-	_mark_step_done()
+	# Awaited: start() emits `finished` right after this returns, which frees
+	# this node (see village.gd's flow.finished.connect -> queue_free) — an
+	# un-awaited call here let that teardown cancel the in-flight HTTPRequest
+	# before the POST reached the server, so onboarding_step never actually
+	# persisted and the whole flow replayed on every single login.
+	await _mark_step_done()
 	FirstProjectGuide.begin()
 	# Send them straight to the lobby browser (the way to the frontier). Deferred
 	# by change_scene, so start() still unwinds its UI blocker cleanly first.

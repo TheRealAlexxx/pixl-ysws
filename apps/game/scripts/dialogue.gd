@@ -267,6 +267,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
+		# A choice prompt (ask()) only ever resolves its `chosen` signal from
+		# _on_choice() — closing here instead would leave any caller awaiting
+		# `Dialogue.chosen` (e.g. onboarding.gd's arrival flow) suspended
+		# forever, which also permanently strands global.ui_blockers at 1
+		# since the blocking coroutine never reaches its release. So Esc is a
+		# no-op during an active choice prompt — the player has to pick one.
+		if _choosing:
+			return
 		close()
 		return
 	# While the choice buttons are up, [E] is inert — the player must click one.
