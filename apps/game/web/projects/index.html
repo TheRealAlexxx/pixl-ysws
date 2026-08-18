@@ -1020,19 +1020,36 @@
       }
       .journal-entry .jedit,
       .journal-entry .jdel {
-        background: none;
-        border: none;
-        color: var(--faint);
-        font-size: 13px;
+        font-family: var(--pixel);
+        font-size: 12px;
+        letter-spacing: .3px;
+        padding: 7px 13px;
+        border: var(--bw) solid var(--stroke);
+        border-right-width: var(--bw-heavy);
+        border-bottom-width: var(--bw-heavy);
+        border-radius: 0;
+        background: var(--panel-2);
+        color: var(--dim);
+        cursor: pointer;
+        transition: background .13s ease, color .13s ease, transform .13s ease,
+          border-bottom-width .13s ease, border-right-width .13s ease;
       }
       .journal-entry .jedit {
         margin-left: auto;
       }
       .journal-entry .jedit:hover {
-        color: var(--ink);
+        background: var(--gold);
+        color: var(--btn-ink);
       }
       .journal-entry .jdel:hover {
-        color: var(--bad);
+        background: var(--bad);
+        color: var(--btn-ink);
+      }
+      .journal-entry .jedit:active,
+      .journal-entry .jdel:active {
+        border-right-width: var(--bw);
+        border-bottom-width: var(--bw);
+        transform: translate(2px, 2px);
       }
       .journal-entry .jbody {
         font-size: 15.5px;
@@ -3024,12 +3041,16 @@
           journalEntries.length === 0
             ? `<div class="faint" style="font-size:13px;text-align:center;padding:14px">No entries yet, journal as you build, reviewers read these.</div>`
             : journalEntries
-                .map((e) => (e.id === journalEditingId ? journalEditRow(e) : journalViewRow(e)))
+                .map((e) => (String(e.id) === journalEditingId ? journalEditRow(e) : journalViewRow(e)))
                 .join("");
 
         list.querySelectorAll(".jedit").forEach((b) =>
           b.addEventListener("click", () => {
-            journalEditingId = Number(b.dataset.id);
+            // Journal ids come back from Postgres as bigint, which Supabase
+            // serializes as a string , keep journalEditingId a string too so
+            // the === check above (and this selector) actually match instead
+            // of silently never rendering the editor.
+            journalEditingId = String(b.dataset.id);
             renderJournal(id);
             const row = list.querySelector(`.jeditor[data-id="${journalEditingId}"]`);
             const ta = row && row.querySelector(".jedit-content");
