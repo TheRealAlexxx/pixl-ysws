@@ -9,6 +9,12 @@ const THEME := preload("res://themes/main_theme.tres")
 ## Characters revealed per second while a line types on. Tuned so a ~120-char
 ## line lands in ~2.5s; [E] snaps to full instantly (see _skip_or_advance).
 const TYPE_CPS := 48.0
+## Portrait shown automatically when a call site doesn't pass one explicitly,
+## keyed by speaker name — lets every existing Dialogue.open(PIXO, ...) call
+## site pick up Pixo's bust for free instead of touching each one.
+const DEFAULT_PORTRAITS := {
+	"Pixo": preload("res://assets/npcs/pixo_portrait.png"),
+}
 
 var is_open := false
 var _wrap: Control
@@ -64,10 +70,15 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_bottom", 14)
 	panel.add_child(margin)
 
-	# Portrait (optional) sits left of the text column.
+	# Portrait (optional) sits right of the text column.
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 14)
 	margin.add_child(cols)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cols.add_child(vbox)
 
 	_portrait = TextureRect.new()
 	_portrait.custom_minimum_size = Vector2(96, 96)
@@ -76,11 +87,6 @@ func _build_ui() -> void:
 	_portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_portrait.visible = false
 	cols.add_child(_portrait)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	cols.add_child(vbox)
 
 	_speaker = Label.new()
 	_speaker.theme_type_variation = &"TitleText"
@@ -118,7 +124,7 @@ func open(speaker: String, lines, portrait: Texture2D = null) -> void:
 	_index = 0
 	is_open = true
 	_speaker.text = speaker
-	_set_portrait(portrait)
+	_set_portrait(portrait if portrait != null else DEFAULT_PORTRAITS.get(speaker))
 	_choices.visible = false
 	_show_line(0)
 	_wrap.visible = true
@@ -142,7 +148,7 @@ func ask(speaker: String, prompt, options: PackedStringArray, ids: PackedStringA
 	_choosing = true
 	_choice_ids = ids
 	_speaker.text = speaker
-	_set_portrait(portrait)
+	_set_portrait(portrait if portrait != null else DEFAULT_PORTRAITS.get(speaker))
 	# Prompt lines type through first; the buttons only appear on the last line.
 	if arr.is_empty():
 		_body.text = ""
