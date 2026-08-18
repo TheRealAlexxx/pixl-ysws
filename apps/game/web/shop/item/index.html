@@ -366,7 +366,26 @@
         }
       }
 
+      // A config choice may carry its own `image` (e.g. the A1 vs A1 Combo). When
+      // one is picked, swap the detail image to it; otherwise keep the item's own.
+      function updateConfigImage() {
+        const cfg = selected.config_options;
+        if (!cfg || !Array.isArray(cfg.groups)) return;
+        let img = null;
+        for (const g of cfg.groups) {
+          if (g.type === "multi") continue;
+          const pickedLabel = configPick[g.name] ?? g.choices[0]?.label;
+          const choice = (g.choices || []).find((c) => c.label === pickedLabel);
+          if (choice && choice.image) img = choice.image;
+        }
+        const url = img || selected.image_url || "";
+        $("detail-img").innerHTML = url
+          ? `<img src="${Pixl.esc(url)}" alt="" onerror="this.outerHTML='<span class=ph></span>'">`
+          : `<span class="ph"></span>`;
+      }
+
       function updateConfigPriceUI() {
+        updateConfigImage();
         const price = computeConfigPrice(selected, configPick);
         const afford = wallet && wallet.pixels >= price;
         $("detail-price").innerHTML =
