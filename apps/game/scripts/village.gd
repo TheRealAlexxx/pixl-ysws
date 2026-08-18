@@ -3,9 +3,8 @@ extends "res://scripts/multiplayer_world.gd"
 # New Day-0 arrival flow (cinematic → Pixo greeting → naming → experience →
 # first Trial). Launched here on first arrival; the GuideHud manual is separate.
 const ONBOARDING := preload("res://scripts/onboarding.gd")
-# Where the auto-spawned Trial check-in copies line up in the village.
+# Where the auto-spawned Trial check-in copies cluster in the village.
 const DYNAMIC_NPC_BASE := Vector2(250, -60)
-const DYNAMIC_NPC_STEP := Vector2(44, 0)
 
 var can_transition: bool = false
 var _dialogue_was_open: bool = false
@@ -109,8 +108,16 @@ func _spawn_dynamic_trial_npcs(quests: Array, skip_names: Dictionary) -> void:
 		inst.trial_reminder = reminder
 		inst.quest_offer = reminder
 		inst.dialogue = reminder
-		inst.wanders = false
-		inst.position = DYNAMIC_NPC_BASE + DYNAMIC_NPC_STEP * i
+		# Wander like any other villager instead of standing frozen in a row: a
+		# straight horizontal line (the old DYNAMIC_NPC_STEP.x per NPC) ran off
+		# the grass into the water within 1-2 NPCs. A tight centered grid plus a
+		# small wander radius keeps the whole cluster near the one spot
+		# (DYNAMIC_NPC_BASE) that's actually safe, regardless of headcount.
+		inst.wanders = true
+		inst.wander_radius = 34.0
+		var col := i % 3
+		var row := i / 3
+		inst.position = DYNAMIC_NPC_BASE + Vector2((col - 1) * 22.0, row * 22.0)
 		add_child(inst)
 		_dynamic_npcs.append(inst)
 		if TrialFx.has_changed(quest_name, "active"):
