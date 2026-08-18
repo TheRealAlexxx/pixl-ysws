@@ -23,7 +23,7 @@ router.get("/api/sidequests", async (req, res) => {
         .order("id", { ascending: true }),
       supabase
         .from("sidequest_unlocks")
-        .select("sidequest_id")
+        .select("sidequest_id, unlocked_at")
         .eq("user_id", session.userId),
       // A Trial counts as completed once the player has a project linked to it
       // that's reached (or passed) review.
@@ -44,7 +44,10 @@ router.get("/api/sidequests", async (req, res) => {
         .not("sidequest_id", "is", null),
     ]);
   if (error) return res.json({ ok: true, quests: [] });
-  const unlocked = new Set((unlocks ?? []).map((u) => u.sidequest_id as number));
+  const unlockMap = new Map<number, string>();
+  for (const u of (unlocks ?? []) as { sidequest_id: number; unlocked_at?: string }[]) {
+    unlockMap.set(u.sidequest_id, u.unlocked_at || "");
+  }
   const completed = new Set(
     (projects ?? []).map((p) => p.sidequest_id as number),
   );
@@ -65,7 +68,8 @@ router.get("/api/sidequests", async (req, res) => {
       const g = giverBySq.get(q.id as number);
       return {
         ...q,
-        unlocked: unlocked.has(q.id as number),
+        unlocked: unlockMap.has(q.id as number),
+        unlocked_at: unlockMap.get(q.id as number) || null,
         completed: completed.has(q.id as number),
         // Giver look + reminder for the village check-in copy (falls back to the
         // sidequest's own npc/description client-side if these are blank).

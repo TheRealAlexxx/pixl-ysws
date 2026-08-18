@@ -1,6 +1,7 @@
 extends "res://scripts/multiplayer_world.gd"
 
 var can_transition: bool = false
+var _dialogue_was_open: bool = false
 
 func _ready() -> void:
 	super._ready()
@@ -10,10 +11,11 @@ func _ready() -> void:
 	can_transition = true
 
 func _process(_delta: float) -> void:
-	if global.player_in_range and can_transition and not Dialogue.is_open and not global.ui_blocked() and Input.is_action_just_pressed("interact"):
+	if global.player_in_range and can_transition and not Dialogue.is_open and not _dialogue_was_open and not global.ui_blocked() and Input.is_action_just_pressed("interact"):
 		can_transition = false
 		global.request_transition("village", "PlayerSpawn")
 		Loader.change_scene("res://scenes/village.tscn", "Loading")
+	_dialogue_was_open = Dialogue.is_open
 
 # A Trial-giver (Ridit/Wren/Rill/Cass) hides from the open world once their
 # Trial is accepted — they've relocated to the village to check in on the

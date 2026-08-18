@@ -49,8 +49,8 @@
 			"trial_name": "A Music player for the saloon"
 		},
 		{
-			"pos_x": -1033,
-			"pos_y": 700,
+			"pos_x": -1080,
+			"pos_y": 735,
 			"npc_name": "Cass",
 			"skin": "cvc:8",
 			"custom_hair": "",
@@ -97,8 +97,8 @@
 			"trial_name": "Make me a Roblox game!"
 		},
 		{
-			"pos_x": -950,
-			"pos_y": 660,
+			"pos_x": -900,
+			"pos_y": 700,
 			"npc_name": "Harmon",
 			"skin": "cvc:6",
 			"custom_hair": "",

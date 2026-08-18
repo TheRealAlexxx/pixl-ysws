@@ -802,15 +802,24 @@ const Pixl = (() => {
   }
 
   // The Trial the player is currently building for: ?trial=<id> (Ridit hand-off)
-  // or the single accepted-and-unfinished Trial. null → generic first project.
+  // or the single / most-recently accepted open Trial. null → generic first project.
   async function getActiveTrial() {
     try {
       const tid = Number(new URLSearchParams(location.search).get("trial"));
       const d = await api("/api/sidequests");
       const open = (d.quests || []).filter((q) => q.unlocked && !q.completed);
+      if (tid) {
+        const match = open.find((q) => Number(q.id) === tid);
+        if (match) return match;
+      }
+      if (open.length === 0) return null;
+      if (open.length === 1) return open[0];
       return (
-        (tid && open.find((q) => Number(q.id) === tid)) ||
-        (open.length === 1 ? open[0] : null)
+        open.slice().sort((a, b) => {
+          const ta = a.unlocked_at ? new Date(a.unlocked_at).getTime() : 0;
+          const tb = b.unlocked_at ? new Date(b.unlocked_at).getTime() : 0;
+          return tb - ta || Number(b.id) - Number(a.id);
+        })[0] || null
       );
     } catch (e) {
       return null;

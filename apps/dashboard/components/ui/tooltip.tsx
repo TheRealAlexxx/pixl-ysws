@@ -48,6 +48,7 @@ function TooltipContent({
         {...props}
       >
         {children}
+        {/* @ts-expect-error radix-ui's TooltipArrowProps doesn't type className, but it forwards the prop to the underlying svg fine at runtime */}
         <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>

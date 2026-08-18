@@ -8,6 +8,7 @@ const DYNAMIC_NPC_BASE := Vector2(250, -60)
 const DYNAMIC_NPC_STEP := Vector2(44, 0)
 
 var can_transition: bool = false
+var _dialogue_was_open: bool = false
 var _npcs: Array = []
 var _npcs_by_id: Dictionary = {}
 var _dynamic_npcs: Array = []
@@ -171,14 +172,17 @@ func _process(delta: float) -> void:
 	if _save_accum >= 5.0:
 		_save_accum = 0.0
 		_save_npcs()
-	if global.player_in_range and can_transition and not Dialogue.is_open and not global.ui_blocked() and Input.is_action_just_pressed("interact"):
+	if global.player_in_range and can_transition and not Dialogue.is_open and not _dialogue_was_open and not global.ui_blocked() and Input.is_action_just_pressed("interact"):
 		if global.active_door_target == "shop":
 			WebPages.open("shop")
+			_dialogue_was_open = Dialogue.is_open
 			return
 		if global.active_door_target == "dashboard":
 			WebPages.open("dashboard")
+			_dialogue_was_open = Dialogue.is_open
 			return
 		if global.active_door_target == "lobbies":
 			_save_npcs()
 			get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn")
 			return
+	_dialogue_was_open = Dialogue.is_open
