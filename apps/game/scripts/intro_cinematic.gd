@@ -83,7 +83,7 @@ var _standalone := false
 
 var _bg: ColorRect
 var _art: TextureRect
-var _static_fx: CPUParticles2D
+var _static_fx: ColorRect
 var _video: VideoStreamPlayer
 var _title: Label
 var _caption: Label
@@ -126,16 +126,12 @@ func _build_ui() -> void:
 	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_art)
 
-	_static_fx = CPUParticles2D.new()
-	_static_fx.emitting = false
-	_static_fx.amount = 120
-	_static_fx.lifetime = 0.5
-	_static_fx.position = Vector2(800, 450)
-	_static_fx.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	_static_fx.emission_rect_extents = Vector2(820, 470)
-	_static_fx.gravity = Vector2.ZERO
-	_static_fx.scale_amount_min = 2.0
-	_static_fx.scale_amount_max = 5.0
+	_static_fx = ColorRect.new()
+	_static_fx.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_static_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_static_fx.visible = false
+	_static_fx.material = ShaderMaterial.new()
+	_static_fx.material.shader = preload("res://shaders/tv_static.gdshader")
 	root.add_child(_static_fx)
 
 	# Placeholder title, centred, big — stands in for the art until stills exist.
@@ -206,7 +202,7 @@ func next_panel() -> void:
 		_finish()
 		return
 	var p: Dictionary = PANELS[_panel]
-	_static_fx.emitting = String(p["title"]) == "THE GREAT STATIC"
+	_static_fx.visible = String(p["title"]) == "THE GREAT STATIC"
 	_art.texture = p["texture"]
 	_art.visible = p["texture"] != null
 	_title.text = p["title"]
@@ -250,7 +246,7 @@ func _finish() -> void:
 	if _done:
 		return
 	_done = true
-	_static_fx.emitting = false
+	_static_fx.visible = false
 	visible = false
 	finished.emit()
 

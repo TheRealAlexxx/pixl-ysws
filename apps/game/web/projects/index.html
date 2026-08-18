@@ -1261,9 +1261,14 @@
       function linkedSeconds(p) {
         if (!stats || !stats.connected) return 0;
         const linked = new Set(p.hackatime_projects || []);
+        // secondsSinceCutoff (when the server has computed it) so this matches
+        // what actually counts toward shipping — same reasoning as
+        // checkedHtTotals() below. Without this, a linked project with any
+        // activity before HACKATIME_CUTOFF inflates the Trial progress bar and
+        // per-project hour badge with time that will never actually ship.
         return stats.projects
           .filter((h) => linked.has(h.name))
-          .reduce((s, h) => s + h.seconds, 0);
+          .reduce((s, h) => s + (h.secondsSinceCutoff ?? h.seconds), 0);
       }
 
       // Hours already put into projects that have actually shipped (submitted or

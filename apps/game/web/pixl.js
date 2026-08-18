@@ -236,11 +236,15 @@ const Pixl = (() => {
     setTimeout(() => t.remove(), 3200);
   }
 
-  async function send(method, path, body) {
+  async function send(method, path, body, opts = {}) {
     const res = await fetch(apiUrl(path), {
       method,
       headers: { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
+      // keepalive: survive a location.href navigation fired right after this
+      // call (see setOnboarding) — a normal fetch gets aborted mid-flight by
+      // the navigation, so the request never reaches the server.
+      keepalive: !!opts.keepalive,
     });
     let json = null;
     try { json = await res.json(); } catch {}
@@ -714,7 +718,7 @@ const Pixl = (() => {
     },
     {
       title: "That's it, go build",
-      body: "Not sure where to start? I wrote a step-by-step on making your first project. Hit <b>Done</b> to head back into the game whenever you're ready.",
+      body: "Not sure where to start? I wrote a step-by-step on making your first project. Hit <b>Done</b> and get to it, right here in the Builder Terminal.",
       extra: { label: "Build your first project →", href: "/docs/first-project" },
     },
   ];
@@ -865,7 +869,10 @@ const Pixl = (() => {
   }
   function setOnboarding(step) {
     // Fire-and-forget; the counter is forward-only server-side so this is safe.
-    send("POST", "/api/profile/onboarding", { step }).catch(() => {});
+    // keepalive matters here: close() calls this right before a location.href
+    // redirect, and without it the browser cancels the request mid-flight, so
+    // the server never records step 2 and the tour just replays next visit.
+    send("POST", "/api/profile/onboarding", { step }, { keepalive: true }).catch(() => {});
   }
 
   // Which tour step is in progress, so a docs detour resumes rather than restarts.
@@ -896,15 +903,15 @@ const Pixl = (() => {
     const card = root.querySelector(".pt-card");
     let i = Math.max(0, Math.min(startAt, steps.length - 1));
 
-    function close(completed) {
+    function close() {
       root.remove();
       markOnboarded();
       if (sync) {
         clearTourStep();
         setOnboarding(2); // dashboard leg done → fully onboarded
-        // Finishing the guided flow hands the player back to the game; skipping
-        // or dismissing just closes the tour and leaves them on the dashboard.
-        if (completed) location.href = GAME;
+        // Done and Skip both just close the tour and leave the player on the
+        // projects page — the whole point of finishing is to build there, so
+        // bouncing them back to the game right after is the wrong move.
       }
     }
     // While a synced tour is live, remember which step we're on so a detour into
@@ -939,16 +946,13 @@ const Pixl = (() => {
         </div>`;
       card.querySelector(".pt-btn").onclick = () => {
         try { step.onNext && step.onNext(); } catch (e) {}
-        if (i === steps.length - 1) close(true);
+        if (i === steps.length - 1) close();
         else advance(i + 1);
       };
       const back = card.querySelector(".pt-back");
       if (back) back.onclick = () => advance(i - 1);
       const skip = card.querySelector(".pt-skip");
-      // Not `= close` directly: onclick invokes it with the MouseEvent as the
-      // first arg, and any object is truthy, so `completed` would read true
-      // and skip would incorrectly redirect back to the game like a real Done.
-      if (skip) skip.onclick = () => close(false);
+      if (skip) skip.onclick = close;
       const extra = card.querySelector(".pt-extra");
       if (extra) extra.onclick = () => {
         // Detour (usually into the docs). Persist the *next* step so we resume
