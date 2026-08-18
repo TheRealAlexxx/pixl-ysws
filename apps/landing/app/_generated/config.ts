@@ -11,7 +11,7 @@ export const config = {
     "docs": "https://pixl.hackclub.com/docs",
     "server": "https://server.pixl.hackclub.com",
     "ws": "wss://server.pixl.hackclub.com/ws",
-    "repo": "https://github.com/ridit-jangra/pixl"
+    "repo": "https://github.com/hackclub/pixl"
   },
   "economy": {
     "pixelValueUsd": 0.07,

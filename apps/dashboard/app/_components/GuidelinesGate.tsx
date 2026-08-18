@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GUIDELINE_PAGES } from "@/lib/guidelinesContent";
 import { MIN_SECONDS_PER_PAGE, GUIDELINES_LIVE_URL } from "@/lib/guidelines";
-import { acknowledgeGuidelines } from "@/app/actions";
+import { acknowledgeGuidelines, skipGuidelines } from "@/app/actions";
 
 // First-time reviewer gate: step through every guideline page in order, spend
 // at least MIN_SECONDS_PER_PAGE on each (a page auto-marks "read" once its timer
@@ -96,14 +96,26 @@ export function GuidelinesGate() {
       </Card>
 
       <div className="flex items-center justify-between gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={i === 0}
-          onClick={() => setI((v) => Math.max(0, v - 1))}
-        >
-          ← Back
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={i === 0}
+            onClick={() => setI((v) => Math.max(0, v - 1))}
+          >
+            ← Back
+          </Button>
+          <form action={skipGuidelines}>
+            <Button
+              type="submit"
+              variant="ghost"
+              className="text-muted-foreground"
+              title="Skips the read-through. The team gets a heads-up in Slack."
+            >
+              Skip for now
+            </Button>
+          </form>
+        </div>
 
         {!isLast ? (
           <Button

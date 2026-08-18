@@ -3690,3 +3690,18 @@ export async function acknowledgeGuidelines() {
   await ackGuidelines(access.session.slackId, GUIDELINES_VERSION);
   redirect("/review");
 }
+
+// Escape hatch off the same gate: records the ack (so they aren't bounced back
+// to the gate every page load) without requiring the read-through, but pings
+// every owner via Pixo DM so a skip never goes unnoticed. Fire-and-forget —
+// a Slack hiccup shouldn't block the reviewer from reaching the queue.
+export async function skipGuidelines() {
+  const access = await requirePerm("review");
+  await ackGuidelines(access.session.slackId, GUIDELINES_VERSION);
+  const handle = (await slackHandle(access.session.slackId)) ?? access.session.slackId;
+  const text = `:fast_forward: <@${access.session.slackId}> (${handle}) skipped the reviewer guidelines gate instead of reading it before entering the review queue.`;
+  Promise.all(ownerSlackIds().map((id) => dmUser(id, text))).catch((e) =>
+    console.error("skipGuidelines notify", (e as Error).message),
+  );
+  redirect("/review");
+}
