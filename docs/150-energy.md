@@ -17,7 +17,7 @@ When a reviewer approves your project they also give it a **tier**, 1 to 4, base
 | T1 Spark | A first spark of Restoration: a simple site, script or tiny tool. | {{t1}} RE / hour |
 | T2 Signal | A focused app, CLI or game with real polish, one system back online. | {{t2}} RE / hour |
 | T3 Grid | Several systems working together: backend, state, infrastructure. | {{t3}} RE / hour |
-| T4 Beacon | Deep systems work: complex architecture and serious scope. | {{t4}} RE / hour |
+| T4 Nexus | Deep systems work: complex architecture and serious scope. | {{t4}} RE / hour |
 
 Tier is about the project, not about you. A first timer who ships something genuinely hard gets the high tier for it. Padding a simple site out with hours doesn't move it up either, since reviewers look at the actual repo.
 

@@ -265,7 +265,7 @@ export default async function ReviewDetail({
                   <option value={1}>T1 · Spark</option>
                   <option value={2}>T2 · Signal</option>
                   <option value={3}>T3 · Grid</option>
-                  <option value={4}>T4 · Beacon</option>
+                  <option value={4}>T4 · Nexus</option>
                 </select>
                 <PendingButton variant="secondary" size="sm" pendingText="Saving…">
                   Set

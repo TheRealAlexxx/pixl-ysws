@@ -85,7 +85,7 @@ const TIERS = [
   { value: 1, label: "T1 Spark", blurb: "A simple site, script, or tiny tool" },
   { value: 2, label: "T2 Signal", blurb: "A focused app, CLI, or game with clean polish" },
   { value: 3, label: "T3 Grid", blurb: "Multiple systems together: backend, state, infra" },
-  { value: 4, label: "T4 Beacon", blurb: "Deep systems work, serious scope" },
+  { value: 4, label: "T4 Nexus", blurb: "Deep systems work, serious scope" },
 ];
 
 /**

@@ -213,6 +213,24 @@
         letter-spacing: 1px;
         padding: 3px 7px;
       }
+      /* Trial-gated item: still shown, but greyed out until unlocked. */
+      .item-card.locked {
+        filter: saturate(0.45) brightness(0.82);
+      }
+      .item-card.locked .item-img { opacity: 0.7; }
+      .locked-corner-tag {
+        position: absolute;
+        top: -9px;
+        left: 9px;
+        background: var(--faint);
+        color: var(--btn-ink);
+        border-radius: 0;
+        font-family: var(--pixel);
+        font-size: 10px;
+        letter-spacing: 1px;
+        padding: 3px 7px;
+        z-index: 2;
+      }
 
       /* ── trophies / restoration rewards ── */
       .trophy-card {
@@ -534,7 +552,8 @@
         $("items").innerHTML = list
           .map(
             (item, idx) => `
-    <div class="card panel item-card ${item.limited ? "limited" : ""}" data-id="${item.id}" style="animation: toast-in .2s ease both; animation-delay:${Math.min(idx * 30, 400)}ms">
+    <div class="card panel item-card ${item.limited ? "limited" : ""} ${item.locked ? "locked" : ""}" data-id="${item.id}" style="animation: toast-in .2s ease both; animation-delay:${Math.min(idx * 30, 400)}ms">
+      ${item.locked ? `<div class="locked-corner-tag">🔒 LOCKED</div>` : ""}
       ${item.limited ? `<div class="limited-tag">LIMITED</div>` : ""}
       ${item.stock && item.stock.length ? `<div class="stock-corner-tag">${item.stock[0].total} ONLY</div>` : ""}
       <div class="item-img">${imgHtml(item)}</div>
@@ -543,7 +562,7 @@
       <div class="item-foot">
         ${
           item.locked
-            ? `<div class="price-wrap"><span class="price cant">🔒 LOCKED</span><span class="price-hours">Ship the ${item.unlock_trials && item.unlock_trials.length ? Pixl.esc(item.unlock_trials.join('" or "')) : "required"} Trial to unlock</span></div>`
+            ? `<div class="price-wrap"><span class="price cant">🔒 LOCKED</span><span class="price-hours">Ship ${item.unlock_trials && item.unlock_trials.length ? item.unlock_trials.map((t) => `“${Pixl.esc(t)}”`).join(" or ") : "the required Trial"} to unlock this</span></div>`
             : isPending(item)
             ? `<div class="price-wrap"><span class="price cant">NOT AVAILABLE</span><span class="price-hours">Coming soon to this region</span></div>`
             : `<div class="price-wrap">
