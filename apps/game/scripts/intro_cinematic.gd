@@ -20,7 +20,7 @@ const PANELS := [
 	{
 		"title": "ORIGIN",
 		"tint": Color(0.98, 0.78, 0.35),
-		"texture": preload("res://assets/cinematic/origin.png"),
+		"texture": preload("res://assets/cinematic/origin.jpg"),
 		"lines": [
 			"Once, there was Origin — the brightest world the machine ever dreamed.",
 			"Every idea ever built flowed into one place: the Core.",
@@ -30,7 +30,7 @@ const PANELS := [
 	{
 		"title": "OVERLOAD",
 		"tint": Color(0.9, 0.42, 0.2),
-		"texture": preload("res://assets/cinematic/overload.png"),
+		"texture": preload("res://assets/cinematic/overload.jpg"),
 		"lines": [
 			"For centuries it held every invention. Every blueprint. Every spark.",
 			"Until it held too much.",
@@ -50,7 +50,7 @@ const PANELS := [
 	{
 		"title": "THE LAST SPACECRAFT",
 		"tint": Color(0.4, 0.5, 0.78),
-		"texture": preload("res://assets/cinematic/last_spacecraft.png"),
+		"texture": preload("res://assets/cinematic/last_spacecraft.jpg"),
 		"lines": [
 			"The survivors couldn't rebuild alone. So they crossed the Void looking for help —",
 			"— and found a small blue planet full of people who build things for fun.",
@@ -61,7 +61,7 @@ const PANELS := [
 	{
 		"title": "ARRIVAL",
 		"tint": Color(0.96, 0.72, 0.4),
-		"texture": preload("res://assets/cinematic/arrival.png"),
+		"texture": preload("res://assets/cinematic/arrival.jpg"),
 		"lines": [
 			"They call this place Pixl now.",
 			"What's left of it is waiting.",
