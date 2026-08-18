@@ -2618,7 +2618,13 @@ export async function updateShopItem(formData: FormData): Promise<void> {
   const region = readRegion(String(formData.get("region") ?? ""));
   const category = readCategory(String(formData.get("category") ?? ""));
   if (!id || !name) return;
-  const patch: Record<string, unknown> = { name, description, price, options, region, category };
+  // Trial gate: which Trials unlock this item (empty = buyable). Item-wide, so
+  // it's propagated to every region row of the item below, not kept per-region.
+  const unlockTrials = formData
+    .getAll("unlock_trials")
+    .map(Number)
+    .filter((n) => Number.isFinite(n) && n > 0);
+  const patch: Record<string, unknown> = { name, description, price, options, region, category, unlock_trial_ids: unlockTrials };
   const image = formData.get("image");
   if (image instanceof File && image.size > 0) {
     if (image.size > 4 * 1024 * 1024) throw new Error("Image too big (max 4 MB).");
@@ -2648,6 +2654,17 @@ export async function updateShopItem(formData: FormData): Promise<void> {
 
   const { error } = await db.from("shop_items").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
+
+  // A Trial gate is item-wide, so mirror it onto every region row of this item
+  // (matched by its name before any rename) — never locked in one region and
+  // open in another. The edited row itself already got it via `patch`.
+  const gateName = originalName || name;
+  const { error: gateErr } = await db
+    .from("shop_items")
+    .update({ unlock_trial_ids: unlockTrials })
+    .eq("name", gateName)
+    .eq("unlock_xp", 0);
+  if (gateErr) console.error("updateShopItem (trial gate)", gateErr.message);
 
   if (applyAllRegions && originalName) {
     const { error: propErr } = await db

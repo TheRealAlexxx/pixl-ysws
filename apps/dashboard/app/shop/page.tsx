@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePagePerm } from "@/lib/guard";
-import { listShopItems, listShopOptionStock, SHOP_REGIONS, SHOP_REGION_LABELS, SHOP_CATEGORIES, SHOP_CATEGORY_LABELS, type ShopRegion } from "@/lib/db";
+import { listShopItems, listShopOptionStock, listSidequests, SHOP_REGIONS, SHOP_REGION_LABELS, SHOP_CATEGORIES, SHOP_CATEGORY_LABELS, type ShopRegion } from "@/lib/db";
 import { addShopItem, toggleShopItem, deleteShopItem, updateShopItem } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
 import { Disclosure } from "@/app/_components/Disclosure";
@@ -42,7 +42,13 @@ export default async function ShopPage({
   // Trophies (unlock_xp > 0, e.g. the 3D Printed Blahaj) are earned by
   // leveling up, not bought with pixels or tied to a region — pull them out
   // into their own section regardless of which region tab is selected.
-  const [regionItems, everyItem] = await Promise.all([listShopItems(region), listShopItems()]);
+  const [regionItems, everyItem, allSidequests] = await Promise.all([
+    listShopItems(region),
+    listShopItems(),
+    listSidequests(),
+  ]);
+  // Active Trials the admin can gate a shop item behind (unlock via completion).
+  const gateTrials = allSidequests.filter((q) => q.active);
   const trophies = everyItem.filter((i) => i.unlock_xp > 0);
   let allItems = regionItems.filter((i) => i.unlock_xp === 0);
   if (query) {
@@ -326,6 +332,35 @@ export default async function ShopPage({
                       <div className="block">
                         <span className="block text-xs font-medium text-muted-foreground mb-1">Options</span>
                         <OptionsEditor name="options" initial={item.options} />
+                      </div>
+                      <div className="block">
+                        <span className="block text-xs font-medium text-muted-foreground mb-1">
+                          Unlock via Trial (locked until the player ships ONE of the ticked Trials; none = buyable)
+                        </span>
+                        <div className="flex flex-col gap-1 max-h-40 overflow-y-auto rounded-md border border-border p-2">
+                          {gateTrials.length === 0 && (
+                            <span className="text-xs text-muted-foreground">No active Trials.</span>
+                          )}
+                          {gateTrials.map((q) => (
+                            <label key={q.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                              <input
+                                type="checkbox"
+                                name="unlock_trials"
+                                value={q.id}
+                                defaultChecked={(item.unlock_trial_ids ?? [])
+                                  .map(Number)
+                                  .includes(q.id)}
+                                className="h-4 w-4 rounded border-border accent-brand"
+                              />
+                              <span>
+                                {q.name}
+                                {q.region ? (
+                                  <span className="text-muted-foreground"> · {q.region}</span>
+                                ) : null}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                       <Label className="block font-normal">
                         <span className="block text-xs font-medium text-muted-foreground mb-1">

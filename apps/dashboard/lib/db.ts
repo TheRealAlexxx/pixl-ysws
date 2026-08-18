@@ -1805,6 +1805,9 @@ export interface ShopItemRow {
   region: ShopRegion;
   unlock_xp: number;
   category: ShopCategory;
+  // Sidequest ids that unlock this item; empty = not trial-gated. Comes back as
+  // strings from the bigint[] column, so normalize with Number() when comparing.
+  unlock_trial_ids: (number | string)[];
 }
 
 export interface ShopOptionStockRow {
