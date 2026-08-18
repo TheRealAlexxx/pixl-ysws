@@ -167,6 +167,20 @@ interface HackClubTokenResponse {
   scope: string;
 }
 
+interface HcaAddress {
+  id?: string;
+  first_name?: string;
+  last_name?: string;
+  line_1?: string;
+  line_2?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  phone_number?: string;
+  primary?: boolean;
+}
+
 interface HackClubMeResponse {
   identity: {
     id: string;
@@ -174,34 +188,24 @@ interface HackClubMeResponse {
     last_name?: string;
     primary_email?: string;
     slack_id?: string;
-    // Standard OIDC claim names (matches the "birthdate"/"address" scope
-    // names we request) — unconfirmed against real HCA docs, so extraction
-    // logs the raw keys when these don't show up. See auth/hca-address.
-    birthdate?: string;
-    address?: {
-      formatted?: string;
-      street_address?: string;
-      locality?: string;
-      region?: string;
-      postal_code?: string;
-      country?: string;
-    };
+    // Confirmed against hackclub/auth's own jbuilder templates
+    // (app/views/api/v1/identities/_identity.jb, _address.jb) — NOT the OIDC
+    // standard claim names the "birthdate"/"address" scopes might suggest.
+    // The "birthdate" scope's field is `birthday`, and "address" grants an
+    // `addresses` ARRAY (one entry per address on file), not a single object.
+    birthday?: string;
+    addresses?: HcaAddress[];
     [key: string]: unknown;
   };
   scopes: string[];
 }
 
-// birthdate/address arrive as OIDC standard claims (best guess — HCA's docs
-// don't spell out the /me response shape, but the scope names we request
-// ("birthdate", "address") match the OIDC spec's claim names exactly). Warn
-// loudly instead of silently storing nothing if that guess is wrong, so the
-// first real login after a deploy shows up in the logs either way.
 function extractBirthday(identity: HackClubMeResponse["identity"]): string | null {
-  const raw = identity.birthdate;
+  const raw = identity.birthday;
   if (!raw) return null;
   const date = new Date(raw);
   if (Number.isNaN(date.getTime()) || date > new Date() || date.getFullYear() < 1900) {
-    console.warn("HCA birthdate didn't parse as a date:", raw);
+    console.warn("HCA birthday didn't parse as a date:", raw);
     return null;
   }
   return raw.slice(0, 10);
@@ -217,10 +221,11 @@ interface HcaAddressPatch {
 }
 
 function extractAddress(identity: HackClubMeResponse["identity"]): HcaAddressPatch | null {
-  const addr = identity.address;
-  if (!addr || typeof addr !== "object") return null;
-  const line1 = String(addr.street_address ?? addr.formatted ?? "").trim();
-  const city = String(addr.locality ?? "").trim();
+  const addresses = identity.addresses;
+  if (!Array.isArray(addresses) || addresses.length === 0) return null;
+  const addr = addresses.find((a) => a.primary) ?? addresses[0];
+  const line1 = String(addr.line_1 ?? "").trim();
+  const city = String(addr.city ?? "").trim();
   const country = String(addr.country ?? "").trim();
   const postal = String(addr.postal_code ?? "").trim();
   if (!line1 || !city || !country || !postal) {
@@ -229,9 +234,9 @@ function extractAddress(identity: HackClubMeResponse["identity"]): HcaAddressPat
   }
   return {
     address_line1: line1,
-    address_line2: "",
+    address_line2: String(addr.line_2 ?? "").trim(),
     address_city: city,
-    address_state: String(addr.region ?? "").trim(),
+    address_state: String(addr.state ?? "").trim(),
     address_country: country,
     address_postal: postal,
   };
