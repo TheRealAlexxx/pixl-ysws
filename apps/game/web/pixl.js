@@ -139,6 +139,15 @@ const Pixl = (() => {
   // "back to game" link pointing at the right place without a redirect.
   const GAME = location.hostname.startsWith("play.") ? "/" : "/play";
 
+  // Same Hack Club Auth flow the game itself uses for a web login
+  // (NetworkManager._start_login_web in the Godot client) - the server hands
+  // the finished session back to whatever web_redirect points at, and the
+  // token bootstrap above already picks up a ?token= on any page load, so a
+  // signed-out visitor can log in right here without ever opening the game.
+  function loginUrl() {
+    return API + "/auth/hackclub?web_redirect=" + encodeURIComponent(location.origin + location.pathname);
+  }
+
   const params = new URLSearchParams(location.search);
   let token = params.get("token") || "";
   if (token) {
@@ -408,10 +417,10 @@ const Pixl = (() => {
           </div>
           <button class="rail-btn" id="pixl-help-btn" type="button" title="New here? Replay the tour" aria-label="Replay the tour">${HELP_ICON}</button>
           ${themeBtn}`
-      : `<a class="btn" href="${GAME}">ENTER THE GAME</a>${themeBtn}`;
+      : `<a class="btn" href="${loginUrl()}">LOG IN</a><a class="btn ghost" href="${GAME}">PLAY THE GAME</a>${themeBtn}`;
     const foot = token
       ? `<a class="btn dark back-to-game" href="${GAME}"><span class="arrow">◄</span> BACK TO GAME</a>`
-      : `<a class="btn" href="${GAME}">ENTER GAME</a>`;
+      : `<a class="btn" href="${loginUrl()}">LOG IN</a>`;
     document.body.classList.add("has-sidebar");
     document.body.insertAdjacentHTML("afterbegin", `
       <aside class="sidebar">
@@ -1120,5 +1129,5 @@ const Pixl = (() => {
     document.addEventListener("DOMContentLoaded", gate);
   }
 
-  return { API, config, token, api, apiUrl, send, upload, esc, bbcode, bbstrip, markdown, toast, mountTopbar, loadWallet, loadRestoration, timeAgo, countdown, hours, hasToken: !!token, runTour, maybeOnboard, ONBOARDING_STEPS, confirm: confirmDialog, setTheme };
+  return { API, config, token, api, apiUrl, send, upload, esc, bbcode, bbstrip, markdown, toast, mountTopbar, loadWallet, loadRestoration, timeAgo, countdown, hours, hasToken: !!token, runTour, maybeOnboard, ONBOARDING_STEPS, confirm: confirmDialog, setTheme, loginUrl };
 })();

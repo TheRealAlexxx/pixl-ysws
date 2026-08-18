@@ -103,6 +103,14 @@
       <div class="page-sub" id="sub">Where you're at, and what to do next.</div>
 
       <div class="spin" id="loading"></div>
+      <div class="next card panel" id="signed-out" hidden>
+        <span class="next-txt">
+          <span class="next-k">Not logged in</span>
+          <span class="next-h">Log in to see your overview</span>
+          <span class="next-s">Pixels, Restoration Energy, level and your projects, no need to open the game first.</span>
+        </span>
+        <a class="btn" id="signed-out-btn">LOG IN</a>
+      </div>
       <div id="view" hidden>
         <a class="next card panel" id="next" href="/projects/">
           <span class="next-txt">
@@ -159,7 +167,7 @@
       </div>
     </main>
 
-    <script src="/pixl.js?v=3"></script>
+    <script src="/pixl.js?v=4"></script>
     <script>
       Pixl.mountTopbar("dashboard");
       Pixl.loadWallet();
@@ -238,7 +246,12 @@
       }
 
       async function boot() {
-        if (!Pixl.hasToken) return;
+        if (!Pixl.hasToken) {
+          $("loading").remove();
+          $("signed-out-btn").href = Pixl.loginUrl();
+          $("signed-out").hidden = false;
+          return;
+        }
         let wallet, projects, notifs;
         try {
           [wallet, projects, notifs] = await Promise.all([
