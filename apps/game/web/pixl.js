@@ -941,7 +941,8 @@ const Pixl = (() => {
         ${extraBtn}
         <div class="pt-foot">
           <div class="pt-dots">${dots}</div>
-          ${i > 0 ? `<button class="pt-back">Back</button>` : `<button class="pt-skip">Skip</button>`}
+          ${i < steps.length - 1 ? `<button class="pt-skip">Skip</button>` : ""}
+          ${i > 0 ? `<button class="pt-back">Back</button>` : ""}
           <button class="pt-btn">${i === steps.length - 1 ? "Done" : "Next"}</button>
         </div>`;
       card.querySelector(".pt-btn").onclick = () => {
