@@ -808,11 +808,19 @@
         min-height: 80px;
         line-height: 1.6;
       }
-      #j-content {
+      #j-content,
+      .jedit-content {
         min-height: 150px;
         resize: none;
         overflow: hidden;
         line-height: 1.6;
+      }
+      .jeditor {
+        border-color: var(--gold);
+      }
+      .jeditor .jedit-content {
+        width: 100%;
+        margin-bottom: 10px;
       }
       .two-col {
         display: grid;
@@ -2168,7 +2176,6 @@
           <span class="faint" style="font-size:12px">hours:</span>
           <input class="field" id="j-hours" type="number" min="0" max="100" step="0.5" value="0">
           <span class="j-hint faint" id="j-hint"></span>
-          <button class="btn" id="j-cancel-edit" hidden>CANCEL</button>
           <button class="btn" id="j-post">POST ENTRY</button>
         </div>
       </div>
@@ -2231,7 +2238,6 @@
           }
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
-        $("j-cancel-edit").addEventListener("click", () => cancelJournalEdit());
         $("p-delete").addEventListener("click", () => deleteProject(p));
         $("j-content").addEventListener("input", updateJournalHint);
         $("j-content").addEventListener("input", () =>
@@ -2412,7 +2418,6 @@
           <span class="faint" style="font-size:12px">hours:</span>
           <input class="field" id="j-hours" type="number" min="0" max="100" step="0.5" value="0">
           <span class="j-hint faint" id="j-hint"></span>
-          <button class="btn" id="j-cancel-edit" hidden>CANCEL</button>
           <button class="btn" id="j-post">POST ENTRY</button>
         </div>
       </div>
@@ -2434,7 +2439,6 @@
           }
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
-        $("j-cancel-edit").addEventListener("click", () => cancelJournalEdit());
         $("j-content").addEventListener("input", updateJournalHint);
         $("j-content").addEventListener("input", () => autoGrow($("j-content")));
         $("j-hours").addEventListener("input", updateJournalHint);
@@ -2952,23 +2956,11 @@
             : events.map(tlRow).join("");
       }
 
-      let editingJournalEntry = null; // {id, projectId} while the composer is editing an existing entry
+      let journalEditingId = null; // entry id currently expanded into an inline editor, if any
 
-      async function loadJournal(id) {
-        let entries = [];
-        try {
-          const d = await Pixl.api(`/api/projects/${id}/journal`);
-          entries = d.entries || [];
-        } catch {}
-        const list = $("j-list");
-        if (!list) return;
-        list.innerHTML =
-          entries.length === 0
-            ? `<div class="faint" style="font-size:13px;text-align:center;padding:14px">No entries yet, journal as you build, reviewers read these.</div>`
-            : entries
-                .map(
-                  (e) => `
-      <div class="journal-entry panel">
+      function journalViewRow(e) {
+        return `
+      <div class="journal-entry panel" data-id="${e.id}">
         <div class="jmeta">
           <span>${Pixl.timeAgo(e.created_at)}</span>
           ${e.edited_at ? `<span class="faint">(edited)</span>` : ""}
@@ -2977,60 +2969,126 @@
           <button class="jdel" data-id="${e.id}">delete</button>
         </div>
         <div class="jbody md">${Pixl.markdown(e.content)}</div>
-      </div>`,
-                )
+      </div>`;
+      }
+
+      function journalEditRow(e) {
+        return `
+      <div class="journal-entry panel jeditor" data-id="${e.id}">
+        <textarea class="field jedit-content" maxlength="5000">${Pixl.esc(e.content)}</textarea>
+        <div class="composer-foot">
+          <span class="faint" style="font-size:12px">hours:</span>
+          <input class="field jedit-hours" type="number" min="0" max="100" step="0.5" value="${Number(e.hours) || 0}">
+          <span class="j-hint faint jedit-hint"></span>
+          <button class="btn jedit-cancel">CANCEL</button>
+          <button class="btn jedit-save">SAVE</button>
+        </div>
+      </div>`;
+      }
+
+      let journalEntries = [];
+
+      async function loadJournal(id) {
+        try {
+          const d = await Pixl.api(`/api/projects/${id}/journal`);
+          journalEntries = d.entries || [];
+        } catch {
+          journalEntries = [];
+        }
+        journalEditingId = null;
+        renderJournal(id);
+      }
+
+      function renderJournal(id) {
+        const list = $("j-list");
+        if (!list) return;
+        list.innerHTML =
+          journalEntries.length === 0
+            ? `<div class="faint" style="font-size:13px;text-align:center;padding:14px">No entries yet, journal as you build, reviewers read these.</div>`
+            : journalEntries
+                .map((e) => (e.id === journalEditingId ? journalEditRow(e) : journalViewRow(e)))
                 .join("");
+
         list.querySelectorAll(".jedit").forEach((b) =>
           b.addEventListener("click", () => {
-            const e = entries.find((x) => String(x.id) === b.dataset.id);
-            if (!e) return;
-            editingJournalEntry = { id: e.id, projectId: id };
-            $("j-content").value = e.content;
-            $("j-hours").value = Number(e.hours) || 0;
-            autoGrow($("j-content"));
-            updateJournalHint();
-            $("j-post").textContent = "SAVE EDIT";
-            $("j-cancel-edit").hidden = false;
-            $("j-content").scrollIntoView({ behavior: "smooth", block: "center" });
-            $("j-content").focus();
+            journalEditingId = Number(b.dataset.id);
+            renderJournal(id);
+            const row = list.querySelector(`.jeditor[data-id="${journalEditingId}"]`);
+            const ta = row && row.querySelector(".jedit-content");
+            if (ta) {
+              autoGrow(ta);
+              ta.focus();
+              ta.setSelectionRange(ta.value.length, ta.value.length);
+              row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
           }),
         );
         list.querySelectorAll(".jdel").forEach((b) =>
           b.addEventListener("click", async () => {
             if (!(await Pixl.confirm({ title: "Delete this journal entry?", confirmText: "Delete", danger: true }))) return;
-            const r = await Pixl.send(
-              "DELETE",
-              `/api/projects/${id}/journal/${b.dataset.id}`,
-            );
+            const r = await Pixl.send("DELETE", `/api/projects/${id}/journal/${b.dataset.id}`);
             if (r.ok) {
-              if (editingJournalEntry && String(editingJournalEntry.id) === b.dataset.id) cancelJournalEdit();
               Pixl.toast("Entry deleted.");
               loadJournal(id);
             } else Pixl.toast(err(r.error), true);
           }),
         );
-      }
 
-      function cancelJournalEdit() {
-        editingJournalEntry = null;
-        $("j-content").value = "";
-        $("j-hours").value = "0";
-        autoGrow($("j-content"));
-        updateJournalHint();
-        $("j-post").textContent = "POST ENTRY";
-        $("j-cancel-edit").hidden = true;
+        const editRow = list.querySelector(".jeditor");
+        if (!editRow) return;
+        const ta = editRow.querySelector(".jedit-content");
+        const hoursInput = editRow.querySelector(".jedit-hours");
+        const hint = editRow.querySelector(".jedit-hint");
+        const updateHint = () => {
+          const len = ta.value.trim().length;
+          const need = journalNeed(Number(hoursInput.value) || 0);
+          if (need === 0) {
+            hint.textContent = len ? `${len} chars` : "";
+            hint.classList.remove("bad", "ok");
+            return;
+          }
+          hint.textContent = `${len} / ${need} chars`;
+          hint.classList.toggle("bad", len < need);
+          hint.classList.toggle("ok", len >= need);
+        };
+        ta.addEventListener("input", () => { autoGrow(ta); updateHint(); });
+        hoursInput.addEventListener("input", updateHint);
+        updateHint();
+        editRow.querySelector(".jedit-cancel").addEventListener("click", () => {
+          journalEditingId = null;
+          renderJournal(id);
+        });
+        editRow.querySelector(".jedit-save").addEventListener("click", async () => {
+          const content = ta.value.trim();
+          if (!content) return Pixl.toast("Write something first!", true);
+          const saveBtn = editRow.querySelector(".jedit-save");
+          saveBtn.disabled = true;
+          const r = await Pixl.send("PATCH", `/api/projects/${id}/journal/${journalEditingId}`, {
+            content,
+            hours: Number(hoursInput.value) || 0,
+          });
+          saveBtn.disabled = false;
+          if (!r.ok) {
+            if (r.error === "journal_too_short")
+              return Pixl.toast(
+                `Logging ${r.hours}h needs ≥ ${r.need} characters (you have ${content.length}).`,
+                true,
+              );
+            return Pixl.toast(err(r.error), true);
+          }
+          Pixl.toast("Entry updated!");
+          loadJournal(id);
+        });
       }
 
       async function postJournal(id) {
         const content = $("j-content").value.trim();
         if (!content) return Pixl.toast("Write something first!", true);
-        const editing = editingJournalEntry;
         $("j-post").disabled = true;
-        const r = await Pixl.send(
-          editing ? "PATCH" : "POST",
-          editing ? `/api/projects/${id}/journal/${editing.id}` : `/api/projects/${id}/journal`,
-          { content, hours: Number($("j-hours").value) || 0 },
-        );
+        const r = await Pixl.send("POST", `/api/projects/${id}/journal`, {
+          content,
+          hours: Number($("j-hours").value) || 0,
+        });
         $("j-post").disabled = false;
         if (!r.ok) {
           if (r.error === "journal_too_short")
@@ -3040,8 +3098,10 @@
             );
           return Pixl.toast(err(r.error), true);
         }
-        cancelJournalEdit();
-        Pixl.toast(editing ? "Entry updated!" : "Entry posted!");
+        $("j-content").value = "";
+        $("j-hours").value = "0";
+        autoGrow($("j-content"));
+        Pixl.toast("Entry posted!");
         loadJournal(id);
       }
 
