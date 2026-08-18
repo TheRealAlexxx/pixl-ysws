@@ -1675,19 +1675,79 @@
         // Default to the linked Trial, or auto-select the one accepted Trial.
         const current =
           linkedId != null ? linkedId : trials.length === 1 ? Number(trials[0].id) : "";
-        const options = [`<option value="">Not for a Trial, my own idea</option>`]
-          .concat(
-            opts.map(
-              (t) =>
-                `<option value="${Number(t.id)}" ${Number(t.id) === current ? "selected" : ""}>${Pixl.esc(t.name)}${t.region ? " · " + Pixl.esc(t.region) : ""}</option>`,
-            ),
+        const choices = [{ id: "", label: "Not for a Trial, my own idea" }].concat(
+          opts.map((t) => ({
+            id: Number(t.id),
+            label: Pixl.esc(t.name) + (t.region ? " · " + Pixl.esc(t.region) : ""),
+          })),
+        );
+        const currentChoice = choices.find((c) => c.id === current) || choices[0];
+        const menuItems = choices
+          .map(
+            (c) =>
+              `<button type="button" class="theme-opt${c.id === current ? " active" : ""}" data-trial-id="${c.id}">${c.label}</button>`,
           )
           .join("");
         return `
         <label class="check-row" style="flex-direction:column;align-items:flex-start;gap:6px">
           <span>Submitting this for a Trial?</span>
-          <select class="field" id="s-trial" style="max-width:340px">${options}</select>
+          <div class="theme-picker trial-picker" id="trial-picker" style="max-width:340px">
+            <button type="button" class="field trial-picker-btn" id="trial-picker-btn" aria-haspopup="listbox" aria-expanded="false">
+              <span id="trial-picker-label">${currentChoice.label}</span>
+            </button>
+            <div class="theme-menu" id="trial-picker-menu" hidden>${menuItems}</div>
+          </div>
+          <input type="hidden" id="s-trial" value="${current}">
         </label>`;
+      }
+
+      // Wires the custom Trial dropdown built by trialPickerHtml() — open/close
+      // the menu, and keep the hidden #s-trial input (what ship() actually
+      // reads) plus the button label in sync with the picked option. Called
+      // fresh on every renderProject(), so per-instance listeners go on the
+      // (newly created) button/options each time, but the document-level
+      // outside-click/Escape handlers are attached once and re-look-up the
+      // live menu by id, so re-rendering never stacks duplicate listeners.
+      let _trialPickerGlobalWired = false;
+      function wireTrialPicker() {
+        const btn = $("trial-picker-btn");
+        const menu = $("trial-picker-menu");
+        const hidden = $("s-trial");
+        const label = $("trial-picker-label");
+        if (!btn || !menu || !hidden) return;
+        const setOpen = (open) => {
+          menu.hidden = !open;
+          btn.setAttribute("aria-expanded", String(open));
+        };
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          setOpen(menu.hidden);
+        };
+        menu.querySelectorAll(".theme-opt").forEach((opt) => {
+          opt.onclick = () => {
+            hidden.value = opt.dataset.trialId;
+            label.textContent = opt.textContent;
+            menu.querySelectorAll(".theme-opt").forEach((o) => o.classList.toggle("active", o === opt));
+            setOpen(false);
+          };
+        });
+        if (_trialPickerGlobalWired) return;
+        _trialPickerGlobalWired = true;
+        document.addEventListener("click", (e) => {
+          const wrap = $("trial-picker");
+          const liveMenu = $("trial-picker-menu");
+          if (wrap && liveMenu && !liveMenu.hidden && !wrap.contains(e.target)) {
+            liveMenu.hidden = true;
+            $("trial-picker-btn").setAttribute("aria-expanded", "false");
+          }
+        });
+        document.addEventListener("keydown", (e) => {
+          const liveMenu = $("trial-picker-menu");
+          if (e.key === "Escape" && liveMenu && !liveMenu.hidden) {
+            liveMenu.hidden = true;
+            $("trial-picker-btn").setAttribute("aria-expanded", "false");
+          }
+        });
       }
 
       function formHtml(p) {
@@ -2111,6 +2171,7 @@
           );
           $("tr-px").addEventListener("click", () => claimTrialReward(p, "pixels", prize, total, beyond));
         }
+        wireTrialPicker();
         if ($("s-ship") && !inReview)
           $("s-ship").addEventListener("click", async () => {
             const blockers = shipBlockers(p, isUpdate);

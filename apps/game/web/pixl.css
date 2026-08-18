@@ -138,12 +138,10 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 }
 .sb-logo{
   position:relative;
-  display:flex;align-items:center;gap:9px;
+  display:flex;align-items:center;
   padding:6px 8px 16px;margin-bottom:6px;
-  font-family:var(--pixel);font-weight:700;font-size:20px;letter-spacing:2px;color:var(--ink);
 }
-.sb-logo span span{color:var(--gold)}
-.sb-logo img{width:26px;height:26px;image-rendering:pixelated;position:relative}
+.sb-logo img{width:180px;height:auto;image-rendering:pixelated;position:relative}
 /* The lantern glow behind the mark is gone. It was a blurred radial halo, the
    one soft edge in the old theme, and nothing on landing is soft. The element
    is still emitted by pixl.js, so it's hidden here rather than chased through
@@ -321,6 +319,17 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 .theme-opt:hover{background:var(--accent);color:var(--panel-deep)}
 .theme-opt.active{background:var(--ink);color:var(--panel-deep)}
 .theme-opt .swatch{width:14px;height:14px;border:1px solid var(--stroke);border-radius:0;flex-shrink:0}
+
+/* Same picker, but a full-width text trigger (not an icon square) for
+   dropdowns like the ship panel's Trial picker — left-aligned menu the
+   button's own width instead of the fixed 170px/right-aligned theme menu. */
+.trial-picker{display:block;width:100%}
+.trial-picker-btn{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  width:100%;text-align:left;cursor:pointer;
+}
+.trial-picker-btn::after{content:"▾";font-size:11px;color:var(--ink);flex-shrink:0}
+.trial-picker .theme-menu{left:0;right:auto;width:100%;min-width:0}
 
 /* ══════════════════════════ components ══════════════════════════ */
 /* Landing's button, verbatim: filled face, black rule that's heavy on the
