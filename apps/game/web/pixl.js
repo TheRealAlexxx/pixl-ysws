@@ -1123,11 +1123,160 @@ const Pixl = (() => {
     });
   }
 
+  /**
+   * Replaces a native <select>'s OS chrome (rounded corners, system arrow,
+   * native popup) with a bordered button + our own dropdown, matching the
+   * rest of the shell. The original <select> stays in the DOM (hidden, not
+   * removed) as the source of truth: its value, its "change" event, and any
+   * page code that already does $("f-kind").value or .addEventListener(
+   * "change", ...) keep working untouched, this only changes what's drawn.
+   */
+  function enhanceSelect(sel) {
+    if (sel.dataset.pixlEnhanced || sel.multiple) return;
+    sel.dataset.pixlEnhanced = "1";
+
+    const wrap = document.createElement("div");
+    wrap.className = "csel";
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    sel.tabIndex = -1;
+    sel.setAttribute("aria-hidden", "true");
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    const nativeClasses = [...sel.classList].filter((c) => c !== "field");
+    btn.className = ["csel-btn", "field", ...nativeClasses].join(" ");
+    btn.setAttribute("aria-haspopup", "listbox");
+    btn.setAttribute("aria-expanded", "false");
+    btn.innerHTML = `<span class="csel-label"></span><span class="csel-arrow">▾</span>`;
+    wrap.appendChild(btn);
+    const label = btn.querySelector(".csel-label");
+
+    const menu = document.createElement("div");
+    menu.className = "csel-menu";
+    menu.setAttribute("role", "listbox");
+    menu.hidden = true;
+    wrap.appendChild(menu);
+
+    function buildMenu() {
+      // Walk sel.children in document order rather than querying options and
+      // optgroups separately - a select with both (like the Trial picker's
+      // ungrouped "my own idea" option before its two optgroups) would
+      // otherwise always render every optgroup first regardless of where the
+      // loose options actually sit.
+      menu.innerHTML = "";
+      for (const child of sel.children) {
+        if (child.tagName === "OPTGROUP") {
+          const h = document.createElement("div");
+          h.className = "csel-group";
+          h.textContent = child.label;
+          menu.appendChild(h);
+          for (const opt of child.children) menu.appendChild(optButton(opt));
+        } else if (child.tagName === "OPTION") {
+          menu.appendChild(optButton(child));
+        }
+      }
+    }
+    function optButton(opt) {
+      const o = document.createElement("button");
+      o.type = "button";
+      o.className = "csel-opt" + (opt.value === sel.value ? " on" : "");
+      o.setAttribute("role", "option");
+      o.disabled = opt.disabled;
+      o.textContent = opt.textContent;
+      o.addEventListener("click", () => {
+        if (sel.value !== opt.value) {
+          sel.value = opt.value;
+          sel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        close();
+        btn.focus();
+      });
+      return o;
+    }
+    function sync() {
+      const opt = sel.options[sel.selectedIndex];
+      label.textContent = opt ? opt.textContent : "";
+      btn.disabled = sel.disabled;
+      btn.classList.toggle("disabled", sel.disabled);
+    }
+    function open() {
+      if (btn.disabled) return;
+      buildMenu();
+      menu.hidden = false;
+      wrap.classList.add("open");
+      btn.setAttribute("aria-expanded", "true");
+      document.addEventListener("click", onDocClick, true);
+      document.addEventListener("keydown", onKey, true);
+    }
+    function close() {
+      menu.hidden = true;
+      wrap.classList.remove("open");
+      btn.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onDocClick, true);
+      document.removeEventListener("keydown", onKey, true);
+    }
+    function onDocClick(e) {
+      if (!wrap.contains(e.target)) close();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") { close(); btn.focus(); }
+    }
+    btn.addEventListener("click", () => (menu.hidden ? open() : close()));
+    // Native select behavior for keyboard users who never open the menu:
+    // arrow keys step the value directly, Enter/Space/Down opens it.
+    btn.addEventListener("keydown", (e) => {
+      if (menu.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        e.preventDefault();
+        const dir = e.key === "ArrowDown" ? 1 : -1;
+        let i = sel.selectedIndex;
+        do { i += dir; } while (i >= 0 && i < sel.options.length && sel.options[i].disabled);
+        if (i >= 0 && i < sel.options.length) {
+          sel.selectedIndex = i;
+          sel.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        open();
+      }
+    });
+    // Options/value can change from page code (repopulating a Trial or
+    // Hackatime-project list, resetting a form) - keep the button and any
+    // open menu in sync without every call site remembering to refresh it.
+    sel.addEventListener("change", () => {
+      sync();
+      if (!menu.hidden) buildMenu();
+    });
+    new MutationObserver(() => {
+      sync();
+      if (!menu.hidden) buildMenu();
+    }).observe(sel, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
+
+    sync();
+  }
+
+  function enhanceSelects(root = document) {
+    root.querySelectorAll("select").forEach(enhanceSelect);
+  }
+  enhanceSelects();
+  // Forms are routinely rebuilt via innerHTML after an async fetch (project
+  // editor, trial picker, etc.), long after this script's initial pass - a
+  // one-shot scan at load would miss every select in them.
+  new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (node.tagName === "SELECT") enhanceSelect(node);
+        else if (node.querySelectorAll) node.querySelectorAll("select").forEach(enhanceSelect);
+      }
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+
   // Pages can opt out of the sign-in gate (e.g. the public docs) by setting
   // window.PIXL_PUBLIC = true before loading this script.
   if (!token && !window.PIXL_PUBLIC) {
     document.addEventListener("DOMContentLoaded", gate);
   }
 
-  return { API, config, token, api, apiUrl, send, upload, esc, bbcode, bbstrip, markdown, toast, mountTopbar, loadWallet, loadRestoration, timeAgo, countdown, hours, hasToken: !!token, runTour, maybeOnboard, ONBOARDING_STEPS, confirm: confirmDialog, setTheme, loginUrl };
+  return { API, config, token, api, apiUrl, send, upload, esc, bbcode, bbstrip, markdown, toast, mountTopbar, loadWallet, loadRestoration, timeAgo, countdown, hours, hasToken: !!token, runTour, maybeOnboard, ONBOARDING_STEPS, confirm: confirmDialog, setTheme, loginUrl, enhanceSelects };
 })();

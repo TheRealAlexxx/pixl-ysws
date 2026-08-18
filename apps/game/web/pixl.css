@@ -445,6 +445,28 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
 .field::placeholder{color:var(--muted)}
 select.field{cursor:pointer}
 
+/* Custom dropdown that replaces every native <select>'s OS chrome (rounded
+   corners, system arrow, native popup) - see Pixl.enhanceSelects in pixl.js.
+   The real <select> lives inside .csel, visually hidden but still the
+   source of truth for .value/change events. */
+/* No explicit width: a .csel is a flex item everywhere it's used (a
+   column .form-row stretches it full width via align-items:stretch same as
+   the bare <select> did before; a row toolbar sizes it to content same as
+   a native <select> would), so it should just inherit that, not fight it. */
+.csel{position:relative;display:inline-block}
+.csel select{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.csel-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;cursor:pointer}
+.csel-btn.disabled,.csel-btn:disabled{opacity:.5;cursor:default}
+.csel-arrow{flex-shrink:0;font-size:10px;color:var(--dim);transition:transform .13s ease}
+.csel.open .csel-arrow{transform:rotate(180deg)}
+.csel-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;background:var(--panel);border:var(--bw) solid var(--stroke);box-shadow:var(--drop);max-height:280px;overflow-y:auto}
+.csel-group{font-family:var(--pixel);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--faint);padding:8px 14px 4px}
+.csel-opt{display:block;width:100%;text-align:left;background:none;border:none;font-family:var(--sans);font-size:15px;color:var(--ink);cursor:pointer;padding:9px 14px}
+.csel-opt:hover{background:var(--panel-2)}
+.csel-opt.on{color:var(--gold);font-weight:700}
+.csel-opt:disabled{color:var(--muted);cursor:default}
+.csel-opt:disabled:hover{background:none}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .empty-note{text-align:center;padding:40px 20px;color:var(--dim);font-size:16px;line-height:1.8;font-family:var(--pixel);letter-spacing:1px}
 .divider{height:var(--bw);background:var(--stroke);margin:30px 0}
