@@ -5,11 +5,10 @@ extends CanvasLayer
 ## Skippable and replayable. Emits `finished` when the last panel completes or
 ## the player skips — the caller then loads the village (arrival mode).
 ##
-## Art: PANELS[].texture is null on beats without art yet (currently THE GREAT
-## STATIC), which render as a tinted placeholder with the title instead. Drop a
-## Texture2D per beat in to fill the rest. A hidden VideoStreamPlayer is
-## reserved so a pre-rendered cut can drop in over the panels without touching
-## the flow.
+## Art: PANELS[].texture is null for now, so each beat renders as a tinted
+## placeholder with its title. Drop a Texture2D per beat in later — nothing else
+## changes. A hidden VideoStreamPlayer is reserved so a pre-rendered cut can drop
+## in over the panels without touching the flow.
 
 signal finished
 
@@ -20,7 +19,7 @@ const PANELS := [
 	{
 		"title": "ORIGIN",
 		"tint": Color(0.98, 0.78, 0.35),
-		"texture": preload("res://assets/cinematic/origin.png"),
+		"texture": null,
 		"lines": [
 			"Once, there was Origin — the brightest world the machine ever dreamed.",
 			"Every idea ever built flowed into one place: the Core.",
@@ -30,7 +29,7 @@ const PANELS := [
 	{
 		"title": "OVERLOAD",
 		"tint": Color(0.9, 0.42, 0.2),
-		"texture": preload("res://assets/cinematic/overload.png"),
+		"texture": null,
 		"lines": [
 			"For centuries it held every invention. Every blueprint. Every spark.",
 			"Until it held too much.",
@@ -50,7 +49,7 @@ const PANELS := [
 	{
 		"title": "THE LAST SPACECRAFT",
 		"tint": Color(0.4, 0.5, 0.78),
-		"texture": preload("res://assets/cinematic/last_spacecraft.png"),
+		"texture": null,
 		"lines": [
 			"The survivors couldn't rebuild alone. So they crossed the Void looking for help —",
 			"— and found a small blue planet full of people who build things for fun.",
@@ -61,7 +60,7 @@ const PANELS := [
 	{
 		"title": "ARRIVAL",
 		"tint": Color(0.96, 0.72, 0.4),
-		"texture": preload("res://assets/cinematic/arrival.png"),
+		"texture": null,
 		"lines": [
 			"They call this place Pixl now.",
 			"What's left of it is waiting.",

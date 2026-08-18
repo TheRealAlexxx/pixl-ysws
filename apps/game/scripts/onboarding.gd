@@ -163,7 +163,6 @@ func _direct_to_frontier() -> void:
 		PackedStringArray(["lobbies", "later"]))
 	var picked: Array = await Dialogue.chosen
 	var choice := String(picked[1]) if picked.size() > 1 else "later"
-	await _say(["Oh, one more thing — that opening you just watched was drawn by noct. Genuinely great artist, go hire them if you ever need art done."])
 	await _say(["I'll pin a checklist to your screen so you never lose the thread — first stop, find Ridit."])
 	_mark_step_done()
 	FirstProjectGuide.begin()
