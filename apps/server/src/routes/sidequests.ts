@@ -11,7 +11,7 @@ router.get("/api/sidequests", async (req, res) => {
   const session = token ? verifySessionToken(token) : null;
   if (!session) return res.status(401).json({ ok: false });
 
-  const [{ data: quests, error }, { data: unlocks }, { data: projects }] =
+  const [{ data: quests, error }, { data: unlocks }, { data: projects }, { data: givers }] =
     await Promise.all([
       supabase
         .from("sidequests")
@@ -33,19 +33,47 @@ router.get("/api/sidequests", async (req, res) => {
         .eq("user_id", session.userId)
         .not("sidequest_id", "is", null)
         .in("status", ["shipped", "second_review", "approved"]),
+      // The giver NPC behind each Trial, so the client can spawn a matching
+      // check-in copy (same look + the authored reminder line) into the village
+      // once the player has accepted it.
+      supabase
+        .from("npcs")
+        .select("sidequest_id, npc_name, skin, trial_reminder, quest_offer")
+        .eq("active", true)
+        .eq("quest_trial", true)
+        .not("sidequest_id", "is", null),
     ]);
   if (error) return res.json({ ok: true, quests: [] });
   const unlocked = new Set((unlocks ?? []).map((u) => u.sidequest_id as number));
   const completed = new Set(
     (projects ?? []).map((p) => p.sidequest_id as number),
   );
+  // One giver per Trial (the first non-check-in one we see wins).
+  const giverBySq = new Map<number, { npc_name: string; skin: string; trial_reminder: string; quest_offer: string }>();
+  for (const g of (givers ?? []) as {
+    sidequest_id: number;
+    npc_name: string;
+    skin: string;
+    trial_reminder: string;
+    quest_offer: string;
+  }[]) {
+    if (!giverBySq.has(g.sidequest_id)) giverBySq.set(g.sidequest_id, g);
+  }
   res.json({
     ok: true,
-    quests: (quests ?? []).map((q) => ({
-      ...q,
-      unlocked: unlocked.has(q.id as number),
-      completed: completed.has(q.id as number),
-    })),
+    quests: (quests ?? []).map((q) => {
+      const g = giverBySq.get(q.id as number);
+      return {
+        ...q,
+        unlocked: unlocked.has(q.id as number),
+        completed: completed.has(q.id as number),
+        // Giver look + reminder for the village check-in copy (falls back to the
+        // sidequest's own npc/description client-side if these are blank).
+        npc_name: g?.npc_name || (q.npc as string) || "",
+        npc_skin: g?.skin || "cvc:1",
+        npc_reminder: g?.trial_reminder || g?.quest_offer || "",
+      };
+    }),
   });
 });
 
