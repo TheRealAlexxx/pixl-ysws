@@ -295,20 +295,24 @@ class Builder<T = any> implements PromiseLike<PgResult<T[]>> {
   private where(params: unknown[], q = ""): string {
     const parts: string[] = [];
     this.filters.forEach((f, i) => {
+      // f.col already carries its own table qualifier for an embedded-table
+      // filter (e.g. "sidequests.active"); prefixing q on top of that produces
+      // an invalid three-part reference like "sidequest_unlocks"."sidequests"."active".
+      const prefix = f.col.includes(".") ? "" : q;
       let text: string;
       if (f.op === "is") {
-        text = `${q}${ident(f.col)} is ${f.val === null ? "null" : f.val ? "true" : "false"}`;
+        text = `${prefix}${ident(f.col)} is ${f.val === null ? "null" : f.val ? "true" : "false"}`;
       } else if (f.op === "in") {
         params.push(f.val);
-        text = `${q}${ident(f.col)} = any($${params.length})`;
+        text = `${prefix}${ident(f.col)} = any($${params.length})`;
       } else if (f.op === "contains") {
         params.push(f.val);
-        text = `${q}${ident(f.col)} @> $${params.length}`;
+        text = `${prefix}${ident(f.col)} @> $${params.length}`;
       } else if (f.val === null) {
-        text = `${q}${ident(f.col)} is ${f.op === "neq" ? "not " : ""}null`;
+        text = `${prefix}${ident(f.col)} is ${f.op === "neq" ? "not " : ""}null`;
       } else {
         params.push(f.val);
-        text = `${q}${ident(f.col)} ${OPERATORS[f.op as keyof typeof OPERATORS]} $${params.length}`;
+        text = `${prefix}${ident(f.col)} ${OPERATORS[f.op as keyof typeof OPERATORS]} $${params.length}`;
       }
       parts.push(this.negated.has(i) ? `not (${text})` : text);
     });
