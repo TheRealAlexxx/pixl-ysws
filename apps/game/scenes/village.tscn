@@ -2683,7 +2683,7 @@ text = "Press E to shop"
 
 [node name="DoorTrigger4" type="Area2D" parent="." unique_id=990011226]
 z_index = 13
-position = Vector2(260, 50)
+position = Vector2(293, 82)
 collision_mask = 2
 script = ExtResource("44_ci1yp")
 target = "lobbies"
