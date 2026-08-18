@@ -23,6 +23,7 @@ export async function getAIReply(
   searchResults: string | null = null,
   streamTarget: StreamTarget | null = null,
   pixieFriendly = false,
+  economyContext: string | null = null,
 ): Promise<AIReplyResult | typeof NO_CREDITS | null> {
   let threadLine = "";
   if (threadCtx) {
@@ -122,8 +123,12 @@ FINAL LENGTH CHECK: before sending, ask yourself — is this shorter than 2 sent
 
   // Situational context first, then the untrusted block, so that block's
   // "everything below" warning still covers exactly what it should.
+  // economyContext is computed by us (deterministic pay math), so it belongs in
+  // the trusted block alongside situational context, NOT in the untrusted memory
+  // block with user-written facts and web results.
+  const trusted = [situational, economyContext].filter(Boolean).join("\n\n").trim();
   const contextBlock = [
-    situational ? `CONTEXT FOR THIS MESSAGE (from your own instructions, trusted):\n${situational}` : null,
+    trusted ? `CONTEXT FOR THIS MESSAGE (from your own instructions, trusted):\n${trusted}` : null,
     memoryBlock || null,
   ]
     .filter(Boolean)
