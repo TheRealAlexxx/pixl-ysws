@@ -218,11 +218,12 @@ router.post("/api/profile/card-image", async (req, res) => {
 // tour pending), 2 = fully onboarded.
 const ONBOARDING_DONE = 2;
 
-// Rollout gate: while the redesigned arrival flow is being tested, only these
-// Slack IDs get it. Everyone else reads as fully onboarded so neither the game
-// nor the dashboard runs it. Empty set = allow everyone. Both apps gate on this
-// one endpoint, so this keeps the game and the dashboard in sync automatically.
-const ONBOARDING_ALLOWLIST = new Set<string>(["U0ARC79GEAV"]);
+// Rollout gate: while the redesigned arrival flow was being tested, only these
+// Slack IDs got it. Everyone else read as fully onboarded so neither the game
+// nor the dashboard ran it. Empty set = allow everyone — flipped for launch.
+// Both apps gate on this one endpoint, so this keeps the game and the
+// dashboard in sync automatically.
+const ONBOARDING_ALLOWLIST = new Set<string>([]);
 
 router.get("/api/profile/onboarding", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";
