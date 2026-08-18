@@ -3100,10 +3100,17 @@
           if (!content) return Pixl.toast("Write something first!", true);
           const saveBtn = editRow.querySelector(".jedit-save");
           saveBtn.disabled = true;
-          const r = await Pixl.send("PATCH", `/api/projects/${id}/journal/${journalEditingId}`, {
-            content,
-            hours: Number(hoursInput.value) || 0,
-          });
+          const editedId = journalEditingId;
+          let r;
+          try {
+            r = await Pixl.send("PATCH", `/api/projects/${id}/journal/${editedId}`, {
+              content,
+              hours: Number(hoursInput.value) || 0,
+            });
+          } catch (e) {
+            saveBtn.disabled = false;
+            return Pixl.toast(err(e && e.message), true);
+          }
           saveBtn.disabled = false;
           if (!r.ok) {
             if (r.error === "journal_too_short")
@@ -3113,8 +3120,14 @@
               );
             return Pixl.toast(err(r.error), true);
           }
+          // Close and re-render straight from the PATCH response instead of
+          // firing a second GET (loadJournal) - fewer round trips, and one
+          // less thing that has to succeed for the editor to actually close.
+          const idx = journalEntries.findIndex((x) => String(x.id) === editedId);
+          if (idx !== -1 && r.entry) journalEntries[idx] = r.entry;
+          journalEditingId = null;
           Pixl.toast("Entry updated!");
-          loadJournal(id);
+          renderJournal(id);
         });
       }
 
