@@ -832,34 +832,34 @@
           grid-template-columns: 1fr;
         }
       }
-      .thumb-box {
-        display: flex;
-        gap: 16px;
-        align-items: flex-start;
-        flex-wrap: wrap;
-      }
-      .thumb-preview {
-        width: 200px;
-        height: 130px;
+      /* Full-width, uncropped hero preview at the top of a single project's
+         page - the small object-fit:cover box used to hide most of the image.
+         object-fit:contain here so the whole thing is always visible,
+         letterboxed on the checkerboard rather than cropped to fill. */
+      .proj-hero {
+        width: 100%;
+        max-height: 420px;
+        min-height: 90px;
         border: var(--bw) solid var(--stroke);
         border-radius: 0;
+        margin-bottom: 16px;
         background:
           repeating-conic-gradient(
               rgba(22, 22, 30, 0.05) 0% 25%,
               transparent 0% 50%
             )
-            0 0 / 20px 20px,
+            0 0 / 22px 22px,
           var(--panel-deep);
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        font-size: 30px;
       }
-      .thumb-preview img {
+      .proj-hero img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        max-height: 420px;
+        object-fit: contain;
       }
       .ht-pick {
         display: flex;
@@ -1821,13 +1821,10 @@
       </div>
       <div class="form-row">
         <label>THUMBNAIL (required to ship)</label>
-        <div class="thumb-box">
-          <div class="thumb-preview" id="f-thumb-preview">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="">` : ""}</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn dark" id="f-thumb-btn" type="button">CHOOSE IMAGE</button>
-            <input type="file" id="f-thumb-file" accept="image/png,image/jpeg,image/webp" hidden>
-            <span class="faint" style="font-size:11px">or paste an image anywhere on this page</span>
-          </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn dark" id="f-thumb-btn" type="button">CHOOSE IMAGE</button>
+          <input type="file" id="f-thumb-file" accept="image/png,image/jpeg,image/webp" hidden>
+          <span class="faint" style="font-size:11px">or paste an image anywhere on this page. Preview shows at the top of the page.</span>
         </div>
       </div>
       <div class="form-row">
@@ -2019,8 +2016,8 @@
         Pixl.toast("Uploading image…");
         const upload = (async () => {
           form.imageUrl = await Pixl.upload(file);
-          $("f-thumb-preview").innerHTML =
-            `<img src="${Pixl.esc(form.imageUrl)}" alt="">`;
+          if ($("p-hero"))
+            $("p-hero").innerHTML = `<img src="${Pixl.esc(form.imageUrl)}" alt="">`;
           Pixl.toast("Thumbnail set!");
         })()
           .catch((e) => {
@@ -2124,6 +2121,7 @@
         ${p.pixels_earned ? `<span class="chip gold">+${Math.round(p.pixels_earned)} PX EARNED</span>` : ""}
         ${p.sidequest_name ? `<span class="chip teal">TRIAL: ${Pixl.esc(p.sidequest_name)}</span>` : ""}
       </div>
+      <div class="proj-hero" id="p-hero">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="">` : `<span class="faint" style="font-size:13px">No thumbnail yet</span>`}</div>
       ${p.status === "needs_changes" && p.review_note ? `<div class="note-strip" style="margin-bottom:14px">REVIEWER: ${Pixl.esc(p.review_note)}</div>` : ""}
       ${p.rejected_at ? `<div class="note-strip" style="margin-bottom:14px">REJECTED${p.reject_reason ? ": " + Pixl.esc(p.reject_reason) : ""}, fix it up and ship again.</div>` : ""}
       ${trialRewardHtml(p)}
@@ -2410,7 +2408,7 @@
         <span class="chip ${cls}">${label}</span>
         <span class="chip muted">COLLABORATOR</span>
       </div>
-      ${p.image_url ? `<div class="proj-thumb" style="height:200px;margin-bottom:14px"><img src="${Pixl.esc(p.image_url)}" alt=""></div>` : ""}
+      ${p.image_url ? `<div class="proj-hero"><img src="${Pixl.esc(p.image_url)}" alt=""></div>` : ""}
       ${p.description ? `<p style="margin-bottom:14px">${Pixl.esc(p.description)}</p>` : ""}
       <div class="proj-meta" style="margin-bottom:18px">
         ${p.repo_url ? `<a class="btn ghost" href="${Pixl.esc(p.repo_url)}" target="_blank" rel="noreferrer">REPO</a>` : ""}
@@ -3187,7 +3185,7 @@
               Pixl.toast("Image attached!");
             })
             .catch((x) => Pixl.toast(err(x.message), true));
-        } else if ($("f-thumb-preview")) {
+        } else if ($("f-thumb-btn")) {
           e.preventDefault();
           setThumb(file);
         }
