@@ -2683,7 +2683,7 @@ text = "Press E to shop"
 
 [node name="DoorTrigger4" type="Area2D" parent="." unique_id=990011226]
 z_index = 13
-position = Vector2(293, 82)
+position = Vector2(281, 54)
 collision_mask = 2
 script = ExtResource("44_ci1yp")
 target = "lobbies"
@@ -2707,7 +2707,7 @@ text = "Press E to open lobbies"
 
 [node name="LobbyBoat" type="Sprite2D" parent="." unique_id=990011300]
 z_index = 6
-position = Vector2(295, 88)
+position = Vector2(283, 60)
 texture = ExtResource("26_g4xun")
 region_enabled = true
 region_rect = Rect2(0, 0, 48, 32)
