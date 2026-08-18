@@ -1990,16 +1990,30 @@
         upd();
       }
 
+      // Tracked so saveProject can wait on it: setThumb is fired off from a
+      // file input's change event (never awaited there), so clicking
+      // Save/Create right after picking an image could otherwise read
+      // form.imageUrl before the upload resolved and silently save without
+      // the thumbnail, only for it to "vanish" on the next reload since it
+      // was never actually attached to the project.
+      let thumbUpload = null;
+
       async function setThumb(file) {
         Pixl.toast("Uploading image…");
-        try {
+        const upload = (async () => {
           form.imageUrl = await Pixl.upload(file);
           $("f-thumb-preview").innerHTML =
             `<img src="${Pixl.esc(form.imageUrl)}" alt="">`;
           Pixl.toast("Thumbnail set!");
-        } catch (e) {
-          Pixl.toast(err(e.message), true);
-        }
+        })()
+          .catch((e) => {
+            Pixl.toast(err(e.message), true);
+          })
+          .finally(() => {
+            if (thumbUpload === upload) thumbUpload = null;
+          });
+        thumbUpload = upload;
+        return upload;
       }
 
       async function saveProject(p) {
@@ -2008,6 +2022,10 @@
         // validation error is showing stacked a fresh toast per click.
         if ($("f-save") && $("f-save").disabled) return false;
         if ($("f-save")) $("f-save").disabled = true;
+        if (thumbUpload) {
+          Pixl.toast("Still uploading the thumbnail, hang on…");
+          await thumbUpload;
+        }
         const reenable = () => { if ($("f-save")) $("f-save").disabled = false; };
         // Trial chosen at creation — a locked (not-accepted) pick can't be saved.
         let sidequestId = null;
