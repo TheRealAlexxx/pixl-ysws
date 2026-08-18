@@ -958,6 +958,46 @@ router.post("/api/projects/:id/journal", async (req, res) => {
   res.json({ ok: true, entry: data });
 });
 
+// Edit one of the user's own journal entries (owner-only, same as delete).
+router.patch("/api/projects/:id/journal/:entryId", async (req, res) => {
+  const token = typeof req.query.token === "string" ? req.query.token : "";
+  const session = token ? verifySessionToken(token) : null;
+  if (!session) return res.status(401).json({ ok: false });
+
+  const id = Number(req.params.id);
+  const entryId = Number(req.params.entryId);
+  if (!Number.isFinite(id) || !Number.isFinite(entryId))
+    return res.status(400).json({ ok: false });
+
+  const content = String(req.body?.content ?? "").trim().slice(0, 5000);
+  if (!content)
+    return res.status(400).json({ ok: false, error: "content_required" });
+  let hours = Number(req.body?.hours ?? 0);
+  if (!Number.isFinite(hours) || hours < 0) hours = 0;
+  hours = Math.min(Math.round(hours * 100) / 100, 100);
+
+  if (hours > 0) {
+    const need = Math.max(100, Math.round(hours * 100));
+    if (content.length < need)
+      return res.status(400).json({ ok: false, error: "journal_too_short", need, hours });
+  }
+
+  const { data, error } = await supabase
+    .from("project_journals")
+    .update({ content, hours, edited_at: new Date().toISOString() })
+    .eq("id", entryId)
+    .eq("project_id", id)
+    .eq("user_id", session.userId)
+    .select()
+    .maybeSingle();
+  if (error) {
+    console.error("[projects] journal edit failed", error);
+    return res.status(500).json({ ok: false });
+  }
+  if (!data) return res.status(404).json({ ok: false });
+  res.json({ ok: true, entry: data });
+});
+
 // Delete one of the user's own journal entries.
 router.delete("/api/projects/:id/journal/:entryId", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";

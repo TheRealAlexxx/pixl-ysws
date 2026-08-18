@@ -42,18 +42,18 @@ const STEP_ACTIONS := [
 # the dedicated project-creation walkthrough on the dash (see pixl.js maybeOnboard).
 const STEP_PAGES := ["", "projects?onboard=first-project", "docs/hackatime", "docs/first-site", "projects"]
 const STEP_HINT := [
-	"Head through the Lobbies to the frontier and talk to Ridit — take his Trial, or just start your own project.",
-	"Name your project in the Builder Terminal — that tells the Core you're building.",
+	"Head through the Lobbies to the frontier and talk to Ridit, take his Trial, or just start your own project.",
+	"Name your project in the Builder Terminal, that tells the Core you're building.",
 	"Install Hackatime in your editor and connect it, so the hours you code actually count.",
-	"Make the thing. Keep it small and real — the guide has copy-pasteable code to start from.",
-	"Once it runs and you've logged some time, ship it for review — flag it for your Trial as you do.",
+	"Make the thing. Keep it small and real, the guide has copy-pasteable code to start from.",
+	"Once it runs and you've logged some time, ship it for review, flag it for your Trial as you do.",
 ]
 const STEP_DONE_LINE := [
-	"You've got a Trial. Now make it real — start by creating your project.",
-	"Project created — the Core can see it now. Next: get Hackatime tracking your hours so they count.",
+	"You've got a Trial. Now make it real, start by creating your project.",
+	"Project created. The Core can see it now. Next: get Hackatime tracking your hours so they count.",
 	"Hackatime's live. Every minute you code from here on counts. Go make the thing.",
-	"There it is — your first tracked time. Keep going until it's real, then ship it.",
-	"You shipped it. Your first Trial is in the Restoration — that's the whole game. Welcome, Builder.",
+	"There it is, your first tracked time. Keep going until it's real, then ship it.",
+	"You shipped it. Your first Trial is in the Restoration, that's the whole game. Welcome, Builder.",
 ]
 
 var _active := false
@@ -360,7 +360,7 @@ func _render() -> void:
 	_skip_btn.text = "Really skip? Tap again" if _skip_armed else "Skip this trial"
 
 	if _step == S_DONE:
-		_hint.text = "All done. Your first Trial is shipped — every other Trial is the same loop."
+		_hint.text = "All done. Your first Trial is shipped, every other Trial is the same loop."
 		_action_btn.text = "Close"
 	else:
 		_hint.text = STEP_HINT[_step]
@@ -368,7 +368,7 @@ func _render() -> void:
 		# The "meet Ridit" step reads differently once you're already out in the
 		# frontier — don't tell (or send) someone to the Lobbies they're standing in.
 		if _step == S_MEET and _current_scene_name() == "open_world":
-			_hint.text = "You're in the frontier — walk up to Ridit and talk to him to take his Trial. (Or start your own project instead.)"
+			_hint.text = "You're in the frontier. Walk up to Ridit and talk to him to take his Trial. (Or start your own project instead.)"
 			_action_btn.text = "Start my own project"
 
 func _toggle_collapse() -> void:

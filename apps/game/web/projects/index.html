@@ -1010,12 +1010,18 @@
         gap: 12px;
         align-items: center;
       }
+      .journal-entry .jedit,
       .journal-entry .jdel {
-        margin-left: auto;
         background: none;
         border: none;
         color: var(--faint);
         font-size: 13px;
+      }
+      .journal-entry .jedit {
+        margin-left: auto;
+      }
+      .journal-entry .jedit:hover {
+        color: var(--ink);
       }
       .journal-entry .jdel:hover {
         color: var(--bad);
@@ -2162,6 +2168,7 @@
           <span class="faint" style="font-size:12px">hours:</span>
           <input class="field" id="j-hours" type="number" min="0" max="100" step="0.5" value="0">
           <span class="j-hint faint" id="j-hint"></span>
+          <button class="btn" id="j-cancel-edit" hidden>CANCEL</button>
           <button class="btn" id="j-post">POST ENTRY</button>
         </div>
       </div>
@@ -2224,6 +2231,7 @@
           }
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
+        $("j-cancel-edit").addEventListener("click", () => cancelJournalEdit());
         $("p-delete").addEventListener("click", () => deleteProject(p));
         $("j-content").addEventListener("input", updateJournalHint);
         $("j-content").addEventListener("input", () =>
@@ -2404,6 +2412,7 @@
           <span class="faint" style="font-size:12px">hours:</span>
           <input class="field" id="j-hours" type="number" min="0" max="100" step="0.5" value="0">
           <span class="j-hint faint" id="j-hint"></span>
+          <button class="btn" id="j-cancel-edit" hidden>CANCEL</button>
           <button class="btn" id="j-post">POST ENTRY</button>
         </div>
       </div>
@@ -2425,6 +2434,7 @@
           }
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
+        $("j-cancel-edit").addEventListener("click", () => cancelJournalEdit());
         $("j-content").addEventListener("input", updateJournalHint);
         $("j-content").addEventListener("input", () => autoGrow($("j-content")));
         $("j-hours").addEventListener("input", updateJournalHint);
@@ -2942,6 +2952,8 @@
             : events.map(tlRow).join("");
       }
 
+      let editingJournalEntry = null; // {id, projectId} while the composer is editing an existing entry
+
       async function loadJournal(id) {
         let entries = [];
         try {
@@ -2959,13 +2971,30 @@
       <div class="journal-entry panel">
         <div class="jmeta">
           <span>${Pixl.timeAgo(e.created_at)}</span>
+          ${e.edited_at ? `<span class="faint">(edited)</span>` : ""}
           ${e.hours ? `<span class="teal">${Number(e.hours).toFixed(1)}h</span>` : ""}
+          <button class="jedit" data-id="${e.id}">edit</button>
           <button class="jdel" data-id="${e.id}">delete</button>
         </div>
         <div class="jbody md">${Pixl.markdown(e.content)}</div>
       </div>`,
                 )
                 .join("");
+        list.querySelectorAll(".jedit").forEach((b) =>
+          b.addEventListener("click", () => {
+            const e = entries.find((x) => String(x.id) === b.dataset.id);
+            if (!e) return;
+            editingJournalEntry = { id: e.id, projectId: id };
+            $("j-content").value = e.content;
+            $("j-hours").value = Number(e.hours) || 0;
+            autoGrow($("j-content"));
+            updateJournalHint();
+            $("j-post").textContent = "SAVE EDIT";
+            $("j-cancel-edit").hidden = false;
+            $("j-content").scrollIntoView({ behavior: "smooth", block: "center" });
+            $("j-content").focus();
+          }),
+        );
         list.querySelectorAll(".jdel").forEach((b) =>
           b.addEventListener("click", async () => {
             if (!(await Pixl.confirm({ title: "Delete this journal entry?", confirmText: "Delete", danger: true }))) return;
@@ -2974,6 +3003,7 @@
               `/api/projects/${id}/journal/${b.dataset.id}`,
             );
             if (r.ok) {
+              if (editingJournalEntry && String(editingJournalEntry.id) === b.dataset.id) cancelJournalEdit();
               Pixl.toast("Entry deleted.");
               loadJournal(id);
             } else Pixl.toast(err(r.error), true);
@@ -2981,14 +3011,26 @@
         );
       }
 
+      function cancelJournalEdit() {
+        editingJournalEntry = null;
+        $("j-content").value = "";
+        $("j-hours").value = "0";
+        autoGrow($("j-content"));
+        updateJournalHint();
+        $("j-post").textContent = "POST ENTRY";
+        $("j-cancel-edit").hidden = true;
+      }
+
       async function postJournal(id) {
         const content = $("j-content").value.trim();
         if (!content) return Pixl.toast("Write something first!", true);
+        const editing = editingJournalEntry;
         $("j-post").disabled = true;
-        const r = await Pixl.send("POST", `/api/projects/${id}/journal`, {
-          content,
-          hours: Number($("j-hours").value) || 0,
-        });
+        const r = await Pixl.send(
+          editing ? "PATCH" : "POST",
+          editing ? `/api/projects/${id}/journal/${editing.id}` : `/api/projects/${id}/journal`,
+          { content, hours: Number($("j-hours").value) || 0 },
+        );
         $("j-post").disabled = false;
         if (!r.ok) {
           if (r.error === "journal_too_short")
@@ -2998,10 +3040,8 @@
             );
           return Pixl.toast(err(r.error), true);
         }
-        $("j-content").value = "";
-        $("j-hours").value = "0";
-        autoGrow($("j-content"));
-        Pixl.toast("Entry posted!");
+        cancelJournalEdit();
+        Pixl.toast(editing ? "Entry updated!" : "Entry posted!");
         loadJournal(id);
       }
 

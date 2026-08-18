@@ -26,9 +26,9 @@ const EXPERIENCE_OPTIONS := [
 ]
 const EXPERIENCE_IDS := ["beginner", "intermediate", "advanced"]
 const EXPERIENCE_REPLY := {
-	"beginner": "Perfect. Everyone starts somewhere — I'll walk you through the first one, step by step.",
+	"beginner": "Perfect. Everyone starts somewhere. I'll walk you through the first one, step by step.",
 	"intermediate": "Nice. I'll point you at something with a bit of bite and stay out of your way.",
-	"advanced": "Good. Then I'll skip the hand-holding — the Core could use someone like you.",
+	"advanced": "Good. Then I'll skip the hand-holding. The Core could use someone like you.",
 }
 
 # Config
@@ -102,24 +102,24 @@ func _run_cinematic() -> void:
 
 func _greeting() -> void:
 	await _say([
-		"Oh — you actually came. Good. I wasn't sure anyone would.",
+		"Oh, you actually came. Good. I wasn't sure anyone would.",
 		"I'm Pixo. I've kept this little Hub lit since the Static hit. It's the last stable ground we've got.",
 		"Everything past the edge is frozen. Saloons stopped mid-song. Trains halted on the rails. Whole districts gone to pixels.",
-		"We can bring it back — that's not a hope, it's how this place works. But I can't do it alone, and neither can the Core.",
+		"We can bring it back. That's not a hope, it's how this place works. But I can't do it alone, and neither can the Core.",
 		"First things first, though. Let's get you sorted.",
 	])
 
 func _naming() -> void:
 	while true:
 		await _say([
-			"So — what should everyone call you around here?",
+			"So, what should everyone call you around here?",
 			"Names matter. It's the first thing the world remembers about you.",
 		])
 		var name: String = await _prompt_name()
 		var result: Dictionary = await _submit_name(name)
 		if result.get("ok", false):
 			captured_name = String(result.get("name", name))
-			await _say(["%s. Alright — the Hub knows you now." % captured_name])
+			await _say(["%s. Alright, the Hub knows you now." % captured_name])
 			return
 		# Rejected — Pixo softens it, then we loop back to ask again.
 		await _say([_soften_name_error(String(result.get("reason", "")))])
@@ -127,7 +127,7 @@ func _naming() -> void:
 func _experience() -> void:
 	Dialogue.ask(PIXO,
 		[
-			"One more thing, so I know how much to explain. Be honest — there's no wrong answer.",
+			"One more thing, so I know how much to explain. Be honest: there's no wrong answer.",
 			"How much have you built before?",
 		],
 		PackedStringArray(EXPERIENCE_OPTIONS),
@@ -142,10 +142,10 @@ func _experience() -> void:
 
 func _loop_patter() -> void:
 	await _say([
-		"Here's the whole deal. See that dark spire? That's the Core — it used to power all of Origin. Now it's a sealed vault, holding everything we ever made.",
-		"You bring it back by building. Real things — a website, a bot, a game, whatever's yours. The jobs are called Trials.",
+		"Here's the whole deal. See that dark spire? That's the Core: it used to power all of Origin. Now it's a sealed vault, holding everything we ever made.",
+		"You bring it back by building. Real things: a website, a bot, a game, whatever's yours. The jobs are called Trials.",
 		"Every hour of real work you ship becomes Restoration Energy. That's what thaws the world and wakes the Core.",
-		"And when the Core wakes, it hands back what it's been keeping — real gear, real rewards. That part isn't a metaphor.",
+		"And when the Core wakes, it hands back what it's been keeping: real gear, real rewards. That part isn't a metaphor.",
 		"Ship enough and you'll feel it: the more you build, the more each hour pays. Pixels for you, energy for all of us.",
 	])
 
@@ -155,16 +155,16 @@ func _loop_patter() -> void:
 func _direct_to_frontier() -> void:
 	Dialogue.ask(PIXO,
 		[
-			"The Trials themselves aren't here in the Hub — they're out past the edge, in the regions.",
+			"The Trials themselves aren't here in the Hub, they're out past the edge, in the regions.",
 			"Head through the Lobbies to reach the frontier, and find Ridit out there. He keeps the Dustline, and he's holding a first Trial for you.",
-			"Take his, or build something entirely your own — the Core recognizes both. Either way the loop's the same: build it, ship it, watch the world thaw.",
+			"Take his, or build something entirely your own, the Core recognizes both. Either way the loop's the same: build it, ship it, watch the world thaw.",
 		],
 		PackedStringArray(["Open the Lobbies", "I'll head out myself"]),
 		PackedStringArray(["lobbies", "later"]))
 	var picked: Array = await Dialogue.chosen
 	var choice := String(picked[1]) if picked.size() > 1 else "later"
-	await _say(["Oh, one more thing — that opening you just watched was drawn by noct. Genuinely great artist, go hire them if you ever need art done."])
-	await _say(["I'll pin a checklist to your screen so you never lose the thread — first stop, find Ridit."])
+	await _say(["Oh, one more thing: that opening you just watched was drawn by noct. Genuinely great artist, go hire them if you ever need art done."])
+	await _say(["I'll pin a checklist to your screen so you never lose the thread. First stop, find Ridit."])
 	# Awaited: start() emits `finished` right after this returns, which frees
 	# this node (see village.gd's flow.finished.connect -> queue_free) — an
 	# un-awaited call here let that teardown cancel the in-flight HTTPRequest
@@ -290,7 +290,7 @@ func _show_name_warn(text: String) -> void:
 
 func _soften_name_error(reason: String) -> String:
 	if reason.to_lower().contains("okay here") or reason.to_lower().contains("friendly"):
-		return "Hah — let's keep it friendly, yeah? The little ones look up to us. Try another."
+		return "Hah, let's keep it friendly, yeah? The little ones look up to us. Try another."
 	if reason == "":
 		return "Hm, that one won't stick. Try another?"
 	return reason

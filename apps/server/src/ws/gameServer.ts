@@ -3,6 +3,7 @@ import type { Server, IncomingMessage } from "http";
 import { verifySessionToken } from "../auth/session.js";
 import { activeBan, censorChat, recordChatViolation } from "../moderation.js";
 import { areFriends } from "../social.js";
+import { getPixoChatReply } from "../pixoChat.js";
 import { supabase, type PlayerStateRow } from "../db/client.js";
 import {
   type Lobby,
@@ -58,6 +59,12 @@ const EMOTE_KEYS = new Set([
 ]);
 
 const players = new Map<string, ConnectedPlayer>();
+
+// Per-player cooldown on /pixo, keyed by userId, storing the ms timestamp
+// they're next allowed to use it again. Bounds OpenRouter cost/abuse; a
+// single in-memory map is fine since this only has to survive one process.
+const PIXO_COOLDOWN_MS = 8000;
+const pixoCooldowns = new Map<string, number>();
 
 // The village is a private, per-player space: everyone requests the scene
 // "village", but each player gets their own room so they don't share it.
@@ -849,9 +856,50 @@ export function attachWebSocketServer(httpServer: Server) {
           .replace(IMG_TAG_RE, " ")
           .replace(/\s+/g, " ")
           .trim()
-          .slice(0, 200);
-        const text = censorChat(raw);
-        if (text !== raw) void punishChat(player, ws, raw);
+          .slice(0, 280);
+
+        if (/^\/pixo(\s|$)/i.test(raw)) {
+          const question = raw.replace(/^\/pixo\s*/i, "").trim();
+          if (!question) {
+            ws.send(JSON.stringify({ type: "dm_error", reason: "Usage: /pixo <question>, ask me anything about Pixl." }));
+            return;
+          }
+          const now = Date.now();
+          const readyAt = pixoCooldowns.get(player.userId) ?? 0;
+          if (now < readyAt) {
+            ws.send(
+              JSON.stringify({
+                type: "dm_error",
+                reason: `Give me a sec, try /pixo again in ${Math.ceil((readyAt - now) / 1000)}s.`,
+              }),
+            );
+            return;
+          }
+          pixoCooldowns.set(player.userId, now + PIXO_COOLDOWN_MS);
+          const askingWs = ws;
+          const askingId = player.userId;
+          const askingName = player.displayName;
+          void getPixoChatReply(question, askingName)
+            .then((reply) => {
+              if (askingWs.readyState !== WebSocket.OPEN) return;
+              askingWs.send(
+                JSON.stringify(
+                  reply
+                    ? { type: "dm", fromId: "pixo", fromName: "Pixo", toId: askingId, toName: askingName, text: reply }
+                    : { type: "dm_error", reason: "Couldn't reach Pixo just now, try again in a bit." },
+                ),
+              );
+            })
+            .catch((e) => {
+              console.error("pixo chat reply failed", e);
+              if (askingWs.readyState === WebSocket.OPEN)
+                askingWs.send(JSON.stringify({ type: "dm_error", reason: "Couldn't reach Pixo just now, try again in a bit." }));
+            });
+          return;
+        }
+
+        const text = censorChat(raw.slice(0, 200));
+        if (text !== raw.slice(0, 200)) void punishChat(player, ws, raw.slice(0, 200));
         if (!text) return;
 
         void supabase

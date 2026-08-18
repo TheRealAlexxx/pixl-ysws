@@ -281,14 +281,14 @@ func _build_pages() -> void:
 		_hint("Use Next (or the arrow keys) to flip through this guide.")
 	]))
 	_pages.append(_page_body([
-		_para("Long ago, Origin was the greatest digital world ever built — powered by a single Core that held every invention its people ever made."),
-		_para("Then the Core overloaded. In one blinding surge — the Great Static — Origin shattered into thousands of pixelated islands, adrift in an endless Void."),
+		_para("Long ago, Origin was the greatest digital world ever built, powered by a single Core that held every invention its people ever made."),
+		_para("Then the Core overloaded in one blinding surge: the Great Static. Origin shattered into thousands of pixelated islands, adrift in an endless Void."),
 	]))
 	_pages.append(_page_body([
-		_para("The Core couldn't rebuild alone, so it reached across worlds and pulled in Hack Clubbers — Builders — to help. Together with the survivors you renamed the ruins Pixl. Everyone here is a Pixelian now."),
-		_para("You rebuild by shipping real projects — sites, games, bots, hardware. Every hour of real work becomes Restoration Energy that repairs Pixl and pushes back the Void."),
+		_para("The Core couldn't rebuild alone, so it reached across worlds and pulled in Hack Clubbers, known here as Builders, to help. Together with the survivors you renamed the ruins Pixl. Everyone here is a Pixelian now."),
+		_para("You rebuild by shipping real projects: sites, games, bots, hardware. Every hour of real work becomes Restoration Energy that repairs Pixl and pushes back the Void."),
 		_spacer(),
-		_hint("You don't need to memorise the lore — just build things. The rest follows.")
+		_hint("You don't need to memorise the lore, just build things. The rest follows.")
 	]))
 	_pages.append(_page_body([
 		_row("WASD / Arrows", "Move around"),
@@ -305,25 +305,25 @@ func _build_pages() -> void:
 		_hint("Lobbies from the main menu get you a private world with its own code.")
 	]))
 	_pages.append(_page_body([
-		_para("Ship projects, earn pixels. Press H to open your Projects page in a browser tab — create a project, link your Hackatime, journal as you build, then Ship it for review."),
-		_para("Approved hours pay out in pixels at $4-6/hr — a flat $4/hr base plus a bonus that climbs as you level up (1 hour approved = 1 XP = 1 level, up to level 100; level shows in the top-left)."),
+		_para("Ship projects, earn pixels. Press H to open your Projects page in a browser tab: create a project, link your Hackatime, journal as you build, then Ship it for review."),
+		_para("Approved hours pay out in pixels at $4-6/hr, a flat $4/hr base plus a bonus that climbs as you level up (1 hour approved = 1 XP = 1 level, up to level 100; level shows in the top-left)."),
 		_spacer(),
 		_row("H  /  Pip", "Open Projects (new tab)"),
 		_spacer(),
-		_hint("Reviewers check your repo, demo and journal — real work only, AI use must be declared.")
+		_hint("Reviewers check your repo, demo and journal. Real work only, AI use must be declared.")
 	]))
 	_pages.append(_page_body([
-		_para("Spend pixels in the Shop — stickers, licenses, plushies, hardware, all real. It opens in a new browser tab."),
+		_para("Spend pixels in the Shop: stickers, licenses, plushies, hardware, all real. It opens in a new browser tab."),
 		_row("B", "Open the shop (or walk into the shop house)"),
 		_spacer(),
 		_para("Trials are themed challenges from NPCs with special rewards on top."),
-		_row("J", "Trial log — see every Trial and who unlocks it"),
+		_row("J", "Trial log, see every Trial and who unlocks it"),
 	]))
 	_pages.append(_page_body([
-		_para("Explore what everyone's making — player cards, projects and the leaderboard."),
+		_para("Explore what everyone's making: player cards, projects and the leaderboard."),
 		_row("E", "Explore (players / projects / leaderboard)"),
 		_spacer(),
-		_hint("Your player card shows your level, pixels and photo — set the photo in Settings from the pause menu.")
+		_hint("Your player card shows your level, pixels and photo. Set the photo in Settings from the pause menu.")
 	]))
 	_pages.append(_page_body([
 		_row("N", "Inbox"),

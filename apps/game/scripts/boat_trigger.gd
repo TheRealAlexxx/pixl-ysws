@@ -3,7 +3,7 @@ extends Area2D
 const MONOCRAFT := preload("res://assets/fonts/Monocraft.ttf")
 
 @export var speaker: String = "Boat"
-@export_multiline var dialogue_text: String = "Oh it has a note! It says - other regions like cyberpunk coming soon! come here again in some time and check again!"
+@export_multiline var dialogue_text: String = "Oh it has a note! It says: other regions like cyberpunk coming soon! come here again in some time and check again!"
 @export var prompt_y: float = -34.0
 ## Leave empty for the "coming soon" note. Set to a Marker2D in this scene
 ## (e.g. "../FarwestSpawn") to teleport the local player there on interact

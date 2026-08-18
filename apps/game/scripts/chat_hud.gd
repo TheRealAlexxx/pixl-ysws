@@ -19,6 +19,7 @@ const COLOR_DM := Color(0.85, 0.72, 1)
 var _lines: Array[Dictionary] = []
 const COMMANDS := [
 	["/w", "/w <name> <message>", "whisper someone privately"],
+	["/pixo", "/pixo <question>", "ask Pixo anything, only you see the reply"],
 ]
 var _suggest: PanelContainer
 var _suggest_list: VBoxContainer

@@ -455,6 +455,11 @@ export default async function ProjectPage({
               <Badge variant="secondary">
                 {Math.round((Number(j.hours) || 0) * 10) / 10}h
               </Badge>
+              {j.edited_at && (
+                <span className="text-xs text-muted-foreground">
+                  edited {new Date(j.edited_at).toLocaleString()}
+                </span>
+              )}
               <span className="text-xs text-muted-foreground">
                 {new Date(j.created_at).toLocaleString()}
               </span>

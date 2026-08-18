@@ -22,7 +22,7 @@ const PANELS := [
 		"tint": Color(0.98, 0.78, 0.35),
 		"texture": preload("res://assets/cinematic/origin.png"),
 		"lines": [
-			"Once, there was Origin — the brightest world the machine ever dreamed.",
+			"Once, there was Origin, the brightest world the machine ever dreamed.",
 			"Every idea ever built flowed into one place: the Core.",
 		],
 		"hold": 1.6,
@@ -52,8 +52,8 @@ const PANELS := [
 		"tint": Color(0.4, 0.5, 0.78),
 		"texture": preload("res://assets/cinematic/last_spacecraft.png"),
 		"lines": [
-			"The survivors couldn't rebuild alone. So they crossed the Void looking for help —",
-			"— and found a small blue planet full of people who build things for fun.",
+			"The survivors couldn't rebuild alone. So they crossed the Void looking for help,",
+			"and found a small blue planet full of people who build things for fun.",
 			"They found you.",
 		],
 		"hold": 1.6,
