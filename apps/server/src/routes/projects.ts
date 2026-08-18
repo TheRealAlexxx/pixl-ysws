@@ -263,15 +263,17 @@ interface ProjectFields {
   used_ai: boolean;
   ai_notes: string;
   hackatime_projects: string[];
+  level: number;
 }
 
 // Shared field parsing/validation for create + update. Returns an error code
 // on a missing name or a repo link that isn't a GitHub repository. Also used by
 // the YSWS importer (src/ysws/routes.ts) to turn an archive entry into a draft.
 //
-// Tier ("level" in the DB) is deliberately not parsed here - it's not a
-// player-set field. New projects get the column default (1); reviewers are
-// the only ones who set/change it, via the verdict form in the dashboard.
+// Tier ("level" in the DB) is a player self-assessment (1-4): the builder picks
+// it on the project page as a starting point. Reviewers still set the FINAL tier
+// via the verdict form at review, which is what payout actually uses, so this is
+// only a suggestion. Clamped 1-4; anything missing/invalid falls back to 1.
 export function parseProjectBody(
   body: any,
 ): { error: string; fields?: never } | { error?: never; fields: ProjectFields } {
@@ -300,6 +302,7 @@ export function parseProjectBody(
       hackatime_projects: Array.isArray(body?.hackatimeProjects)
         ? body.hackatimeProjects.map((p: unknown) => String(p)).slice(0, 50)
         : [],
+      level: Math.min(4, Math.max(1, Math.round(Number(body?.level)) || 1)),
     },
   };
 }
@@ -340,9 +343,23 @@ router.put("/api/projects/:id", async (req, res) => {
   if (parsed.error !== undefined)
     return res.status(400).json({ ok: false, error: parsed.error });
 
+  // The player-set tier is only a pre-review suggestion. Once a project is
+  // approved its level is what lifetimeRe() weights hours by, so a player must
+  // NOT be able to re-grade an approved project (that would retroactively inflate
+  // their RE). Keep the existing level on approved projects; the reviewer owns it.
+  const { data: cur } = await supabase
+    .from("projects")
+    .select("status, level")
+    .eq("id", id)
+    .eq("user_id", session.userId)
+    .maybeSingle();
+  const fields: Record<string, unknown> = { ...parsed.fields };
+  if ((cur as { status?: string } | null)?.status === "approved")
+    fields.level = (cur as { level?: number }).level ?? 1;
+
   const { data, error } = await supabase
     .from("projects")
-    .update(parsed.fields)
+    .update(fields)
     .eq("id", id)
     .eq("user_id", session.userId)
     .select()

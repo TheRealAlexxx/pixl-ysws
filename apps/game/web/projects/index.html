@@ -1755,6 +1755,16 @@
         </select>
       </div>
       <div class="form-row">
+        <label>TIER (your call, the reviewer confirms it)</label>
+        <select class="field" id="f-level">
+          ${LEVELS.map(
+            (lv, i) =>
+              `<option value="${i + 1}" ${(p.level || 1) === i + 1 ? "selected" : ""}>${lv[0]}</option>`,
+          ).join("")}
+        </select>
+        <span class="faint" id="f-level-blurb" style="font-size:11px;line-height:1.5;margin-top:4px"></span>
+      </div>
+      <div class="form-row">
         <label>HACKATIME PROJECTS (proof of hours)<span class="teal" id="f-ht-total" style="margin-left:8px;font-size:12px;letter-spacing:0"></span></label>
         <div class="ht-pick">${htOpts}</div>
       </div>
@@ -1814,6 +1824,14 @@
           });
           wireCount("f-update-notes", "f-update-count", 2000);
         }
+        if ($("f-level")) {
+          const showBlurb = () => {
+            const i = Number($("f-level").value) - 1;
+            if (LEVELS[i]) $("f-level-blurb").textContent = LEVELS[i][1];
+          };
+          $("f-level").addEventListener("change", showBlurb);
+          showBlurb();
+        }
         $("f-thumb-btn").addEventListener("click", () =>
           $("f-thumb-file").click(),
         );
@@ -1858,6 +1876,7 @@
           usedAi: $("f-ai").checked,
           aiNotes: $("f-ai-notes").value.trim(),
           projectType: $("f-type") ? $("f-type").value : "other",
+          level: $("f-level") ? Number($("f-level").value) : undefined,
           hackatimeProjects: [
             ...document.querySelectorAll('input[name="ht"]:checked'),
           ].map((c) => c.value),
