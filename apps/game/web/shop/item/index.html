@@ -586,6 +586,22 @@
 
         $("buy-btn").classList.remove("teal");
 
+        // Trial-gated item: locked until the player ships one of the unlocking
+        // Trials (server also rejects a locked buy with error "locked").
+        if (selected.locked) {
+          $("detail-options").innerHTML = "";
+          $("detail-limited").innerHTML = "";
+          $("detail-price").innerHTML = "🔒 LOCKED";
+          $("detail-price").classList.add("cant");
+          $("buy-btn").textContent = "LOCKED";
+          $("buy-btn").disabled = true;
+          $("afford-fill").style.width = "0%";
+          const trials = (selected.unlock_trials || []).map((t) => `"${t}"`).join(" or ");
+          $("afford-label").textContent = `Ship the ${trials || "required"} Trial to unlock this.`;
+          say("SHIP THE RIGHT TRIAL AND THIS UNLOCKS.", 5000);
+          return;
+        }
+
         if (selected.config_options) {
           // Configurable item not sold in this region: top-level price is 0
           // (buy_shop_item also rejects price<=0 as not_for_sale). Show the

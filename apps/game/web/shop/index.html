@@ -542,7 +542,9 @@
       <div class="item-desc">${Pixl.esc(Pixl.bbstrip(item.description || ""))}</div>
       <div class="item-foot">
         ${
-          isPending(item)
+          item.locked
+            ? `<div class="price-wrap"><span class="price cant">🔒 LOCKED</span><span class="price-hours">Ship the ${item.unlock_trials && item.unlock_trials.length ? Pixl.esc(item.unlock_trials.join('" or "')) : "required"} Trial to unlock</span></div>`
+            : isPending(item)
             ? `<div class="price-wrap"><span class="price cant">NOT AVAILABLE</span><span class="price-hours">Coming soon to this region</span></div>`
             : `<div class="price-wrap">
           <span class="price ${canAfford(item) ? "" : "cant"}"><img src="/img/pixel.png" alt="">${item.config_options ? `FROM ${basePrice(item).toLocaleString()}` : basePrice(item).toLocaleString()} PX</span>

@@ -20,7 +20,7 @@ async function regionFor(userId: string): Promise<string> {
 // with 0106 — fall back gracefully before each is applied so the catalog
 // keeps loading.
 const ITEM_COLUMNS =
-  "id, name, description, price, image_url, options, unlock_xp, config_options, region, category";
+  "id, name, description, price, image_url, options, unlock_xp, config_options, region, category, unlock_trial_ids";
 const ITEM_COLUMNS_FALLBACK = "id, name, description, price, image_url, options";
 
 // Items are scoped to the player's own region (fulfillment/shipping differ a
@@ -48,6 +48,7 @@ async function fetchItems(filterIds?: number[], region?: string) {
         config_options: null,
         region: "US",
         category: "other",
+        unlock_trial_ids: [],
       })),
     };
   }
@@ -123,6 +124,40 @@ router.get("/api/shop/items", async (req, res) => {
     ]);
     xp = level;
     claimed = ((claims ?? []) as { item_id: number }[]).map((c) => c.item_id);
+  }
+
+  // Trial-gated items: an item with unlock_trial_ids is locked until the player
+  // has shipped (reached review on) a project linked to at least one of those
+  // Trials. We attach `locked` and the Trial names so the client can show what
+  // to build to unlock it.
+  const gatedIds = [
+    ...new Set(
+      items.flatMap((i) =>
+        Array.isArray(i.unlock_trial_ids) ? (i.unlock_trial_ids as unknown[]).map(Number) : [],
+      ),
+    ),
+  ].filter((id) => Number.isFinite(id) && id > 0);
+  if (gatedIds.length > 0) {
+    const [{ data: shipped }, { data: trials }] = await Promise.all([
+      supabase
+        .from("projects")
+        .select("sidequest_id")
+        .eq("user_id", session.userId)
+        .not("sidequest_id", "is", null)
+        .in("status", ["shipped", "second_review", "approved"]),
+      supabase.from("sidequests").select("id, name").in("id", gatedIds),
+    ]);
+    const done = new Set(((shipped ?? []) as { sidequest_id: number }[]).map((r) => Number(r.sidequest_id)));
+    const nameById = new Map(((trials ?? []) as { id: number; name: string }[]).map((t) => [Number(t.id), t.name]));
+    for (const i of items) {
+      const ids = Array.isArray(i.unlock_trial_ids)
+        ? (i.unlock_trial_ids as unknown[]).map(Number)
+        : [];
+      if (ids.length > 0) {
+        i.locked = !ids.some((id) => done.has(id));
+        i.unlock_trials = ids.map((id) => nameById.get(id)).filter((n): n is string => !!n);
+      }
+    }
   }
 
   res.json({ ok: true, items, xp, claimed, region });
@@ -303,6 +338,28 @@ router.post("/api/shop/buy/:id", async (req, res) => {
   const note = typeof req.body?.note === "string" ? req.body.note.slice(0, 300) : "";
   const stockChoice =
     typeof req.body?.stockChoice === "string" ? req.body.stockChoice.slice(0, 80) : "";
+
+  // Trial-gated items can't be bought until the player has shipped one of the
+  // unlocking Trials (mirrors the `locked` flag computed for the catalog).
+  const { data: gateRow } = await supabase
+    .from("shop_items")
+    .select("unlock_trial_ids")
+    .eq("id", id)
+    .maybeSingle();
+  const gateIds = Array.isArray((gateRow as { unlock_trial_ids?: unknown[] } | null)?.unlock_trial_ids)
+    ? ((gateRow as { unlock_trial_ids: unknown[] }).unlock_trial_ids).map(Number).filter((n) => Number.isFinite(n) && n > 0)
+    : [];
+  if (gateIds.length > 0) {
+    const { data: shipped } = await supabase
+      .from("projects")
+      .select("sidequest_id")
+      .eq("user_id", session.userId)
+      .not("sidequest_id", "is", null)
+      .in("status", ["shipped", "second_review", "approved"]);
+    const done = new Set(((shipped ?? []) as { sidequest_id: number }[]).map((r) => Number(r.sidequest_id)));
+    if (!gateIds.some((tid) => done.has(tid)))
+      return res.status(403).json({ ok: false, error: "locked" });
+  }
 
   let { data, error } = await supabase.rpc("buy_shop_item", {
     p_user_id: session.userId,
