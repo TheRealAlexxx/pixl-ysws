@@ -89,3 +89,70 @@ export function buildSubmission(
     },
   };
 }
+
+export interface JoeProjectOutcome {
+  status: string;
+  reason: string | null;
+  recordedAt: string | null;
+}
+
+export interface JoeProject {
+  id: string;
+  organizerPlatformId: string | null;
+  review: { trustScore: number | null } | null;
+  outcome: JoeProjectOutcome | null;
+}
+
+// Never throws. Callers store the error string and let the reconcile job retry.
+export async function submitProject(
+  project: SubmittableProject,
+  owner: SubmittableOwner,
+): Promise<{ ok: true; joeProjectId: string } | { ok: false; error: string }> {
+  const cfg = joeConfig();
+  if (!cfg) return { ok: false, error: "joe is not configured" };
+
+  const built = buildSubmission(project, owner);
+  if (!built.ok) return built;
+
+  try {
+    const r = await fetch(`${cfg.base}/events/${cfg.eventId}/projects`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${cfg.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(built.body),
+      signal: AbortSignal.timeout(10000),
+    });
+    const text = await r.text();
+    if (!r.ok) return { ok: false, error: `joe ${r.status}: ${text.slice(0, 300)}` };
+    const json = JSON.parse(text) as { id?: string };
+    const id = clean(json.id);
+    // 200 means Joe deduplicated on organizerPlatformId and returned the
+    // existing record, which is a success for us.
+    if (!id) return { ok: false, error: `joe ${r.status}: no id in response` };
+    return { ok: true, joeProjectId: id };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message.slice(0, 300) };
+  }
+}
+
+export async function fetchProjects(): Promise<JoeProject[]> {
+  const cfg = joeConfig();
+  if (!cfg) return [];
+  try {
+    const r = await fetch(`${cfg.base}/events/${cfg.eventId}/projects`, {
+      headers: { Authorization: `Bearer ${cfg.apiKey}` },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!r.ok) {
+      console.error("joe fetchProjects failed", r.status);
+      return [];
+    }
+    const json = (await r.json()) as { projects?: JoeProject[] };
+    return Array.isArray(json.projects) ? json.projects : [];
+  } catch (e) {
+    console.error("joe fetchProjects failed", (e as Error).message);
+    return [];
+  }
+}
