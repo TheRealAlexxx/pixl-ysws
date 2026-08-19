@@ -567,6 +567,46 @@ export default async function ReviewDetail({
               </Card>
             )}
 
+            {(p.joe_project_id || p.joe_error) && (
+              <Card className="p-5 gap-0 space-y-2">
+                <div className="text-sm font-semibold">Fraud review (Joe)</div>
+                {p.joe_error ? (
+                  <p className="text-sm text-rose-600">
+                    Not submitted to Joe: {p.joe_error}
+                  </p>
+                ) : p.joe_outcome ? (
+                  <dl className="text-sm grid grid-cols-2 gap-1">
+                    <dt>Outcome</dt>
+                    <dd>{p.joe_outcome}</dd>
+                    <dt>Trust score</dt>
+                    <dd>{p.joe_trust_score ?? "not given"}</dd>
+                    {p.joe_reason && (
+                      <>
+                        <dt>Reason</dt>
+                        <dd>{p.joe_reason}</dd>
+                      </>
+                    )}
+                    <dt>Reviewer</dt>
+                    <dd>{p.joe_reviewer || "unknown"}</dd>
+                    <dt>Reviewed</dt>
+                    <dd>{p.joe_reviewed_at ? new Date(p.joe_reviewed_at).toLocaleString() : "not yet"}</dd>
+                  </dl>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Submitted to Joe, waiting on a score.
+                  </p>
+                )}
+              </Card>
+            )}
+
+            {isFinalStage && p.joe_outcome === "rejected" && (
+              <Card className="p-5 text-sm gap-0 ring-rose-300 dark:ring-rose-500/30 text-rose-700 dark:text-rose-300">
+                <strong>Joe rejected this on fraud review.</strong>{" "}
+                {p.joe_reason || "No reason given."} You can still approve it, but document
+                why in your notes.
+              </Card>
+            )}
+
             {ageFlag && (
               <Card className="p-4 text-sm gap-1 ring-amber-300 dark:ring-amber-500/30">
                 <div className="font-semibold text-amber-700 dark:text-amber-300">
