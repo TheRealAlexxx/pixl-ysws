@@ -10,6 +10,7 @@
 
 import { aiPost } from "./client.js";
 import { getDocsCorpus } from "./docs.js";
+import { programMemory } from "../memory/program.js";
 import { db } from "../db/client.js";
 
 export interface DocsAnswer {
@@ -99,7 +100,11 @@ export async function answerQuestion(rawQuestion: string): Promise<DocsAnswer | 
   if (cached) return { answer: cached, source: "cache" };
 
   const corpus = await getDocsCorpus();
-  if (!corpus) return null;
+  const facts = programMemory.length
+    ? `\n\n=== REMEMBERED FACTS (from /pixl-remember, set by the support team) ===\n` +
+      programMemory.map((f) => `- ${f}`).join("\n")
+    : "";
+  if (!corpus && !facts) return null;
 
   let content = "";
   try {
@@ -108,11 +113,12 @@ export async function answerQuestion(rawQuestion: string): Promise<DocsAnswer | 
         {
           role: "system",
           content:
-            "You are pixo, the Pixl help bot. Answer the user's question using ONLY the Pixl docs provided below. " +
+            "You are pixo, the Pixl help bot. Answer the user's question using ONLY the Pixl docs and the remembered facts provided below — the remembered facts are hand-entered by the support team and take priority over the docs if they conflict. " +
             "Be concise, friendly and clear (casual lowercase is fine, no markdown headers, 1-4 sentences). " +
-            `If the docs do not contain the answer, reply with exactly ${NO_ANSWER} and nothing else. ` +
-            "Never invent facts that aren't in the docs.\n\n=== PIXL DOCS ===\n" +
-            corpus,
+            `If neither the docs nor the remembered facts contain the answer, reply with exactly ${NO_ANSWER} and nothing else. ` +
+            "Never invent facts that aren't in the docs or the remembered facts.\n\n=== PIXL DOCS ===\n" +
+            corpus +
+            facts,
         },
         { role: "user", content: question },
       ],
