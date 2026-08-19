@@ -166,7 +166,7 @@ func _poll() -> void:
 	var shipped := false
 	for p in projects:
 		var st := String(p.get("status", ""))
-		if st == "shipped" or st == "second_review" or st == "approved":
+		if st == "shipped" or st == "fraud_review" or st == "second_review" or st == "approved":
 			shipped = true
 			break
 	# The "meet" step clears once a Trial is accepted (unlocked, not yet done) —

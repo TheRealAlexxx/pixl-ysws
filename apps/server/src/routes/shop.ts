@@ -144,7 +144,7 @@ router.get("/api/shop/items", async (req, res) => {
         .select("sidequest_id")
         .eq("user_id", session.userId)
         .not("sidequest_id", "is", null)
-        .in("status", ["shipped", "second_review", "approved"]),
+        .in("status", ["shipped", "fraud_review", "second_review", "approved"]),
       supabase.from("sidequests").select("id, name").in("id", gatedIds),
     ]);
     const done = new Set(((shipped ?? []) as { sidequest_id: number }[]).map((r) => Number(r.sidequest_id)));
@@ -355,7 +355,7 @@ router.post("/api/shop/buy/:id", async (req, res) => {
       .select("sidequest_id")
       .eq("user_id", session.userId)
       .not("sidequest_id", "is", null)
-      .in("status", ["shipped", "second_review", "approved"]);
+      .in("status", ["shipped", "fraud_review", "second_review", "approved"]);
     const done = new Set(((shipped ?? []) as { sidequest_id: number }[]).map((r) => Number(r.sidequest_id)));
     if (!gateIds.some((tid) => done.has(tid)))
       return res.status(403).json({ ok: false, error: "locked" });

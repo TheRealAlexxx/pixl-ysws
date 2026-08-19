@@ -32,7 +32,7 @@ router.get("/api/sidequests", async (req, res) => {
         .select("sidequest_id")
         .eq("user_id", session.userId)
         .not("sidequest_id", "is", null)
-        .in("status", ["shipped", "second_review", "approved"]),
+        .in("status", ["shipped", "fraud_review", "second_review", "approved"]),
       // The giver NPC behind each Trial, so the client can spawn a matching
       // check-in copy (same look + the authored reminder line) into the village
       // once the player has accepted it.
