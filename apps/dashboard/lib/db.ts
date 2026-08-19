@@ -831,6 +831,26 @@ export async function listReviewAudits(
   return rows;
 }
 
+// The first pass's structured audit note for one project, so the final
+// reviewer's form can start from what the first reviewer already wrote
+// instead of a blank page. Null when there isn't one (a re-reviewed project,
+// or one force-advanced past fraud review without ever having a first pass).
+export async function getFirstPassAuditNote(projectId: number): Promise<string | null> {
+  const { data, error } = await db
+    .from("review_audits")
+    .select("audit_note")
+    .eq("project_id", projectId)
+    .like("verdict", "first_pass_%")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("getFirstPassAuditNote", error.message);
+    return null;
+  }
+  return (data?.audit_note as string | undefined) ?? null;
+}
+
 export interface ReviewerStats {
   reviews: number;
   approved: number;

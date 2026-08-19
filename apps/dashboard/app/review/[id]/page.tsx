@@ -10,7 +10,9 @@ import {
   turnedNineteenSinceShipping,
   listCollaboratorsForProject,
   lifetimeRe,
+  getFirstPassAuditNote,
 } from "@/lib/db";
+import { parseAuditNote } from "@/lib/auditNote";
 import { fetchCommits, attachCommitStats } from "@/lib/github";
 import { fetchUserSpans, attachTrackedTime, fetchTrustFactor, fetchHackatimeReport } from "@/lib/hackatime";
 import { yswsShipsFor } from "@/lib/ysws";
@@ -143,6 +145,13 @@ export default async function ReviewDetail({
 
   const formDefaultHours =
     isFinalStage && p.first_pass_hours != null ? p.first_pass_hours : hours;
+
+  // So the final reviewer starts from what the first reviewer already wrote
+  // instead of a blank form - they can still edit or overturn any of it.
+  const firstPassAudit =
+    isFinalStage && p.first_pass_by
+      ? parseAuditNote((await getFirstPassAuditNote(projectId)) ?? "")
+      : null;
 
   const firstPassDeflated =
     p.first_pass_hours != null ? Math.round((hours - p.first_pass_hours) * 10) / 10 : 0;
@@ -674,6 +683,18 @@ export default async function ReviewDetail({
                     collaborators={collaboratorHours}
                     tier={Number(p.level) || 1}
                     playerReBefore={playerReBefore}
+                    firstPass={
+                      firstPassAudit
+                        ? {
+                            technicalFeatures: firstPassAudit["TECHNICAL FEATURES"],
+                            hackatimeEvidence: firstPassAudit["HACKATIME EVIDENCE"],
+                            deflationReason: firstPassAudit["DEFLATION REASON"],
+                            ageJustification: firstPassAudit["AGE JUSTIFICATION"],
+                            notes: firstPassAudit["NOTES"],
+                            note: p.first_pass_note,
+                          }
+                        : undefined
+                    }
                   />
                 </Card>
 

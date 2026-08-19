@@ -254,6 +254,7 @@ export function ReviewForm({
   collaborators = [],
   tier = 1,
   playerReBefore = 0,
+  firstPass,
 }: {
   projectId: number;
   repoUrl: string | null;
@@ -271,6 +272,16 @@ export function ReviewForm({
   tier?: number;
   /** The player's lifetime RE excluding this project - what sets their rate. */
   playerReBefore?: number;
+  /** The first pass's own audit note + player note, so the final reviewer
+   * starts from what was already written instead of a blank form. */
+  firstPass?: {
+    technicalFeatures: string;
+    hackatimeEvidence: string;
+    deflationReason: string;
+    ageJustification: string;
+    notes: string;
+    note: string;
+  };
 }) {
   const repoOpened = useRef<HTMLInputElement>(null);
   const demoOpened = useRef<HTMLInputElement>(null);
@@ -301,6 +312,7 @@ export function ReviewForm({
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const pendingDraft = useRef<Record<string, string | number> | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [prefilledFromFirstPass, setPrefilledFromFirstPass] = useState(false);
 
   useEffect(() => {
     let draft: Record<string, string | number> | null = null;
@@ -310,8 +322,15 @@ export function ReviewForm({
     } catch {
       draft = null;
     }
+    if (draft) {
+      setDraftRestored(true);
+    } else if (firstPass) {
+      // Nothing typed yet this session - start from what the first reviewer
+      // already wrote instead of a blank form. Still fully editable.
+      draft = { ...firstPass };
+      setPrefilledFromFirstPass(true);
+    }
     if (!draft) return;
-    setDraftRestored(true);
     if (typeof draft.technicalFeatures === "string" && technicalFeaturesRef.current) {
       technicalFeaturesRef.current.value = draft.technicalFeatures;
       setFeaturesLen(draft.technicalFeatures.trim().length);
@@ -423,6 +442,11 @@ export function ReviewForm({
       {draftRestored && (
         <div className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/[0.06] border border-amber-200 dark:border-amber-500/30 rounded-md px-3 py-1.5">
           Restored your unsaved notes from last time you had this open.
+        </div>
+      )}
+      {prefilledFromFirstPass && (
+        <div className="text-xs font-medium text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/[0.06] border border-violet-200 dark:border-violet-500/30 rounded-md px-3 py-1.5">
+          Started from the first reviewer&apos;s notes , edit anything before you decide.
         </div>
       )}
       <input type="hidden" name="projectId" value={projectId} />
