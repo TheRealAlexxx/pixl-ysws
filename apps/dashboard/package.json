@@ -6,7 +6,8 @@
     "dev": "next dev -p 4900",
     "build": "next build",
     "start": "next start -p 4900",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "@hackclub/icons": "^0.2.2",
