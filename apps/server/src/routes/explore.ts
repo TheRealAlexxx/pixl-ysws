@@ -385,8 +385,8 @@ router.get("/api/explore/projects", async (req, res) => {
     .limit(100);
   if (q) query = query.ilike("name", `%${q}%`);
   if (Number.isInteger(tier) && tier >= 1 && tier <= 4) query = query.eq("level", tier);
-  if (shipped === "shipped") query = query.not("shipped_at", "is", null);
-  else if (shipped === "unshipped") query = query.is("shipped_at", null);
+  if (shipped === "shipped") query = query.eq("status", "approved");
+  else if (shipped === "unshipped") query = query.neq("status", "approved");
   const { data: projects, error } = await query;
   if (error) {
     console.error("[explore] projects failed", error);

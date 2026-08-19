@@ -3248,6 +3248,10 @@
         const onList = h !== "new" && !h.startsWith("p=");
         $("legend").style.display = onList ? "" : "none";
         $("hours-slot").style.display = onList ? "" : "none";
+        $("ht-slot").style.display = onList ? "" : "none";
+        $("invites-slot").style.display = onList ? "" : "none";
+        $("join-code-slot").style.display = onList ? "" : "none";
+        $("ysws-import-slot").style.display = onList ? "" : "none";
         if (onList) {
           renderLegend();
           renderHours();
