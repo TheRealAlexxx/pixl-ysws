@@ -349,7 +349,11 @@ router.get("/api/explore/players/:id", async (req, res) => {
   if (!data) return res.status(404).json({ ok: false });
 
   const collectibles = (owned.data ?? [])
-    .map((r) => (r as { collectibles: unknown }).collectibles)
+    .map((r) => {
+      const row = r as { collectibles: unknown; created_at: string };
+      if (!row.collectibles) return null;
+      return { ...(row.collectibles as Record<string, unknown>), unlocked_at: row.created_at };
+    })
     .filter(Boolean);
 
   const [xp, re] = await Promise.all([approvedHoursFor(id), lifetimeRe(id)]);
