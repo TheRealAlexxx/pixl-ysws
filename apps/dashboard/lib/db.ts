@@ -136,6 +136,16 @@ export interface ProjectRow {
   // Reviewer-only cosmetic flag, see toggleProjectPeak in actions.ts. Never
   // player-set, never affects payout.
   is_peak: boolean;
+  // Joe fraud review (joe.fraud.hackclub.com), the second pass. joe_error holds
+  // the last submission failure so a stuck project explains itself in the UI.
+  joe_project_id: string;
+  joe_submitted_at: string | null;
+  joe_trust_score: number | null;
+  joe_outcome: string;
+  joe_reason: string;
+  joe_reviewed_at: string | null;
+  joe_reviewer: string;
+  joe_error: string;
 }
 
 export interface PlayerStateRow {
@@ -543,7 +553,7 @@ async function notifyReviewStarted(projectId: number): Promise<void> {
     .select("name, user_id, status")
     .eq("id", projectId)
     .single();
-  if (!p || (p.status !== "shipped" && p.status !== "second_review")) return;
+  if (!p || !["shipped", "fraud_review", "second_review"].includes(String(p.status))) return;
   const since = new Date(Date.now() - 6 * 3600_000).toISOString();
   const { count } = await db
     .from("mod_actions")
@@ -586,6 +596,25 @@ export async function listSecondReviewProjects(
   }
   const visible = (data ?? []).filter((p) => !claimedByOther(p as ShippedProject, viewer));
   return hydrateHours(visible as ShippedProject[]);
+}
+
+// Waiting on Joe: not actionable by anyone, shown read-only so a backlog or a
+// failed submission is visible instead of silent. Oldest first.
+export async function listFraudReviewProjects(): Promise<ShippedProject[]> {
+  const { data, error } = await db
+    .from("projects")
+    .select("*, users(id, display_name, real_name, slack_id)")
+    .eq("status", "fraud_review")
+    .is("archived_at", null)
+    .is("rejected_at", null)
+    .is("banned_at", null)
+    .order("first_pass_at", { ascending: true })
+    .limit(500);
+  if (error) {
+    console.error("listFraudReviewProjects", error.message);
+    return [];
+  }
+  return hydrateHours((data ?? []) as ShippedProject[]);
 }
 
 // The next project a reviewer should look at after finishing one, so the review
@@ -1117,7 +1146,7 @@ export async function publicStats(days = 30): Promise<PublicStats> {
       count("projects", (q) => q.eq("status", "approved").is("banned_at", null)),
       count("projects", (q) =>
         q
-          .in("status", ["shipped", "second_review"])
+          .in("status", ["shipped", "fraud_review", "second_review"])
           .is("archived_at", null)
           .is("rejected_at", null)
           .is("banned_at", null),

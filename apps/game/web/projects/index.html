@@ -1297,7 +1297,8 @@
         if (p.banned_at) return ["BANNED", "status-needs"];
         if (p.rejected_at) return ["REJECTED", "status-needs"];
         if (p.status === "approved") return ["APPROVED", "status-approved"];
-        if (p.status === "shipped") return ["IN REVIEW", "status-shipped"];
+        if (p.status === "shipped" || p.status === "fraud_review" || p.status === "second_review")
+          return ["IN REVIEW", "status-shipped"];
         if (p.status === "needs_changes")
           return ["NEEDS CHANGES", "status-needs"];
         return ["DRAFT", "muted"];
@@ -1499,7 +1500,11 @@
       // into "needs changes" here, the same way statusInfo colors them.
       const LEGEND = [
         ["APPROVED", "status-approved", (p) => p.status === "approved" && !p.rejected_at],
-        ["IN REVIEW", "status-shipped", (p) => p.status === "shipped"],
+        [
+          "IN REVIEW",
+          "status-shipped",
+          (p) => p.status === "shipped" || p.status === "fraud_review" || p.status === "second_review",
+        ],
         [
           "NEEDS CHANGES",
           "status-needs",
@@ -2120,7 +2125,7 @@
         // page instead of the owner's full editor.
         if (p.is_owner === false) return renderCollabProjectView(p);
         const [label, cls] = statusInfo(p);
-        const inReview = p.status === "shipped" || p.status === "second_review";
+        const inReview = p.status === "shipped" || p.status === "fraud_review" || p.status === "second_review";
         const canShip =
           !inReview &&
           (["draft", "needs_changes", "approved"].includes(p.status) ||

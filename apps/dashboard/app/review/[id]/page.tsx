@@ -17,7 +17,7 @@ import { yswsShipsFor } from "@/lib/ysws";
 import { renderMarkdown } from "@/lib/markdown";
 import { db } from "@/lib/db";
 import { ReviewForm, type BountyOption } from "@/app/_components/ReviewForm";
-import { banProject, setProjectLevel, sendBackToFirstPass } from "@/app/actions";
+import { banProject, setProjectLevel, sendBackToFirstPass, forceAdvanceFraud } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
 import { ReviewDetailTabs } from "@/app/_components/ReviewDetailTabs";
 import { LevelBadge, TypeBadge, ShipBadges, StatusBadge } from "@/app/_components/ProjectBadges";
@@ -564,6 +564,60 @@ export default async function ReviewDetail({
                     {p.first_pass_note}
                   </p>
                 )}
+              </Card>
+            )}
+
+            {(p.joe_project_id || p.joe_error) && (
+              <Card className="p-5 gap-0 space-y-2">
+                <div className="text-sm font-semibold">Fraud review (Joe)</div>
+                {p.joe_error ? (
+                  <p className="text-sm text-rose-600">
+                    Not submitted to Joe: {p.joe_error}
+                  </p>
+                ) : p.joe_outcome ? (
+                  <dl className="text-sm grid grid-cols-2 gap-1">
+                    <dt>Outcome</dt>
+                    <dd>{p.joe_outcome}</dd>
+                    <dt>Trust score</dt>
+                    <dd>{p.joe_trust_score ?? "not given"}</dd>
+                    {p.joe_reason && (
+                      <>
+                        <dt>Reason</dt>
+                        <dd>{p.joe_reason}</dd>
+                      </>
+                    )}
+                    <dt>Reviewer</dt>
+                    <dd>{p.joe_reviewer || "unknown"}</dd>
+                    <dt>Reviewed</dt>
+                    <dd>{p.joe_reviewed_at ? new Date(p.joe_reviewed_at).toLocaleString() : "not yet"}</dd>
+                  </dl>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Submitted to Joe, waiting on a score.
+                  </p>
+                )}
+                {p.status === "fraud_review" && canSecondPass && (
+                  <form action={forceAdvanceFraud} className="flex gap-2 pt-2">
+                    <input type="hidden" name="projectId" value={p.id} />
+                    <input
+                      name="reason"
+                      required
+                      placeholder="Why skip the fraud pass?"
+                      className="flex-1 rounded border px-2 py-1 text-sm"
+                    />
+                    <button type="submit" className="rounded border px-3 py-1 text-sm">
+                      Skip to final review
+                    </button>
+                  </form>
+                )}
+              </Card>
+            )}
+
+            {isFinalStage && p.joe_outcome === "rejected" && (
+              <Card className="p-5 text-sm gap-0 ring-rose-300 dark:ring-rose-500/30 text-rose-700 dark:text-rose-300">
+                <strong>Joe rejected this on fraud review.</strong>{" "}
+                {p.joe_reason || "No reason given."} You can still approve it, but document
+                why in your notes.
               </Card>
             )}
 

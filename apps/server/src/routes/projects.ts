@@ -672,7 +672,7 @@ router.post("/api/projects/:id/unship", async (req, res) => {
     .eq("user_id", session.userId)
     .maybeSingle();
   if (!project) return res.status(404).json({ ok: false });
-  if (project.status !== "shipped" && project.status !== "second_review")
+  if (!["shipped", "fraud_review", "second_review"].includes(project.status))
     return res.status(400).json({ ok: false, error: "not_in_review" });
 
   const { data, error } = await supabase
@@ -911,7 +911,7 @@ router.get("/api/projects/:id/timeline", async (req, res) => {
       claimedHours: a.claimed_hours ?? null,
       approvedHours: a.approved_hours ?? null,
     });
-  if (proj?.shipped_at && (proj.status === "shipped" || proj.status === "second_review"))
+  if (proj?.shipped_at && ["shipped", "fraud_review", "second_review"].includes(proj.status))
     events.push({ kind: "shipped", at: proj.shipped_at });
 
   events.sort(
