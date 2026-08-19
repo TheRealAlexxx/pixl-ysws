@@ -1127,7 +1127,7 @@ export async function publicStats(days = 30): Promise<PublicStats> {
       count("projects", (q) => q.eq("status", "approved").is("banned_at", null)),
       count("projects", (q) =>
         q
-          .in("status", ["shipped", "second_review"])
+          .in("status", ["shipped", "fraud_review", "second_review"])
           .is("archived_at", null)
           .is("rejected_at", null)
           .is("banned_at", null),
