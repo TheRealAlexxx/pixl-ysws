@@ -179,10 +179,19 @@ function avatarHtml(p) {
   return `<div class="avatar"><img src="${Pixl.esc(src)}" alt="" loading="lazy" onerror="${onerror}"></div>`;
 }
 
+// Same label vocabulary as statusInfo() in the player's own projects page: a
+// project only reads SHIPPED once it's actually approved, not the moment it's
+// merely submitted for review.
 function statusChip(p) {
   const s = String(p.status || "draft");
-  const map = { approved: "green", shipped: "teal", second_review: "teal", needs_changes: "red" };
-  return `<span class="chip status-chip ${map[s] || ""}">${Pixl.esc(s.replace("_", " "))}</span>`;
+  const LABELS = {
+    approved: ["SHIPPED", "green"],
+    shipped: ["IN REVIEW", "teal"],
+    second_review: ["IN REVIEW", "teal"],
+    needs_changes: ["NEEDS CHANGES", "red"],
+  };
+  const [label, tone] = LABELS[s] || [s.replace("_", " "), ""];
+  return `<span class="chip status-chip ${tone}">${Pixl.esc(label)}</span>`;
 }
 
 // Reviewer-nominated standout project - cosmetic only, no payout effect.
