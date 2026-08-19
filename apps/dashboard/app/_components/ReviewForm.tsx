@@ -285,6 +285,94 @@ export function ReviewForm({
   const [tierState, setTierState] = useState(tier);
   const deflated = hours < claimedHours;
 
+  // A rushed reviewer who closes the dashboard mid-review (or accidentally
+  // navigates away) loses everything they typed, deflation reason included -
+  // this is the one hard-to-redo part of a review. Draft autosaves to
+  // localStorage (per browser, not the account - closing the tab elsewhere
+  // won't recover it) and is cleared the moment the form is actually
+  // submitted, whether the verdict sticks or bounces back on a validation
+  // error, so a stale draft never resurrects itself on the next review.
+  const draftKey = `pixl-review-draft-${projectId}`;
+  const technicalFeaturesRef = useRef<HTMLTextAreaElement>(null);
+  const hackatimeEvidenceRef = useRef<HTMLTextAreaElement>(null);
+  const deflationReasonRef = useRef<HTMLTextAreaElement>(null);
+  const ageJustificationRef = useRef<HTMLTextAreaElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  const pendingDraft = useRef<Record<string, string | number> | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  useEffect(() => {
+    let draft: Record<string, string | number> | null = null;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) draft = JSON.parse(raw);
+    } catch {
+      draft = null;
+    }
+    if (!draft) return;
+    setDraftRestored(true);
+    if (typeof draft.technicalFeatures === "string" && technicalFeaturesRef.current) {
+      technicalFeaturesRef.current.value = draft.technicalFeatures;
+      setFeaturesLen(draft.technicalFeatures.trim().length);
+    }
+    if (typeof draft.hackatimeEvidence === "string" && hackatimeEvidenceRef.current)
+      hackatimeEvidenceRef.current.value = draft.hackatimeEvidence;
+    if (typeof draft.ageJustification === "string" && ageJustificationRef.current)
+      ageJustificationRef.current.value = draft.ageJustification;
+    if (typeof draft.notes === "string" && notesRef.current) notesRef.current.value = draft.notes;
+    if (typeof draft.note === "string" && noteRef.current) noteRef.current.value = draft.note;
+    // deflationReason's textarea only renders once `deflated` is true, which
+    // depends on the `hours` state this same draft is about to change - stash
+    // it and let the effect below fill it in once that field actually exists.
+    pendingDraft.current = draft;
+    if (typeof draft.hours === "number") setHours(draft.hours);
+    if (typeof draft.tier === "number") setTierState(draft.tier);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const draft = pendingDraft.current;
+    if (!draft) return;
+    if (typeof draft.deflationReason === "string" && deflationReasonRef.current) {
+      deflationReasonRef.current.value = draft.deflationReason;
+      pendingDraft.current = null;
+    }
+  }, [deflated]);
+
+  // hours/tier come from React state, which hasn't updated yet inside the same
+  // handler that just called setHours/setTierState (state updates apply on the
+  // next render) - callers changing one of those pass the new value directly
+  // rather than relying on the stale closure.
+  const saveDraft = (overrides?: { hours?: number; tier?: number }) => {
+    try {
+      localStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          hours: overrides?.hours ?? hours,
+          tier: overrides?.tier ?? tierState,
+          technicalFeatures: technicalFeaturesRef.current?.value ?? "",
+          hackatimeEvidence: hackatimeEvidenceRef.current?.value ?? "",
+          deflationReason: deflationReasonRef.current?.value ?? "",
+          ageJustification: ageJustificationRef.current?.value ?? "",
+          notes: notesRef.current?.value ?? "",
+          note: noteRef.current?.value ?? "",
+        }),
+      );
+    } catch {
+      // Storage full or unavailable (private browsing) - the review still
+      // works, it just can't be recovered if the tab closes.
+    }
+  };
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {
+      // ignore
+    }
+  };
+
   const hackatimeDefault = useMemo(() => {
     if (hackatimeSeconds <= 0) return "";
     const h = Math.round((hackatimeSeconds / 3600) * 10) / 10;
@@ -328,9 +416,15 @@ export function ReviewForm({
           totalSeconds.current.value = String(
             Math.round((Date.now() - openedAt.current) / 1000),
           );
+        clearDraft();
       }}
       className="mt-4 flex flex-col gap-4"
     >
+      {draftRestored && (
+        <div className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/[0.06] border border-amber-200 dark:border-amber-500/30 rounded-md px-3 py-1.5">
+          Restored your unsaved notes from last time you had this open.
+        </div>
+      )}
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="repoOpened" defaultValue="0" ref={repoOpened} />
       <input type="hidden" name="demoOpened" defaultValue="0" ref={demoOpened} />
@@ -372,7 +466,11 @@ export function ReviewForm({
           min="0"
           max={claimedHours}
           value={hours}
-          onChange={(e) => setHours(Math.min(claimedHours, Math.max(0, Number(e.target.value) || 0)))}
+          onChange={(e) => {
+            const v = Math.min(claimedHours, Math.max(0, Number(e.target.value) || 0));
+            setHours(v);
+            saveDraft({ hours: v });
+          }}
           className="w-28 text-sm"
         />
       </Label>
@@ -382,7 +480,10 @@ export function ReviewForm({
       <TierAndPayout
         hours={hours}
         tier={tierState}
-        onTier={setTierState}
+        onTier={(t) => {
+          setTierState(t);
+          saveDraft({ tier: t });
+        }}
         playerReBefore={playerReBefore}
         forTrial={!!trial}
       />
@@ -429,7 +530,11 @@ export function ReviewForm({
               name="technicalFeatures"
               required
               minLength={TECHNICAL_FEATURES_MIN}
-              onChange={(e) => setFeaturesLen(e.target.value.trim().length)}
+              ref={technicalFeaturesRef}
+              onChange={(e) => {
+                setFeaturesLen(e.target.value.trim().length);
+                saveDraft();
+              }}
               placeholder="What did you actually check in the repo/demo?"
               className="w-full text-sm pb-5"
               rows={3}
@@ -451,6 +556,8 @@ export function ReviewForm({
             <Textarea
               name="hackatimeEvidence"
               defaultValue={hackatimeDefault}
+              ref={hackatimeEvidenceRef}
+              onChange={() => saveDraft()}
               className="w-full text-sm"
               rows={3}
             />
@@ -464,6 +571,8 @@ export function ReviewForm({
             <Textarea
               name="deflationReason"
               required
+              ref={deflationReasonRef}
+              onChange={() => saveDraft()}
               placeholder="Mismatched experience/features, missing commits, etc."
               className="w-full text-sm"
               rows={3}
@@ -479,6 +588,8 @@ export function ReviewForm({
             <Textarea
               name="ageJustification"
               required
+              ref={ageJustificationRef}
+              onChange={() => saveDraft()}
               placeholder="Document the submitter's age at shipping vs. now."
               className="w-full text-sm"
               rows={3}
@@ -492,6 +603,8 @@ export function ReviewForm({
           <Textarea
             name="notes"
             required
+            ref={notesRef}
+            onChange={() => saveDraft()}
             placeholder="Anything else , suspicious commits, AI usage, experience mismatch…"
             className="w-full text-sm"
             rows={3}
@@ -502,6 +615,8 @@ export function ReviewForm({
         <Textarea
           name="note"
           required
+          ref={noteRef}
+          onChange={() => saveDraft()}
           placeholder="Feedback for the player (required)"
           className="w-full text-sm"
           rows={3}
