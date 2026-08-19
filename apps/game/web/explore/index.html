@@ -465,10 +465,10 @@ async function showLeaderboard(sub) {
 }
 
 // Total RE needed to reach a level - mirrors apps/server's reForLevel, off
-// the same Pixl.config.levelBands the game already ships to this page.
+// the same Pixl.config.economy.levelBands the game already ships to this page.
 function reForLevel(level) {
   let re = 0, prevTop = 0;
-  for (const band of Pixl.config.levelBands) {
+  for (const band of Pixl.config.economy.levelBands) {
     const top = Math.min(level, band.throughLevel);
     if (top > prevTop) re += (top - prevTop) * band.rePerLevel;
     prevTop = band.throughLevel;
