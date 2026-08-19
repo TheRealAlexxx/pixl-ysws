@@ -683,6 +683,9 @@ export default async function ReviewDetail({
                     collaborators={collaboratorHours}
                     tier={Number(p.level) || 1}
                     playerReBefore={playerReBefore}
+                    currentName={p.name}
+                    currentDescription={p.description}
+                    currentImageUrl={p.image_url}
                     firstPass={
                       firstPassAudit
                         ? {

@@ -624,7 +624,7 @@ export async function reviewProject(formData: FormData): Promise<void> {
   const { data: current } = await db
     .from("projects")
     .select(
-      "status, user_id, name, first_pass_by, first_pass_hours, first_pass_verdict, shipped_at, sidequest_id, trial_reward_choice",
+      "status, user_id, name, description, image_url, first_pass_by, first_pass_hours, first_pass_verdict, shipped_at, sidequest_id, trial_reward_choice",
     )
     .eq("id", projectId)
     .single();
@@ -773,6 +773,38 @@ export async function reviewProject(formData: FormData): Promise<void> {
     redirect(`${back}?error=${encodeURIComponent("Only a final reviewer can decide this stage.")}`);
   if (stage === "second_review" && !access.isSuper && current.first_pass_by && current.first_pass_by === by)
     redirect(`${back}?error=${encodeURIComponent("A different reviewer must do the final pass.")}`);
+
+  // A final reviewer can correct the player-facing title/description/image
+  // before deciding — these are the exact same columns the player's own
+  // project page and the Airtable/YSWS export CSV read live, so a fix here is
+  // a fix everywhere with no separate sync step. Applies regardless of verdict.
+  // Optional: absent or unchanged fields are left alone.
+  if (stage === "second_review") {
+    const editedName = String(formData.get("editedName") ?? "").trim().slice(0, 200);
+    const editedDescription = String(formData.get("editedDescription") ?? "").trim().slice(0, 5000);
+    const editedImageUrl = String(formData.get("editedImageUrl") ?? "").trim();
+    const edits: Record<string, string> = {};
+    if (editedName && editedName !== current.name) edits.name = editedName;
+    if (editedDescription && editedDescription !== current.description) edits.description = editedDescription;
+    if (editedImageUrl && editedImageUrl !== current.image_url) {
+      try {
+        await assertSafeExternalUrl(editedImageUrl);
+      } catch (e) {
+        redirect(`${back}?error=${encodeURIComponent(`Image URL: ${(e as Error).message}`)}`);
+      }
+      edits.image_url = editedImageUrl;
+    }
+    if (Object.keys(edits).length > 0) {
+      await db.from("projects").update(edits).eq("id", projectId);
+      current.name = edits.name ?? current.name;
+      await logModAction(
+        current.user_id,
+        "project_edited",
+        `${current.name}: final reviewer edited ${Object.keys(edits).join(", ")}`,
+        by,
+      );
+    }
+  }
 
   const proposed = (current.first_pass_verdict as string | null) ?? null;
   const finalKey = verdict === "ban" ? "banned" : verdict;

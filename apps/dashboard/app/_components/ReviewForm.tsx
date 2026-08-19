@@ -255,6 +255,9 @@ export function ReviewForm({
   tier = 1,
   playerReBefore = 0,
   firstPass,
+  currentName,
+  currentDescription,
+  currentImageUrl,
 }: {
   projectId: number;
   repoUrl: string | null;
@@ -282,6 +285,11 @@ export function ReviewForm({
     notes: string;
     note: string;
   };
+  /** Current title/description/image, editable by a final (second-pass)
+   * reviewer only — see the "Edit submission" section below. */
+  currentName?: string;
+  currentDescription?: string | null;
+  currentImageUrl?: string | null;
 }) {
   const repoOpened = useRef<HTMLInputElement>(null);
   const demoOpened = useRef<HTMLInputElement>(null);
@@ -481,6 +489,47 @@ export function ReviewForm({
           </Button>
         )}
       </div>
+      {secondPass && (
+        <details className="rounded-lg border p-4">
+          <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-muted-foreground select-none">
+            Edit submission , title, image, description
+          </summary>
+          <div className="mt-3 flex flex-col gap-3">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Changes here save with your verdict and update the project everywhere , the
+              player&apos;s own page, and the YSWS/Airtable export.
+            </p>
+            <Label className="flex flex-col gap-1.5 font-normal">
+              <span className="text-xs text-muted-foreground">Title</span>
+              <Input
+                name="editedName"
+                defaultValue={currentName ?? ""}
+                maxLength={200}
+                className="text-sm"
+              />
+            </Label>
+            <Label className="flex flex-col gap-1.5 font-normal">
+              <span className="text-xs text-muted-foreground">Image URL</span>
+              <Input
+                name="editedImageUrl"
+                defaultValue={currentImageUrl ?? ""}
+                placeholder="https://…"
+                className="text-sm"
+              />
+            </Label>
+            <Label className="flex flex-col gap-1.5 font-normal">
+              <span className="text-xs text-muted-foreground">Description</span>
+              <Textarea
+                name="editedDescription"
+                defaultValue={currentDescription ?? ""}
+                maxLength={5000}
+                rows={4}
+                className="text-sm"
+              />
+            </Label>
+          </div>
+        </details>
+      )}
       <Label className="flex items-center justify-between gap-2 font-normal text-muted-foreground">
         Hours to credit (decrease only)
         <Input
