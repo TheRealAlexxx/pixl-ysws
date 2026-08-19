@@ -24,6 +24,7 @@ export function Badge({
 const STATUS: Record<string, { label: string; tone: Tone; dot: string }> = {
   draft: { label: "Draft", tone: "gray", dot: "bg-gray-400" },
   shipped: { label: "In review", tone: "amber", dot: "bg-amber-500" },
+  fraud_review: { label: "Fraud review", tone: "blue", dot: "bg-blue-500" },
   second_review: { label: "Final review", tone: "violet", dot: "bg-violet-500" },
   approved: { label: "Approved", tone: "green", dot: "bg-emerald-500" },
   needs_changes: { label: "Needs changes", tone: "rose", dot: "bg-rose-500" },

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { requirePagePerm, requireGuidelinesAck } from "@/lib/guard";
-import { listShippedProjects, listSecondReviewProjects, listReviewAudits } from "@/lib/db";
+import {
+  listShippedProjects,
+  listSecondReviewProjects,
+  listFraudReviewProjects,
+  listReviewAudits,
+} from "@/lib/db";
 import { slackHandles } from "@/lib/slack";
 import { ReviewTabs } from "@/app/_components/ReviewTabs";
 import { ReviewTable } from "@/app/_components/ReviewTable";
@@ -38,6 +43,7 @@ export default async function ReviewListPage({
   const kindQ = kind === "hardware" ? "&kind=hardware" : "";
 
   const finalRows = access.canSecondPass ? await listSecondReviewProjects(viewer, kind) : [];
+  const fraudRows = access.canSecondPass ? await listFraudReviewProjects() : [];
   const finalHandles = finalRows.length
     ? await slackHandles(finalRows.map((p) => p.users?.slack_id))
     : new Map<string, string>();
@@ -79,6 +85,40 @@ export default async function ReviewListPage({
           <Link href="/review?kind=hardware">Hardware queue</Link>
         </Button>
       </div>
+
+      {fraudRows.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            <h2 className="text-sm font-semibold text-foreground">
+              Waiting on fraud review
+              <Badge variant="info" className="ml-2">
+                {fraudRows.length}
+              </Badge>
+            </h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            Joe is scoring these. They move to your final pass on their own.
+          </p>
+          <ul className="text-sm space-y-1">
+            {fraudRows.map((p) => (
+              <li key={p.id} className="flex items-center gap-2">
+                <a href={`/review/${p.id}`} className="hover:underline">
+                  {p.name}
+                </a>
+                <span className="text-xs text-muted-foreground">
+                  {p.first_pass_at
+                    ? `waiting ${Math.floor((Date.now() - new Date(p.first_pass_at).getTime()) / 86_400_000)}d`
+                    : "waiting"}
+                </span>
+                {p.joe_error && (
+                  <span className="text-xs text-rose-600">not submitted: {p.joe_error}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {finalRows.length > 0 && (
         <div className="mb-8">

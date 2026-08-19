@@ -553,7 +553,7 @@ async function notifyReviewStarted(projectId: number): Promise<void> {
     .select("name, user_id, status")
     .eq("id", projectId)
     .single();
-  if (!p || (p.status !== "shipped" && p.status !== "second_review")) return;
+  if (!p || !["shipped", "fraud_review", "second_review"].includes(String(p.status))) return;
   const since = new Date(Date.now() - 6 * 3600_000).toISOString();
   const { count } = await db
     .from("mod_actions")
@@ -596,6 +596,25 @@ export async function listSecondReviewProjects(
   }
   const visible = (data ?? []).filter((p) => !claimedByOther(p as ShippedProject, viewer));
   return hydrateHours(visible as ShippedProject[]);
+}
+
+// Waiting on Joe: not actionable by anyone, shown read-only so a backlog or a
+// failed submission is visible instead of silent. Oldest first.
+export async function listFraudReviewProjects(): Promise<ShippedProject[]> {
+  const { data, error } = await db
+    .from("projects")
+    .select("*, users(id, display_name, real_name, slack_id)")
+    .eq("status", "fraud_review")
+    .is("archived_at", null)
+    .is("rejected_at", null)
+    .is("banned_at", null)
+    .order("first_pass_at", { ascending: true })
+    .limit(500);
+  if (error) {
+    console.error("listFraudReviewProjects", error.message);
+    return [];
+  }
+  return hydrateHours((data ?? []) as ShippedProject[]);
 }
 
 // The next project a reviewer should look at after finishing one, so the review
