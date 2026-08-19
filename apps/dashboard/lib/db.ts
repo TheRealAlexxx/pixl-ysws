@@ -136,6 +136,16 @@ export interface ProjectRow {
   // Reviewer-only cosmetic flag, see toggleProjectPeak in actions.ts. Never
   // player-set, never affects payout.
   is_peak: boolean;
+  // Joe fraud review (joe.fraud.hackclub.com), the second pass. joe_error holds
+  // the last submission failure so a stuck project explains itself in the UI.
+  joe_project_id: string;
+  joe_submitted_at: string | null;
+  joe_trust_score: number | null;
+  joe_outcome: string;
+  joe_reason: string;
+  joe_reviewed_at: string | null;
+  joe_reviewer: string;
+  joe_error: string;
 }
 
 export interface PlayerStateRow {
