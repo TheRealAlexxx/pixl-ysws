@@ -1347,6 +1347,40 @@ export async function sendBackToFirstPass(formData: FormData): Promise<void> {
   redirect("/review");
 }
 
+// Escape hatch for a project Joe never scores, or one that could not be
+// submitted at all. Only a final reviewer, always logged, always with a reason.
+export async function forceAdvanceFraud(formData: FormData): Promise<void> {
+  const access = await requirePerm("review");
+  if (!access.canSecondPass)
+    redirect(`/review?error=${encodeURIComponent("Only a final reviewer can skip the fraud pass.")}`);
+  const projectId = Number(formData.get("projectId") ?? 0);
+  const reason = String(formData.get("reason") ?? "").trim().slice(0, 500);
+  const back = `/review/${projectId}`;
+  if (!projectId) redirect("/review");
+  if (!reason)
+    redirect(`${back}?error=${encodeURIComponent("Give a reason for skipping the fraud pass.")}`);
+
+  const { data: project, error } = await db
+    .from("projects")
+    .update({ status: "second_review" })
+    .eq("id", projectId)
+    .eq("status", "fraud_review")
+    .select("id, name, user_id")
+    .single();
+  if (error || !project) {
+    redirect(`${back}?error=${encodeURIComponent("This project isn't waiting on fraud review.")}`);
+  }
+
+  await logModAction(
+    project.user_id as string,
+    "project_fraud_override",
+    `${project.name}: skipped the fraud pass , ${reason}`,
+    actorName(access),
+  );
+  revalidatePath("/review");
+  redirect(back);
+}
+
 // Manual pixel correction from the Pixels tab. Deducts (or grants) whole
 // pixels with a mandatory reason; owners only, everything lands in the ledger.
 export async function adjustPixels(formData: FormData): Promise<void> {
