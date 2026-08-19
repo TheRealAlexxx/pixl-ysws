@@ -454,7 +454,6 @@ router.get("/api/explore/projects/:id", async (req, res) => {
     .is("archived_at", null)
     .is("rejected_at", null)
     .is("banned_at", null)
-    .eq("status", "approved")
     .maybeSingle();
   if (error || !project) return res.status(404).json({ ok: false });
 
