@@ -1051,6 +1051,20 @@
         border-bottom-width: var(--bw);
         transform: translate(2px, 2px);
       }
+      .tip-wrap {
+        cursor: help;
+      }
+      .tip-pop {
+        display: none;
+      }
+      .tip-wrap:hover .tip-main,
+      .tip-wrap:focus-visible .tip-main {
+        display: none;
+      }
+      .tip-wrap:hover .tip-pop,
+      .tip-wrap:focus-visible .tip-pop {
+        display: inline;
+      }
       .journal-entry .jbody {
         font-size: 15.5px;
         word-break: break-word;
@@ -2118,7 +2132,7 @@
       <div class="section-h" style="margin-top:0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         ${Pixl.esc(p.name)}
         <span class="chip ${cls}">${label}</span>
-        <span class="chip teal" id="time-chip" title="Hackatime: ${Pixl.hours(linkedSeconds(p))}">${Pixl.hours(linkedSeconds(p))} TRACKED</span>
+        <span class="chip teal tip-wrap" id="time-chip" tabindex="0"><span class="tip-main">${Pixl.hours(linkedSeconds(p))} TRACKED</span><span class="tip-pop">Hackatime: ${Pixl.hours(linkedSeconds(p))} · Journal: 0h</span></span>
         ${p.pixels_earned ? `<span class="chip gold">+${Math.round(p.pixels_earned)} PX EARNED</span>` : ""}
         ${p.sidequest_name ? `<span class="chip teal">TRIAL: ${Pixl.esc(p.sidequest_name)}</span>` : ""}
       </div>
@@ -3030,8 +3044,7 @@
         if (!p) return;
         const htSec = linkedSeconds(p);
         const jSec = journalEntries.reduce((s, e) => s + (Number(e.hours) || 0), 0) * 3600;
-        el.textContent = `${Pixl.hours(htSec + jSec)} TRACKED`;
-        el.title = `Hackatime: ${Pixl.hours(htSec)} · Journal: ${Pixl.hours(jSec)}`;
+        el.innerHTML = `<span class="tip-main">${Pixl.hours(htSec + jSec)} TRACKED</span><span class="tip-pop">Hackatime: ${Pixl.hours(htSec)} · Journal: ${Pixl.hours(jSec)}</span>`;
       }
 
       async function loadJournal(id) {
