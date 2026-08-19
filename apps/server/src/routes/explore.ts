@@ -457,7 +457,7 @@ router.get("/api/explore/projects/:id", async (req, res) => {
     .maybeSingle();
   if (error || !project) return res.status(404).json({ ok: false });
 
-  const [owner, entries, ups, downs] = await Promise.all([
+  const [owner, entries, ups, downs, reviews] = await Promise.all([
     supabase
       .from("users")
       .select("id, display_name")
@@ -476,6 +476,14 @@ router.get("/api/explore/projects/:id", async (req, res) => {
       .from("project_downvotes")
       .select("voter_id")
       .eq("project_id", id),
+    // Only verdict + created_at go public here — the reviewer identity and
+    // review/audit notes stay internal to the dashboard.
+    supabase
+      .from("review_audits")
+      .select("verdict, created_at")
+      .eq("project_id", id)
+      .in("verdict", ["approved", "needs_changes"])
+      .order("created_at", { ascending: true }),
   ]);
 
   const upvoters = ups.data ?? [];
@@ -485,6 +493,7 @@ router.get("/api/explore/projects/:id", async (req, res) => {
     project,
     owner: owner.data ?? null,
     entries: entries.data ?? [],
+    reviews: reviews.data ?? [],
     upvotes: upvoters.length,
     has_upvoted: upvoters.some((u) => u.voter_id === session.userId),
     downvotes: downvoters.length,

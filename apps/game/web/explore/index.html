@@ -131,6 +131,16 @@
   .journal-entry { padding: 16px 18px; }
   .journal-entry .jmeta { font-size: 13px; color: var(--faint); margin-bottom: 8px; display: flex; gap: 12px; }
   .journal-entry .jbody { font-size: 15.5px; color: var(--ink); word-break: break-word; }
+  .proj-links { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .timeline { display: flex; flex-direction: column; max-width: 780px; }
+  .tl-item { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--panel-2); }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot { width: 10px; height: 10px; flex-shrink: 0; border: var(--bw) solid var(--stroke); background: var(--panel-deep); }
+  .tl-dot.green { background: var(--good); }
+  .tl-dot.teal { background: var(--teal); }
+  .tl-dot.red { background: var(--bad); }
+  .tl-label { font-size: 15px; color: var(--ink); flex: 1; }
+  .tl-time { font-size: 12.5px; color: var(--faint); }
 
   /* ---- player ticket card + dashboard ---- */
   .ticket-layout { display: grid; grid-template-columns: 460px 1fr; gap: 26px; align-items: start; }
@@ -592,6 +602,18 @@ async function showProject(id) {
   const p = data.project;
   const owner = data.owner;
   const entries = data.entries || [];
+
+  // Chronological progress strip: creation, submission for review, and any
+  // review verdicts (approved / needs-changes) since — reviewer identity and
+  // notes stay dashboard-internal, only the verdict + timestamp are public.
+  const timeline = [{ label: "Started", time: p.created_at, tone: "" }];
+  if (p.shipped_at) timeline.push({ label: "Shipped for review", time: p.shipped_at, tone: "teal" });
+  for (const r of data.reviews || []) {
+    if (r.verdict === "approved") timeline.push({ label: "Approved", time: r.created_at, tone: "green" });
+    else if (r.verdict === "needs_changes") timeline.push({ label: "Changes requested", time: r.created_at, tone: "red" });
+  }
+  timeline.sort((a, b) => new Date(a.time) - new Date(b.time));
+
   view.innerHTML = `
     <button class="btn dark back-btn" onclick="history.length > 1 ? history.back() : location.hash='#projects'">← BACK</button>
     <div class="profile-head panel">
@@ -603,10 +625,17 @@ async function showProject(id) {
           ${p.level ? `<span class="chip">LEVEL ${p.level}</span>` : ""}
         </div>
         <div class="muted" style="font-size:14px">by ${owner ? `<a href="#player=${Pixl.esc(owner.id)}">${Pixl.esc(owner.display_name)}</a>` : "?"} · started ${Pixl.timeAgo(p.created_at)}${p.shipped_at ? ` · shipped ${Pixl.timeAgo(p.shipped_at)}` : ""}</div>
+        <div class="proj-links">
+          ${p.repo_url ? `<a class="btn ghost" href="${Pixl.esc(p.repo_url)}" target="_blank" rel="noopener noreferrer">REPO</a>` : ""}
+          ${p.demo_url ? `<a class="btn ghost" href="${Pixl.esc(p.demo_url)}" target="_blank" rel="noopener noreferrer">DEMO</a>` : ""}
+        </div>
         <div class="vote-group" style="margin-top:12px">${upvoteBtn({ id: p.id, upvotes: data.upvotes, has_upvoted: data.has_upvoted, has_downvoted: data.has_downvoted })}${downvoteBtn({ id: p.id, downvotes: data.downvotes, has_upvoted: data.has_upvoted, has_downvoted: data.has_downvoted })}</div>
       </div>
     </div>
     ${p.description ? `<div class="jbody md" style="margin-top:16px;font-size:16px">${Pixl.markdown(p.description)}</div>` : ""}
+    <div class="section-h">TIMELINE</div>
+    <div class="timeline panel">${timeline.map((t) => `
+      <div class="tl-item"><span class="tl-dot ${t.tone}"></span><span class="tl-label">${Pixl.esc(t.label)}</span><span class="tl-time">${Pixl.timeAgo(t.time)}</span></div>`).join("")}</div>
     <div class="section-h">DEVLOG · ${entries.length} ENTR${entries.length === 1 ? "Y" : "IES"}</div>
     ${entries.length === 0
       ? `<div class="empty-note">NO JOURNAL ENTRIES YET.</div>`
