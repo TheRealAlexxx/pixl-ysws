@@ -2118,6 +2118,7 @@
       <div class="section-h" style="margin-top:0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         ${Pixl.esc(p.name)}
         <span class="chip ${cls}">${label}</span>
+        <span class="chip teal" id="time-chip" title="Hackatime: ${Pixl.hours(linkedSeconds(p))}">${Pixl.hours(linkedSeconds(p))} TRACKED</span>
         ${p.pixels_earned ? `<span class="chip gold">+${Math.round(p.pixels_earned)} PX EARNED</span>` : ""}
         ${p.sidequest_name ? `<span class="chip teal">TRIAL: ${Pixl.esc(p.sidequest_name)}</span>` : ""}
       </div>
@@ -3021,6 +3022,18 @@
 
       let journalEntries = [];
 
+      // hackatime + journal, kept in sync with journalEntries
+      function updateTrackedChip(id) {
+        const el = $("time-chip");
+        if (!el) return;
+        const p = projects.find((x) => x.id === Number(id));
+        if (!p) return;
+        const htSec = linkedSeconds(p);
+        const jSec = journalEntries.reduce((s, e) => s + (Number(e.hours) || 0), 0) * 3600;
+        el.textContent = `${Pixl.hours(htSec + jSec)} TRACKED`;
+        el.title = `Hackatime: ${Pixl.hours(htSec)} · Journal: ${Pixl.hours(jSec)}`;
+      }
+
       async function loadJournal(id) {
         try {
           const d = await Pixl.api(`/api/projects/${id}/journal`);
@@ -3070,6 +3083,8 @@
             } else Pixl.toast(err(r.error), true);
           }),
         );
+
+        updateTrackedChip(id);
 
         const editRow = list.querySelector(".jeditor");
         if (!editRow) return;
