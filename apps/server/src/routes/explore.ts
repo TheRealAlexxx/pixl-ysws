@@ -361,23 +361,28 @@ router.get("/api/explore/players/:id", async (req, res) => {
   });
 });
 
-// Browse everyone's projects, newest first, with an optional search filter.
+// Browse everyone's projects (including drafts), newest first, with optional
+// search/tier/shipped filters.
 router.get("/api/explore/projects", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token : "";
   const session = token ? verifySessionToken(token) : null;
   if (!session) return res.status(401).json({ ok: false });
 
   const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
+  const tier = typeof req.query.tier === "string" ? Number(req.query.tier) : NaN;
+  const shipped = typeof req.query.shipped === "string" ? req.query.shipped : "";
   let query = supabase
     .from("projects")
     .select("*")
     .is("archived_at", null)
     .is("rejected_at", null)
     .is("banned_at", null)
-    .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(100);
   if (q) query = query.ilike("name", `%${q}%`);
+  if (Number.isInteger(tier) && tier >= 1 && tier <= 4) query = query.eq("level", tier);
+  if (shipped === "shipped") query = query.not("shipped_at", "is", null);
+  else if (shipped === "unshipped") query = query.is("shipped_at", null);
   const { data: projects, error } = await query;
   if (error) {
     console.error("[explore] projects failed", error);
