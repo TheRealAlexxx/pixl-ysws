@@ -424,7 +424,7 @@ const Pixl = (() => {
     document.body.classList.add("has-sidebar");
     document.body.insertAdjacentHTML("afterbegin", `
       <aside class="sidebar">
-        <a class="sb-logo" href="${GAME}" title="Back to the game"><span class="sb-logo-glow"></span><img src="/img/pixl_wordmark.png" alt="Pixl"></a>
+        <a class="sb-logo" href="${GAME}" title="Back to the game">PIXL</a>
         <nav class="nav">${nav}${sheet}</nav>
         <div class="sb-foot">${foot}</div>
       </aside>

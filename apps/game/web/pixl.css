@@ -137,16 +137,11 @@ body.has-sidebar{padding-left:var(--sidebar);padding-top:var(--toprail)}
   background:var(--panel);border-right:var(--bw-heavy) solid var(--stroke);
 }
 .sb-logo{
-  position:relative;
   display:flex;align-items:center;
   padding:6px 8px 16px;margin-bottom:6px;
+  font-family:var(--pixel);font-size:26px;font-weight:600;letter-spacing:1.5px;
+  color:var(--ink);
 }
-.sb-logo img{width:180px;height:auto;image-rendering:pixelated;position:relative}
-/* The lantern glow behind the mark is gone. It was a blurred radial halo, the
-   one soft edge in the old theme, and nothing on landing is soft. The element
-   is still emitted by pixl.js, so it's hidden here rather than chased through
-   the JS. */
-.sb-logo-glow{display:none}
 
 .nav{display:flex;flex-direction:column;gap:16px;flex:1;overflow-y:auto}
 .nav-group{display:flex;flex-direction:column;gap:2px}
