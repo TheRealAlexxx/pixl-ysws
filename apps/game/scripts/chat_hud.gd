@@ -169,6 +169,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func is_typing() -> bool:
 	return _input.has_focus()
 
+func open_with_text(text: String) -> void:
+	_open_input()
+	_input.text = text
+	_input.caret_column = _input.text.length()
+
 func add_system(text: String) -> void:
 	_add_line(_bb_escape(text), COLOR_ACCENT, true)
 
