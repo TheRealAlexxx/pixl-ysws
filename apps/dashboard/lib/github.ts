@@ -42,12 +42,25 @@ function parseRepo(url: string): { owner: string; repo: string } | null {
   }
 }
 
+// In-memory cache of successful lookups only - an error is never cached, so
+// a rate limit that's already cleared doesn't keep showing stale "no
+// commits" for the rest of the window. Caching the success path still
+// matters: without it, every single page view (and every Prev/Next click
+// through the review queue) refetches even a repo that hasn't changed,
+// which burns through the unauthenticated 60/hr limit *faster*, not slower.
+const COMMITS_CACHE_TTL_MS = 5 * 60 * 1000;
+const commitsCache = new Map<string, { result: CommitResult; at: number }>();
+
 // Newest commits for a repo via the public GitHub API. Auth via GITHUB_TOKEN
 // when present to lift the 60/hr unauthenticated rate limit.
 export async function fetchCommits(repoUrl: string | null, limit = 50): Promise<CommitResult> {
   if (!repoUrl) return { repo: null, commits: [], error: null };
   const parsed = parseRepo(repoUrl);
   if (!parsed) return { repo: null, commits: [], error: "not_github" };
+
+  const cacheKey = `${parsed.owner}/${parsed.repo}#${limit}`;
+  const cached = commitsCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < COMMITS_CACHE_TTL_MS) return cached.result;
 
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
@@ -56,13 +69,6 @@ export async function fetchCommits(repoUrl: string | null, limit = 50): Promise<
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
 
   try {
-    // No Next data-cache hint here on purpose: an unauthenticated GitHub call
-    // is rate-limited to 60/hr shared across every reviewer, and reviewing a
-    // handful of projects (each with up to 20 more calls from
-    // attachCommitStats below) burns through that fast. Caching a transient
-    // 403 for 5 minutes (the old `next: { revalidate: 300 }`) meant a rate
-    // limit that had already cleared still showed "no commits" for anyone
-    // hitting the same repo URL - worse than just refetching every time.
     const r = await fetch(
       `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=${limit}`,
       { headers, signal: AbortSignal.timeout(8000), cache: "no-store" },
@@ -85,7 +91,9 @@ export async function fetchCommits(repoUrl: string | null, limit = 50): Promise<
         ai: looksAiAuthored(fullMessage, author, email) || undefined,
       };
     });
-    return { repo: `${parsed.owner}/${parsed.repo}`, commits, error: null };
+    const result = { repo: `${parsed.owner}/${parsed.repo}`, commits, error: null };
+    commitsCache.set(cacheKey, { result, at: Date.now() });
+    return result;
   } catch {
     return { repo: `${parsed.owner}/${parsed.repo}`, commits: [], error: "fetch_failed" };
   }
