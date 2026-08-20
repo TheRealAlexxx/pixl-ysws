@@ -7,6 +7,7 @@ import {
   averageUsdPerHourOver,
   config,
   levelForRe,
+  projectPayoutPx,
   pxPerHourOver,
   reForHours,
   rePerHour,
@@ -103,12 +104,17 @@ function TierAndPayout({
   onTier,
   playerReBefore,
   forTrial,
+  trialMinHours,
+  trialName,
 }: {
   hours: number;
   tier: number;
   onTier: (t: number) => void;
   playerReBefore: number;
   forTrial: boolean;
+  /** The Trial's min-hours gate, for the prize/beyond-hours split below. */
+  trialMinHours?: number | null;
+  trialName?: string;
 }) {
   const perHour = rePerHour(tier);
   const hoursRe = reForHours(hours, tier);
@@ -129,6 +135,15 @@ function TierAndPayout({
   const usd = px * config.economy.pixelValueUsd;
   const levelBefore = levelForRe(playerReBefore);
   const levelAfter = levelForRe(reAfter);
+  // Same split reviewProject computes server-side: the prize "buys" the first
+  // min_hours, everything past that is paid in pixels either way. Estimated
+  // here without any community-goal multiplier (not known client-side) - see
+  // the disclaimer below, same as the rest of this panel.
+  const trialPrizePx =
+    forTrial && trialMinHours != null && trialMinHours > 0
+      ? Math.min(Math.max(Math.round(projectPayoutPx(trialMinHours, tier, 0)), 0), px)
+      : 0;
+  const trialBeyondPx = Math.max(px - trialPrizePx, 0);
 
   return (
     <div className="rounded-md border border-border bg-muted/30 p-3 space-y-2">
@@ -201,10 +216,26 @@ function TierAndPayout({
             {px.toLocaleString()} px · ${usd.toFixed(2)}
           </span>
         </div>
+        {forTrial && trialPrizePx > 0 && (
+          <>
+            <div className="flex justify-between pt-1">
+              <span className="text-muted-foreground">
+                &quot;{trialName}&quot; prize · first {trialMinHours}h
+              </span>
+              <span className="font-medium">≈{trialPrizePx.toLocaleString()} px</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">+ pixels for hours beyond that</span>
+              <span className="font-medium">{trialBeyondPx.toLocaleString()} px</span>
+            </div>
+          </>
+        )}
         {forTrial && (
           <div className="text-[11px] text-muted-foreground leading-snug pt-1">
-            Trial ship: this payout is held, not credited. The maker picks the Trial reward or
-            these pixels once you approve it, and only gets the one they pick.
+            Trial ship: this payout is held, not credited.{" "}
+            {trialPrizePx > 0
+              ? `Once you approve it, the maker keeps the prize (worth ≈${trialPrizePx.toLocaleString()} px) plus the ${trialBeyondPx.toLocaleString()} px for hours beyond the minimum by default, or can skip the prize for all ${px.toLocaleString()} px instead.`
+              : "The maker picks the Trial reward or these pixels once you approve it, and only gets the one they pick."}
           </div>
         )}
       </div>
@@ -559,6 +590,8 @@ export function ReviewForm({
         }}
         playerReBefore={playerReBefore}
         forTrial={!!trial}
+        trialMinHours={trial?.minHours}
+        trialName={trial?.name}
       />
       {trial?.minHours != null && (
         <div
