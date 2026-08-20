@@ -30,6 +30,14 @@ export function CommitList({ result }: { result: CommitResult }) {
         {result.repo} , repo not found or private (404).
       </div>
     );
+  if (result.error === "rate_limited")
+    return (
+      <div className="p-4 text-amber-600 dark:text-amber-400 text-sm font-medium">
+        GitHub API rate limit hit , this is not &ldquo;no commits&rdquo;, the commit list
+        just couldn&apos;t be fetched right now. Wait a bit and reload, or ask an admin to set
+        GITHUB_TOKEN on the dashboard to raise the limit.
+      </div>
+    );
   if (result.error)
     return (
       <div className="p-4 text-muted-foreground text-sm">

@@ -56,11 +56,20 @@ export async function fetchCommits(repoUrl: string | null, limit = 50): Promise<
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
 
   try {
+    // No Next data-cache hint here on purpose: an unauthenticated GitHub call
+    // is rate-limited to 60/hr shared across every reviewer, and reviewing a
+    // handful of projects (each with up to 20 more calls from
+    // attachCommitStats below) burns through that fast. Caching a transient
+    // 403 for 5 minutes (the old `next: { revalidate: 300 }`) meant a rate
+    // limit that had already cleared still showed "no commits" for anyone
+    // hitting the same repo URL - worse than just refetching every time.
     const r = await fetch(
       `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/commits?per_page=${limit}`,
-      { headers, signal: AbortSignal.timeout(8000), next: { revalidate: 300 } },
+      { headers, signal: AbortSignal.timeout(8000), cache: "no-store" },
     );
     if (r.status === 404) return { repo: `${parsed.owner}/${parsed.repo}`, commits: [], error: "not_found" };
+    if (r.status === 403 || r.status === 429)
+      return { repo: `${parsed.owner}/${parsed.repo}`, commits: [], error: "rate_limited" };
     if (!r.ok) return { repo: `${parsed.owner}/${parsed.repo}`, commits: [], error: `http_${r.status}` };
     const json = (await r.json()) as any[];
     const commits: Commit[] = (Array.isArray(json) ? json : []).map((c) => {
