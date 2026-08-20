@@ -581,9 +581,9 @@ async function showPlayer(id) {
         </div>` : ""}
 
         <div class="dash-section">
-          <div class="dash-h">PROJECTS SHIPPED (${projects.length})</div>
+          <div class="dash-h">PROJECTS (${projects.length})</div>
           ${projects.length === 0
-            ? `<div class="empty-note">NOTHING SHIPPED YET.</div>`
+            ? `<div class="empty-note">NO PROJECTS YET.</div>`
             : `<div class="ship-grid">${projects.map((pr) => projCard({ ...pr, owner_name: p.display_name })).join("")}</div>`}
         </div>
       </div>

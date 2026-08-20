@@ -337,7 +337,6 @@ router.get("/api/explore/players/:id", async (req, res) => {
       .is("archived_at", null)
       .is("rejected_at", null)
     .is("banned_at", null)
-    .eq("status", "approved")
       .order("created_at", { ascending: false }),
     supabase
       .from("collectible_purchases")
