@@ -34,7 +34,8 @@ func _ready() -> void:
 func _build_ui() -> void:
 	_wrap = Control.new()
 	_wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wrap.mouse_filter = Control.MOUSE_FILTER_STOP
+	_wrap.gui_input.connect(_on_wrap_gui_input)  # tap-to-advance, mobile has no [E]
 	_wrap.theme = THEME
 	_wrap.visible = false
 	add_child(_wrap)
@@ -55,6 +56,9 @@ func _build_ui() -> void:
 	panel.custom_minimum_size = Vector2(0, 120)
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	# Containers default to STOP - left alone they'd catch taps on the panel
+	# before _wrap's gui_input ever saw them (same bug as the cinematic's _bg).
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wrap.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -62,11 +66,13 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_right", 22)
 	margin.add_theme_constant_override("margin_top", 16)
 	margin.add_theme_constant_override("margin_bottom", 14)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(margin)
 
 	# Portrait (optional) sits left of the text column.
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 14)
+	cols.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(cols)
 
 	_portrait = TextureRect.new()
@@ -74,12 +80,14 @@ func _build_ui() -> void:
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_portrait.visible = false
 	cols.add_child(_portrait)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 8)
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cols.add_child(vbox)
 
 	_speaker = Label.new()
@@ -94,6 +102,7 @@ func _build_ui() -> void:
 
 	_choices = VBoxContainer.new()
 	_choices.add_theme_constant_override("separation", 6)
+	_choices.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_choices.visible = false
 	vbox.add_child(_choices)
 
@@ -284,3 +293,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		get_viewport().set_input_as_handled()
 		_skip_or_advance()
+
+# _wrap eats taps via MOUSE_FILTER_STOP; a choice Button underneath still gets
+# first dibs on its own rect, so this only fires for taps on empty space -
+# same gating as [E] in _unhandled_input above.
+func _on_wrap_gui_input(event: InputEvent) -> void:
+	if not is_open:
+		return
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	if _choosing and _choices.visible:
+		return
+	_skip_or_advance()
