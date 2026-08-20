@@ -2008,6 +2008,7 @@
           if ($("f-thumb-file").files[0]) setThumb($("f-thumb-file").files[0]);
         });
         $("f-save").addEventListener("click", () => saveProject(p));
+        wireAutosave(p);
       }
 
       function wireCount(taId, countId, max) {
@@ -2049,14 +2050,16 @@
         return upload;
       }
 
-      async function saveProject(p) {
+      async function saveProject(p, opts = {}) {
+        const silent = !!opts.silent;
+        clearTimeout(autosaveTimer);
         // Guards every early-return validation path below, not just the
         // network call — without this, mashing the save button while a
         // validation error is showing stacked a fresh toast per click.
         if ($("f-save") && $("f-save").disabled) return false;
         if ($("f-save")) $("f-save").disabled = true;
         if (thumbUpload) {
-          Pixl.toast("Still uploading the thumbnail, hang on…");
+          if (!silent) Pixl.toast("Still uploading the thumbnail, hang on…");
           await thumbUpload;
         }
         const reenable = () => { if ($("f-save")) $("f-save").disabled = false; };
@@ -2092,7 +2095,7 @@
           ].map((c) => c.value),
         };
         if (!body.name) {
-          Pixl.toast(err("name_required"), true);
+          if (!silent) Pixl.toast(err("name_required"), true);
           reenable();
           return false;
         }
@@ -2101,13 +2104,46 @@
           : await Pixl.send("POST", "/api/projects", body);
         $("f-save").disabled = false;
         if (!r.ok) {
-          Pixl.toast(err(r.error), true);
+          Pixl.toast(silent ? "Autosave failed, click SAVE to retry." : err(r.error), true);
           return false;
+        }
+        if (silent) {
+          // Keep the in-memory list current without the full list refetch or
+          // hash rewrite a manual save does — this fires mid-edit, on a timer,
+          // and shouldn't yank focus or reset scroll under the player.
+          const idx = projects.findIndex((x) => x.id === p.id);
+          if (idx !== -1) projects[idx] = { ...projects[idx], ...r.project, id: Number(r.project.id) };
+          return true;
         }
         Pixl.toast(p.id ? "Saved!" : "Project created!");
         await loadProjects();
         location.hash = "#p=" + r.project.id;
         return true;
+      }
+
+      // Autosave: 5s after the player stops touching a field, silently PUT
+      // the form so a closed tab / crash doesn't lose edits. Only wired for
+      // an existing project's editor (bindForm({}) on the "new project" form
+      // has no p.id, so it's skipped there — draft creates shouldn't happen
+      // just from typing). Deliberately not applied to the journal composer:
+      // posting a journal entry is a real, deliberate action.
+      let autosaveTimer = null;
+      function wireAutosave(p) {
+        if (!p.id) return;
+        const fieldIds = [
+          "f-name", "f-desc", "f-repo", "f-demo", "f-type",
+          "f-level", "f-kind", "f-trial", "f-ai", "f-ai-notes",
+        ];
+        const fields = fieldIds.map((id) => $(id)).filter(Boolean);
+        const htBoxes = [...document.querySelectorAll('input[name="ht"]')];
+        const schedule = () => {
+          clearTimeout(autosaveTimer);
+          autosaveTimer = setTimeout(() => saveProject(p, { silent: true }), 5000);
+        };
+        [...fields, ...htBoxes].forEach((el) => {
+          el.addEventListener("input", schedule);
+          el.addEventListener("change", schedule);
+        });
       }
 
       /* ---------- project detail ---------- */
@@ -3241,6 +3277,11 @@
 
       async function route() {
         if (!Pixl.hasToken) return;
+        // A pending autosave targets this render's #f-name/#f-desc/etc DOM
+        // nodes by id — those ids get reused by whatever renders next, so an
+        // in-flight timer left running would silently write the new view's
+        // fields onto the old project.
+        clearTimeout(autosaveTimer);
         const h = location.hash.replace(/^#/, "");
         $("new-btn").style.display = "";
         // The legend and hours bar describe the list, so they come off once
