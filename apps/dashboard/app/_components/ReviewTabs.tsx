@@ -22,6 +22,11 @@ export function ReviewTabs({
     tabs.push({ href: "/review/log", label: "Reviewer log" });
     tabs.push({ href: "/review/audit", label: "Audit notes" });
   }
+  // The gate that forces a first-time read-through (or a "Skip for now")
+  // only fires once per guidelines version, so this is the way back in for
+  // anyone who skipped, or just wants a refresher, without the gate blocking
+  // every other review page for them again.
+  tabs.push({ href: "/review/guidelines", label: "Guidelines" });
 
   const active = tabs.find((t) => t.href === pathname)?.href ?? "/review";
 
