@@ -3324,6 +3324,26 @@
         route();
       }
       window.addEventListener("hashchange", route);
+
+      // This page fetches projects once on boot and never again on its own —
+      // a review verdict (needs_changes, approved, etc.) landing while the
+      // tab is backgrounded left the status stuck showing whatever it was at
+      // load time until a manual reload. Refetch when the tab regains focus,
+      // same load+render pair already used after ship/unship/etc. above.
+      // Skipped while actively typing so a background refresh can't wipe out
+      // an in-progress edit.
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState !== "visible" || !Pixl.hasToken) return;
+        const active = document.activeElement;
+        if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT")) return;
+        try {
+          await loadProjects();
+        } catch (e) {
+          return;
+        }
+        route();
+      });
+
       boot();
     </script>
   </body>
