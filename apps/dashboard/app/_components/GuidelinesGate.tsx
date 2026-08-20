@@ -1,16 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GUIDELINE_PAGES } from "@/lib/guidelinesContent";
 import { MIN_SECONDS_PER_PAGE, GUIDELINES_LIVE_URL } from "@/lib/guidelines";
 import { acknowledgeGuidelines, skipGuidelines } from "@/app/actions";
 
+// Average silent-reading speed, used to size each page's timer to its actual
+// length instead of charging every page the same MIN_SECONDS_PER_PAGE - a
+// one-paragraph page shouldn't take as long as the longest one.
+const WORDS_PER_SECOND = 200 / 60;
+// Never fully instant, even for a tiny page - there has to be *some* pause.
+const MIN_READ_SECONDS = 6;
+
 // First-time reviewer gate: step through every guideline page in order, spend
-// at least MIN_SECONDS_PER_PAGE on each (a page auto-marks "read" once its timer
-// elapses), then confirm on the final recap page. The confirm is a form calling
-// the acknowledgeGuidelines server action, which records the ack and drops the
+// at least a page-sized minimum on each, scaled by word count and capped at
+// MIN_SECONDS_PER_PAGE (a page auto-marks "read" once its timer elapses), then
+// confirm on the final recap page. The confirm is a form calling the
+// acknowledgeGuidelines server action, which records the ack and drops the
 // reviewer into the queue.
 export function GuidelinesGate() {
   const pages = GUIDELINE_PAGES;
@@ -19,25 +27,39 @@ export function GuidelinesGate() {
   const [openedAt, setOpenedAt] = useState<(number | null)[]>(() =>
     pages.map((_, j) => (j === 0 ? Date.now() : null)),
   );
+  const [pageSeconds, setPageSeconds] = useState<(number | null)[]>(() =>
+    pages.map(() => null),
+  );
   const [now, setNow] = useState(() => Date.now());
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
   }, []);
 
-  // Start a page's timer the first time it's shown.
+  // Start a page's timer the first time it's shown, and size it from the
+  // page's own rendered text (already on screen by the time this effect
+  // runs, since it commits after the render that picked page `i`).
   useEffect(() => {
     setOpenedAt((prev) =>
       prev[i] == null ? prev.map((v, j) => (j === i ? Date.now() : v)) : prev,
     );
+    setPageSeconds((prev) => {
+      if (prev[i] != null) return prev;
+      const words = (contentRef.current?.textContent ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+      const estimated = Math.ceil(words / WORDS_PER_SECOND);
+      const secs = Math.min(MIN_SECONDS_PER_PAGE, Math.max(MIN_READ_SECONDS, estimated));
+      return prev.map((v, j) => (j === i ? secs : v));
+    });
   }, [i]);
 
   const at = openedAt[i];
-  const remaining =
-    at == null
-      ? MIN_SECONDS_PER_PAGE
-      : Math.max(0, MIN_SECONDS_PER_PAGE - Math.floor((now - at) / 1000));
+  const duration = pageSeconds[i] ?? MIN_SECONDS_PER_PAGE;
+  const remaining = at == null ? duration : Math.max(0, duration - Math.floor((now - at) / 1000));
 
   // Once the current page's minimum time elapses, mark it read.
   useEffect(() => {
@@ -57,8 +79,9 @@ export function GuidelinesGate() {
         <p className="text-muted-foreground text-sm">
           Reviewing decides whether real people get paid. Everyone reads the YSWS
           Project Submission Guidelines once before joining the queue — step
-          through every page, spend at least {MIN_SECONDS_PER_PAGE}s on each. This
-          only happens the first time (and again if the guidelines change).
+          through every page, spending at least a few seconds on each (shorter
+          pages take less time, up to {MIN_SECONDS_PER_PAGE}s for the longest).
+          This only happens the first time (and again if the guidelines change).
         </p>
         <p className="text-muted-foreground text-xs">
           This is a snapshot for convenience. The official, always-current
@@ -92,7 +115,9 @@ export function GuidelinesGate() {
           Page {i + 1} of {pages.length}
         </div>
         <h2 className="mb-3 text-lg font-semibold">{pages[i].title}</h2>
-        <div className="max-h-[55vh] overflow-y-auto pr-1">{pages[i].body}</div>
+        <div ref={contentRef} className="max-h-[55vh] overflow-y-auto pr-1">
+          {pages[i].body}
+        </div>
       </Card>
 
       <div className="flex items-center justify-between gap-3">
