@@ -16,6 +16,8 @@ const VERDICT_VARIANT: Record<
   first_pass_approved: "secondary",
   needs_changes: "warning",
   reverted: "destructive",
+  banned: "destructive",
+  first_pass_banned: "destructive",
 };
 
 export default async function AuditNotesPage() {
@@ -60,7 +62,20 @@ export default async function AuditNotesPage() {
                   {new Date(a.created_at).toLocaleString()}
                 </span>
               </div>
-              <p className="text-sm text-foreground/80 mt-3 whitespace-pre-wrap">{a.audit_note}</p>
+              {a.note && a.note.trim() !== "" && (
+                <div className="mt-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Feedback sent to the player
+                  </div>
+                  <p className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">{a.note}</p>
+                </div>
+              )}
+              <div className="mt-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Internal audit note
+                </div>
+                <p className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">{a.audit_note}</p>
+              </div>
             </Card>
           ))}
         </div>
