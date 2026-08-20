@@ -2169,13 +2169,13 @@
           !isUpdate
             ? `
         <label class="check-row">
-          <input type="checkbox" id="s-ysws">
+          <input type="checkbox" id="s-ysws"${p.other_ysws ? " checked" : ""}>
           I already submitted this project to another Hack Club YSWS
         </label>`
             : ""
         }
         <label class="check-row">
-          <input type="checkbox" id="s-eligible">
+          <input type="checkbox" id="s-eligible"${p.eligibility_attested || inReview ? " checked" : ""}>
           This isn't a school assignment or paid Hack Club work
         </label>
         ${

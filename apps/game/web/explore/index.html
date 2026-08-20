@@ -127,12 +127,14 @@
     display: grid; place-items: center; color: var(--gold); overflow: hidden; flex-shrink: 0; }
   .coll-thumb img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
   .coll-name { font-family: var(--pixel); font-size: 13px; color: var(--ink); }
-  .journal { display: flex; flex-direction: column; gap: 12px; max-width: 780px; }
+  .journal { display: flex; flex-direction: column; gap: 12px; width: 100%; }
   .journal-entry { padding: 16px 18px; }
   .journal-entry .jmeta { font-size: 13px; color: var(--faint); margin-bottom: 8px; display: flex; gap: 12px; }
   .journal-entry .jbody { font-size: 15.5px; color: var(--ink); word-break: break-word; }
   .proj-links { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-  .timeline { display: flex; flex-direction: column; max-width: 780px; padding: 6px 18px; }
+  .timeline { display: flex; flex-direction: column; width: 100%; padding: 6px 18px; }
+  .profile-head.proj-view { flex-direction: column; }
+  .proj-hero-thumb { width: 100%; height: 320px; flex-shrink: 0; }
   .tl-item { display: flex; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--panel-2); }
   .tl-item:last-child { border-bottom: none; }
   .tl-dot { width: 10px; height: 10px; flex-shrink: 0; border: var(--bw) solid var(--stroke); background: var(--panel-deep); }
@@ -616,8 +618,8 @@ async function showProject(id) {
 
   view.innerHTML = `
     <button class="btn dark back-btn" onclick="history.length > 1 ? history.back() : location.hash='#projects'">← BACK</button>
-    <div class="profile-head panel">
-      <div class="proj-thumb" style="width:220px;height:160px;flex-shrink:0">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" onerror="this.remove()">` : ""}</div>
+    <div class="profile-head panel proj-view">
+      <div class="proj-thumb proj-hero-thumb">${p.image_url ? `<img src="${Pixl.esc(p.image_url)}" alt="" onerror="this.remove()">` : ""}</div>
       <div class="profile-info">
         <h2>${Pixl.esc(p.name)}</h2>
         <div>${statusChip(p)}${beaconChip(p)}
@@ -636,7 +638,7 @@ async function showProject(id) {
     <div class="section-h">TIMELINE</div>
     <div class="timeline panel">${timeline.map((t) => `
       <div class="tl-item"><span class="tl-dot ${t.tone}"></span><span class="tl-label">${Pixl.esc(t.label)}</span><span class="tl-time">${Pixl.timeAgo(t.time)}</span></div>`).join("")}</div>
-    <div class="section-h">DEVLOG · ${entries.length} ENTR${entries.length === 1 ? "Y" : "IES"}</div>
+    <div class="section-h">JOURNAL · ${entries.length} ENTR${entries.length === 1 ? "Y" : "IES"}</div>
     ${entries.length === 0
       ? `<div class="empty-note">NO JOURNAL ENTRIES YET.</div>`
       : `<div class="journal">${entries.map((e) => `
