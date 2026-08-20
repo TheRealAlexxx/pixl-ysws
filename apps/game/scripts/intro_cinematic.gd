@@ -110,6 +110,7 @@ func _build_ui() -> void:
 	_bg = ColorRect.new()
 	_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_bg.color = Color(0.02, 0.02, 0.03)
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE  # was STOP by default, ate every click before root's gui_input saw it
 	root.add_child(_bg)
 
 	# Reserved slot for a future pre-rendered cut — inert (no stream) for now.
