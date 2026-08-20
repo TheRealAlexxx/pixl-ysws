@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ShippedProject } from "@/lib/db";
 import { LevelBadge, StatusBadge } from "@/app/_components/ProjectBadges";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +51,7 @@ export function ReviewTable({
   handles: Map<string, string>;
   emptyLabel?: string;
 }) {
+  const router = useRouter();
   if (rows.length === 0) {
     return (
       <Card className="p-10 text-center text-muted-foreground">{emptyLabel}</Card>
@@ -80,9 +84,30 @@ export function ReviewTable({
               p.users?.display_name ||
               p.users?.slack_id ||
               p.user_id;
+            const href = `/review/${p.id}`;
             return (
-              <TableRow key={p.id} className="relative cursor-pointer">
-                <TableCell className="px-5 py-3.5">
+              <TableRow
+                key={p.id}
+                className="cursor-pointer"
+                tabIndex={0}
+                role="link"
+                aria-label={p.name}
+                onClick={() => router.push(href)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") router.push(href);
+                }}
+              >
+                {/* The stretched-link overlay needs a `position`d ancestor to
+                    size against. That used to be this row (a real <tr>), but
+                    position:relative on a table-row box isn't a reliable
+                    containing block across browsers — every row's overlay was
+                    collapsing onto the table's own relative wrapper div, so
+                    only the last row (last in paint order) ever caught hover
+                    or clicks. Scoping it to this <td> keeps a real, accessible
+                    anchor (new-tab/ctrl-click support) over the Project cell;
+                    the row's own onClick above covers the rest of the row so
+                    the whole thing is still clickable like before. */}
+                <TableCell className="relative px-5 py-3.5">
                   <Link
                     href={`/review/${p.id}`}
                     prefetch={false}

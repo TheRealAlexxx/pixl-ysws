@@ -221,7 +221,10 @@ export default async function ReviewDetail({
   ]);
   const ownerName =
     p.users?.real_name || ownerHandle || p.users?.display_name || p.users?.slack_id || p.user_id;
-  const idx = queue.findIndex((q) => q.id === projectId);
+  // projects.id is a Postgres bigint; compare numerically rather than with
+  // strict equality so a bigint serialized as a string by the DB client
+  // doesn't silently miss the match and strand prev/next at "not in queue".
+  const idx = queue.findIndex((q) => Number(q.id) === projectId);
   const prev = idx > 0 ? queue[idx - 1] : null;
   const next = idx >= 0 && idx < queue.length - 1 ? queue[idx + 1] : null;
 
