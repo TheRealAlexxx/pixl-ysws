@@ -63,7 +63,9 @@
   .proj-thumb {
     height: 140px;
     border: var(--bw) solid var(--stroke); border-radius: 0;
-    background: var(--panel-deep);
+    background:
+      repeating-conic-gradient(rgba(22, 22, 30, 0.05) 0% 25%, transparent 0% 50%) 0 0 / 22px 22px,
+      var(--panel-deep);
     display: flex; align-items: center; justify-content: center;
     font-size: 40px;
     overflow: hidden;
