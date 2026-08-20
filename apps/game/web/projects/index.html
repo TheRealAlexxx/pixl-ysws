@@ -2347,6 +2347,7 @@
         ${Pixl.esc(p.name)}
         <span class="chip ${cls}">${label}</span>
         <span class="chip muted">COLLABORATOR</span>
+        <span class="chip teal tip-wrap" id="time-chip" tabindex="0"><span class="tip-main">… TRACKED</span></span>
       </div>
       ${p.image_url ? `<div class="proj-hero"><img src="${Pixl.esc(p.image_url)}" alt=""></div>` : ""}
       ${p.description ? `<p style="margin-bottom:14px">${Pixl.esc(p.description)}</p>` : ""}
@@ -2967,9 +2968,22 @@
         if (!el) return;
         const p = projects.find((x) => x.id === Number(id));
         if (!p) return;
+        if (p.is_owner === false) {
+          loadCollabTrackedHours(p.id);
+          return;
+        }
         const htSec = linkedSeconds(p);
         const jSec = journalEntries.reduce((s, e) => s + (Number(e.hours) || 0), 0) * 3600;
         el.innerHTML = `<span class="tip-main">${Pixl.hours(htSec + jSec)} TRACKED</span><span class="tip-pop">Hackatime: ${Pixl.hours(htSec)} · Journal: ${Pixl.hours(jSec)}</span>`;
+      }
+
+      async function loadCollabTrackedHours(id) {
+        try {
+          const d = await Pixl.api(`/api/projects/${id}/hours`);
+          const el = $("time-chip");
+          if (!el || !d.ok) return;
+          el.innerHTML = `<span class="tip-main">${Pixl.hours(d.trackedSeconds)} TRACKED</span><span class="tip-pop">Hackatime: ${Pixl.hours(d.hackatimeSeconds)} · Journal: ${Pixl.hours(d.journalSeconds)}</span>`;
+        } catch {}
       }
 
       async function loadJournal(id) {

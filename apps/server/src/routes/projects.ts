@@ -878,6 +878,53 @@ router.get("/api/projects/:id/journal", async (req, res) => {
   res.json({ ok: true, entries: data ?? [] });
 });
 
+// Total tracked hours for a project: owner's Hackatime since cutoff + everyone's journal hours.
+router.get("/api/projects/:id/hours", async (req, res) => {
+  const token = typeof req.query.token === "string" ? req.query.token : "";
+  const session = token ? verifySessionToken(token) : null;
+  if (!session) return res.status(401).json({ ok: false });
+
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ ok: false });
+  if (!(await canAccessProject(session.userId, id)))
+    return res.status(404).json({ ok: false });
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("user_id, hackatime_projects")
+    .eq("id", id)
+    .single();
+  if (!project) return res.status(404).json({ ok: false });
+
+  const { data: owner } = await supabase
+    .from("users")
+    .select("hackatime_token, slack_id")
+    .eq("id", project.user_id as string)
+    .single();
+
+  const linked = (project.hackatime_projects as string[]) ?? [];
+  const [hackatimeSeconds, { data: jrows }] = await Promise.all([
+    fetchTrackedSecondsSince(
+      (owner as { slack_id?: string } | null)?.slack_id ?? null,
+      (owner as { hackatime_token?: string } | null)?.hackatime_token ?? null,
+      linked,
+    ),
+    supabase.from("project_journals").select("hours").eq("project_id", id),
+  ]);
+  const journalSeconds =
+    ((jrows ?? []) as { hours: number | null }[]).reduce(
+      (s, j) => s + (Number(j.hours) || 0),
+      0,
+    ) * 3600;
+
+  res.json({
+    ok: true,
+    hackatimeSeconds,
+    journalSeconds,
+    trackedSeconds: hackatimeSeconds + journalSeconds,
+  });
+});
+
 // Player-visible history for an own project: creation, current ship, and each
 // review verdict with its player-facing note. Internal audit notes are never
 // exposed here.
