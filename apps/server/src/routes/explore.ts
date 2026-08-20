@@ -51,7 +51,6 @@ router.get("/api/explore/players", async (req, res) => {
       .is("archived_at", null)
       .is("rejected_at", null)
     .is("banned_at", null)
-    .eq("status", "approved")
       .in("user_id", ids);
     for (const p of projects ?? [])
       counts.set(p.user_id as string, (counts.get(p.user_id as string) ?? 0) + 1);
