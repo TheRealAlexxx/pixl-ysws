@@ -104,6 +104,7 @@ func _build_ui() -> void:
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.gui_input.connect(_on_root_gui_input)  # tap-to-advance, mobile has no [E]
 	add_child(root)
 
 	_bg = ColorRect.new()
@@ -267,7 +268,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		skip()
 	elif event.is_action_pressed("interact") \
-			or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
 			or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE):
 		get_viewport().set_input_as_handled()
+		_advance()
+
+# root eats clicks/taps via MOUSE_FILTER_STOP before _unhandled_input sees
+# them, so this is the actual advance path for mouse/touch (touch emulates
+# mouse by default - see input_devices/pointing/emulate_mouse_from_touch).
+func _on_root_gui_input(event: InputEvent) -> void:
+	if _done:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_advance()
