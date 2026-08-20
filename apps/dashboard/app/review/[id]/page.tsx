@@ -19,10 +19,10 @@ import { yswsShipsFor } from "@/lib/ysws";
 import { renderMarkdown } from "@/lib/markdown";
 import { db } from "@/lib/db";
 import { ReviewForm, type BountyOption } from "@/app/_components/ReviewForm";
-import { banProject, setProjectLevel, sendBackToFirstPass, forceAdvanceFraud } from "@/app/actions";
+import { banProject, setProjectLevel, sendBackToFirstPass, forceAdvanceFraud, toggleProjectPeak } from "@/app/actions";
 import { PendingButton } from "@/app/_components/PendingButton";
 import { ReviewDetailTabs } from "@/app/_components/ReviewDetailTabs";
-import { LevelBadge, TypeBadge, ShipBadges, StatusBadge } from "@/app/_components/ProjectBadges";
+import { LevelBadge, TypeBadge, ShipBadges, StatusBadge, BeaconBadge } from "@/app/_components/ProjectBadges";
 import { slackHandle } from "@/lib/slack";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -257,6 +257,7 @@ export default async function ReviewDetail({
               <LevelBadge level={p.level} />
               <TypeBadge type={p.project_type} />
               <ShipBadges project={p} />
+              {p.is_peak && <BeaconBadge />}
               {trial?.name && (
                 <Badge variant="secondary" className="font-bold">
                   Trial: {trial.name}
@@ -520,6 +521,27 @@ export default async function ReviewDetail({
                   <span className="ml-auto tabular-nums font-medium">{fmtHM(journalHours)}</span>
                 </div>
               </div>
+            </Card>
+
+            <Card className="p-4 gap-0 flex-row items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold">Beacon</div>
+                <p className="text-xs text-muted-foreground">
+                  Nominate a standout project , cosmetic only, never affects payout.
+                </p>
+              </div>
+              <form action={toggleProjectPeak}>
+                <input type="hidden" name="projectId" value={p.id} />
+                {!p.is_peak && <input type="hidden" name="isPeak" value="1" />}
+                <PendingButton
+                  size="sm"
+                  variant={p.is_peak ? "outline" : undefined}
+                  className={p.is_peak ? "" : "bg-amber-500 text-black hover:bg-amber-600 border-transparent"}
+                  pendingText={p.is_peak ? "Removing…" : "Marking…"}
+                >
+                  {p.is_peak ? "Remove" : "★ Mark"}
+                </PendingButton>
+              </form>
             </Card>
 
             {trust && (
