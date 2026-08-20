@@ -193,6 +193,12 @@
   .ticket-foot .tf-class { font-family: var(--pixel); font-size: 19px; color: var(--ink); line-height: 1; }
   .ticket-foot .tf-sub { font-size: 12px; color: var(--faint); letter-spacing: .3px; line-height: 1; }
 
+  /* stuck-on sparkle stickers in the corner, like someone slapped them onto
+     the paper - pixel-perfect white outline is baked into the PNG itself. */
+  .ticket-sticker { position: absolute; image-rendering: pixelated; pointer-events: none; user-select: none; }
+  .ticket-sticker.sticker-red { width: 46px; bottom: 14px; right: 42px; rotate: -16deg; z-index: 2; }
+  .ticket-sticker.sticker-gold { width: 54px; bottom: -12px; right: 4px; rotate: 12deg; z-index: 3; }
+
   .dash-section { margin: 13px 0 24px; }
   .dash-h { font-family: var(--pixel); font-size: 15px; color: var(--ink); letter-spacing: .5px; margin-bottom: 10px;
     display: flex; align-items: center; gap: 8px; }
@@ -564,6 +570,8 @@ async function showPlayer(id) {
           <div class="tf-class">CLASS: ${classForLevel(p.level)}</div>
           <div class="tf-sub">PIXELIAN · MEMBER SINCE ${joinedYear}</div>
         </div>
+        <img class="ticket-sticker sticker-red" src="../img/sticker_currency_red.png" alt="">
+        <img class="ticket-sticker sticker-gold" src="../img/sticker_currency_gold.png" alt="">
       </div>
 
       <div class="dash-col">
