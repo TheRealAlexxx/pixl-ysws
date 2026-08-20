@@ -88,7 +88,12 @@ async function storeAnswer(question: string, norm: string, answer: string): Prom
 
 /**
  * Answer a question from the docs, or return null if the docs don't cover it
- * (the signal to fall back to a human helper).
+ * (the signal to fall back to a human helper). Only ever called on messages
+ * already posted in the #pixl-help ticket channel (see tickets/service.ts),
+ * so an answer that tells the asker to go post in #pixl-help is nonsensical —
+ * they're already there. The system prompt below rules that out statically
+ * rather than interpolating the channel per-message, which would bust the
+ * prompt cache (see the "never interpolate per-message values" invariant).
  */
 export async function answerQuestion(rawQuestion: string): Promise<DocsAnswer | null> {
   const question = (rawQuestion || "").trim();
@@ -116,7 +121,8 @@ export async function answerQuestion(rawQuestion: string): Promise<DocsAnswer | 
             "You are pixo, the Pixl help bot. Answer the user's question using ONLY the Pixl docs and the remembered facts provided below — the remembered facts are hand-entered by the support team and take priority over the docs if they conflict. " +
             "Be concise, friendly and clear (casual lowercase is fine, no markdown headers, 1-4 sentences). " +
             `If neither the docs nor the remembered facts contain the answer, reply with exactly ${NO_ANSWER} and nothing else. ` +
-            "Never invent facts that aren't in the docs or the remembered facts.\n\n=== PIXL DOCS ===\n" +
+            "Never invent facts that aren't in the docs or the remembered facts. " +
+            "This answer is always posted as a reply in the #pixl-help channel, where the user already is — never tell them to ask in #pixl-help or contact the support team, they're already talking to a helper thread there.\n\n=== PIXL DOCS ===\n" +
             corpus +
             facts,
         },
