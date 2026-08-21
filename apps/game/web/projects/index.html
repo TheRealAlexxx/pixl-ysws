@@ -2197,21 +2197,10 @@
         if ($("s-unship"))
           $("s-unship").addEventListener("click", () => unship(p));
         initMdBar();
-        $("j-img-file").addEventListener("change", async () => {
+        $("j-img-file").addEventListener("change", () => {
           const f = $("j-img-file").files[0];
           if (!f) return;
-          setImageBtnBusy(true);
-          try {
-            const url = await Pixl.upload(f);
-            $("j-content").value +=
-              ($("j-content").value ? "\n" : "") + `![](${url})`;
-            autoGrow($("j-content"));
-            Pixl.toast("Image attached!");
-          } catch (e) {
-            Pixl.toast(err(e.message), true);
-          } finally {
-            setImageBtnBusy(false);
-          }
+          attachImageToJournal(f);
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
         $("p-delete").addEventListener("click", () => deleteProject(p));
@@ -2402,20 +2391,10 @@
     </div>`;
 
         initMdBar();
-        $("j-img-file").addEventListener("change", async () => {
+        $("j-img-file").addEventListener("change", () => {
           const f = $("j-img-file").files[0];
           if (!f) return;
-          setImageBtnBusy(true);
-          try {
-            const url = await Pixl.upload(f);
-            $("j-content").value += ($("j-content").value ? "\n" : "") + `![](${url})`;
-            autoGrow($("j-content"));
-            Pixl.toast("Image attached!");
-          } catch (e) {
-            Pixl.toast(err(e.message), true);
-          } finally {
-            setImageBtnBusy(false);
-          }
+          attachImageToJournal(f);
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
         $("j-content").addEventListener("input", updateJournalHint);
@@ -2938,6 +2917,30 @@
         }
       }
 
+      // Drops a literal placeholder line into the journal textarea itself —
+      // visible in the raw text you're editing, not just a toast or a button
+      // state — then swaps it for the real markdown once the upload resolves,
+      // or removes it cleanly if the upload fails.
+      async function attachImageToJournal(file) {
+        const ta = $("j-content");
+        setImageBtnBusy(true);
+        const marker = "![Uploading image…]()";
+        const inserted = (ta.value ? "\n" : "") + marker;
+        ta.value += inserted;
+        autoGrow(ta);
+        try {
+          const url = await Pixl.upload(file);
+          ta.value = ta.value.replace(marker, `![](${url})`);
+          Pixl.toast("Image attached!");
+        } catch (e) {
+          ta.value = ta.value.replace(inserted, "");
+          Pixl.toast(err(e.message), true);
+        } finally {
+          autoGrow(ta);
+          setImageBtnBusy(false);
+        }
+      }
+
       async function loadTimeline(id) {
         let events = [];
         try {
@@ -3179,14 +3182,7 @@
         if (!file) return;
         if (document.activeElement === $("j-content")) {
           e.preventDefault();
-          Pixl.upload(file)
-            .then((url) => {
-              $("j-content").value +=
-                ($("j-content").value ? "\n" : "") + `![](${url})`;
-              autoGrow($("j-content"));
-              Pixl.toast("Image attached!");
-            })
-            .catch((x) => Pixl.toast(err(x.message), true));
+          attachImageToJournal(file);
         } else if ($("f-thumb-btn")) {
           e.preventDefault();
           setThumb(file);
