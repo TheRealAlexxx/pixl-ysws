@@ -239,7 +239,11 @@ func _update_prompt() -> void:
 		_prompt.size = ms
 		var target_scale := Vector2.ONE / 3.5
 		_prompt.pivot_offset = ms / 2.0
-		_prompt.position = Vector2(-ms.x / 2.0, -41.0 - ms.y * 0.5 * (1.0 - target_scale.y))
+		var nl_top: float = $NameLabel.position.y
+		_prompt.position = Vector2(
+			-ms.x / 2.0,
+			nl_top - 4.0 - ms.y * target_scale.y - ms.y * 0.5 * (1.0 - target_scale.y),
+		)
 		_prompt.scale = target_scale * 0.6
 		var tw := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_property(_prompt, "scale", target_scale, 0.2)
