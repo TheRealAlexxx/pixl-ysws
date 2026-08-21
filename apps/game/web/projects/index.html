@@ -1226,6 +1226,7 @@
         project_banned: "This project is banned and can't be shipped.",
         cdn_not_configured: "Image uploads aren't configured on the server.",
         cdn_failed: "Image upload failed, try again.",
+        file_too_large: "That image is too big. Keep it under 5 MB.",
         journal_too_short:
           "Log more detail: journals need ~100 characters per hour.",
         not_in_review: "This project isn't in review.",
@@ -2199,7 +2200,7 @@
         $("j-img-file").addEventListener("change", async () => {
           const f = $("j-img-file").files[0];
           if (!f) return;
-          Pixl.toast("Uploading image…");
+          setImageBtnBusy(true);
           try {
             const url = await Pixl.upload(f);
             $("j-content").value +=
@@ -2208,6 +2209,8 @@
             Pixl.toast("Image attached!");
           } catch (e) {
             Pixl.toast(err(e.message), true);
+          } finally {
+            setImageBtnBusy(false);
           }
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
@@ -2402,7 +2405,7 @@
         $("j-img-file").addEventListener("change", async () => {
           const f = $("j-img-file").files[0];
           if (!f) return;
-          Pixl.toast("Uploading image…");
+          setImageBtnBusy(true);
           try {
             const url = await Pixl.upload(f);
             $("j-content").value += ($("j-content").value ? "\n" : "") + `![](${url})`;
@@ -2410,6 +2413,8 @@
             Pixl.toast("Image attached!");
           } catch (e) {
             Pixl.toast(err(e.message), true);
+          } finally {
+            setImageBtnBusy(false);
           }
         });
         $("j-post").addEventListener("click", () => postJournal(p.id));
@@ -2914,6 +2919,23 @@
             mdApply($("j-content"), "italic");
           }
         });
+      }
+
+      // Swaps the IMAGE toolbar button for a spinner for the life of the
+      // upload promise — the "Uploading…" toast auto-dismisses on its own
+      // timer regardless of how long the request actually takes, so it's not
+      // a real progress signal on a slow connection or a big journal.
+      function setImageBtnBusy(busy) {
+        const b = document.querySelector('#j-mdbar [data-md="image"]');
+        if (!b) return;
+        if (busy) {
+          b.dataset.label = b.dataset.label || b.innerHTML;
+          b.disabled = true;
+          b.innerHTML = '<span class="spin-sm"></span>';
+        } else {
+          b.disabled = false;
+          b.innerHTML = b.dataset.label || "IMAGE";
+        }
       }
 
       async function loadTimeline(id) {

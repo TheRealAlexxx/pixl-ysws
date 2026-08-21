@@ -98,6 +98,30 @@ app.use(yswsRouter);
 app.get("/", (_req, res) => res.json({ name: "pixl-server", status: "ok" }));
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
+// This is a pure JSON API — nothing upstream turns a thrown error into JSON,
+// so without this an oversized/malformed body (e.g. body-parser's raw-size
+// limit) falls through to Express's default HTML error page, which every
+// client here parses with res.json() and silently treats as "went wrong".
+app.use(
+  (
+    err: unknown,
+    _req: express.Request,
+    res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    if (res.headersSent) return next(err);
+    const type = (err as { type?: string } | null)?.type;
+    if (type === "entity.too.large") {
+      return res.status(413).json({ ok: false, error: "file_too_large" });
+    }
+    if (type === "entity.parse.failed") {
+      return res.status(400).json({ ok: false, error: "bad_request" });
+    }
+    console.error("[server] unhandled error", err);
+    res.status(500).json({ ok: false, error: "server_error" });
+  },
+);
+
 const httpServer = createServer(app);
 attachWebSocketServer(httpServer);
 
